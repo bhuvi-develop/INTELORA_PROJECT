@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
   BadgeCheck,
@@ -10,6 +11,7 @@ import {
   ThumbsUp,
   TrendingDown,
 } from 'lucide-react';
+import { PATHS } from '@/routes/paths';
 import { cn } from '@/lib/cn';
 import { formatCurrency, formatNumber, formatPercent } from '@/utils/format';
 import { Card } from '@/components/ui/Card';
@@ -42,6 +44,8 @@ interface MetricTileProps {
   meter?: { value: number; max?: number };
   caveat?: string;
   className?: string;
+  /** Drill-down route. Omit to leave the tile inert. */
+  to?: string;
 }
 
 const TONE: Record<'good' | 'bad' | 'neutral', string> = {
@@ -62,27 +66,68 @@ const MetricTile = ({
   meter,
   caveat,
   className,
-}: MetricTileProps) => (
-  <Card className={cn('relative flex flex-col pl-5', className)} interactive>
+  to,
+}: MetricTileProps) => {
+  const navigate = useNavigate();
+
+  return (
+  <Card
+    className={cn(
+      'group relative flex flex-col pl-5',
+      to && 'cursor-pointer hover:-translate-y-px',
+      className,
+    )}
+    interactive
+    // The hover glow is drawn in the tile's own accent rather than a fixed
+    // colour, so the affordance carries the identity of the metric it opens.
+    onMouseEnter={
+      to
+        ? (event) => {
+            event.currentTarget.style.boxShadow = `inset 0 0 0 1px ${accent}59, 0 8px 26px -12px ${accent}4D`;
+          }
+        : undefined
+    }
+    onMouseLeave={
+      to
+        ? (event) => {
+            event.currentTarget.style.boxShadow = '';
+          }
+        : undefined
+    }
+  >
     <span
       aria-hidden
       className="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl"
       style={{ backgroundColor: accent }}
     />
 
+    {/* Whole tile is the hit target, but the tooltip trigger and any focusable
+        content stay above it — see the z-20 wrapper on the info icon. */}
+    {to ? (
+      <button
+        type="button"
+        onClick={() => navigate(to)}
+        className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400/60"
+      >
+        <span className="sr-only">{label} — open detail</span>
+      </button>
+    ) : null}
+
     <div className="flex items-start justify-between gap-2">
       <div className="flex min-w-0 items-center gap-1.5">
         <p className="eyebrow truncate">{label}</p>
-        <Tooltip content={explainer} side="top">
-          <span
-            tabIndex={0}
-            role="note"
-            aria-label={`${label} — ${explainer}`}
-            className="flex h-4 w-4 shrink-0 cursor-help items-center justify-center rounded-full text-fg-faint transition-colors hover:text-fg-muted focus:text-fg-muted focus:outline-none"
-          >
-            <Info size={11} aria-hidden />
-          </span>
-        </Tooltip>
+        <span className="relative z-20 shrink-0">
+          <Tooltip content={explainer} side="top">
+            <span
+              tabIndex={0}
+              role="note"
+              aria-label={`${label} — ${explainer}`}
+              className="flex h-4 w-4 shrink-0 cursor-help items-center justify-center rounded-full text-fg-faint transition-colors hover:text-fg-muted focus:text-fg-muted focus:outline-none"
+            >
+              <Info size={11} aria-hidden />
+            </span>
+          </Tooltip>
+        </span>
       </div>
       <span
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ring-overlay/[0.07]"
@@ -115,8 +160,18 @@ const MetricTile = ({
     </dl>
 
     {caveat ? <p className="mt-2 text-[10px] leading-relaxed text-fg-faint">{caveat}</p> : null}
+
+    {to ? (
+      <p
+        className="mt-2.5 text-[10px] font-medium uppercase tracking-[0.12em] opacity-70 transition-opacity group-hover:opacity-100"
+        style={{ color: accent }}
+      >
+        Open analysis
+      </p>
+    ) : null}
   </Card>
-);
+  );
+};
 
 export interface DetectionQualityGridProps {
   quality: DetectionQuality;
@@ -148,6 +203,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* ── 1 · False positives ─────────────────────────────────────── */}
         <MetricTile
+          to={PATHS.metricFalsePositives}
           accent="#F43F5E"
           label="False positive analytics"
           icon={Target}
@@ -170,6 +226,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
 
         {/* ── 2 · False negatives ─────────────────────────────────────── */}
         <MetricTile
+          to={PATHS.metricFalseNegatives}
           accent="#A855F7"
           label="False negative analytics"
           icon={TrendingDown}
@@ -194,6 +251,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
 
         {/* ── 3 · Latency and SLA ─────────────────────────────────────── */}
         <MetricTile
+          to={PATHS.metricLatencySla}
           accent="#38BDF8"
           label="Detection latency & SLA"
           icon={Clock3}
@@ -217,6 +275,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
 
         {/* ── 4 · Prediction horizon ──────────────────────────────────── */}
         <MetricTile
+          to={PATHS.metricPredictionHorizon}
           accent="#22C55E"
           label="Prediction horizon reliability"
           icon={BadgeCheck}
@@ -238,6 +297,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
 
         {/* ── 5 · Recommendation acceptance ───────────────────────────── */}
         <MetricTile
+          to={PATHS.metricRecommendationAcceptance}
           accent="#14B8A6"
           label="Recommendation acceptance"
           icon={ThumbsUp}
@@ -258,6 +318,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
 
         {/* ── 6 · Business impact ─────────────────────────────────────── */}
         <MetricTile
+          to={PATHS.metricBusinessImpact}
           accent="#B45309"
           label="Business impact & cost savings"
           icon={CircleDollarSign}
@@ -276,6 +337,7 @@ export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }:
         {/* Spans two columns so the second row closes flush at four across. */}
         <MetricTile
           className="xl:col-span-2"
+          to={PATHS.metricEngineeringConfidence}
           accent="#EC4899"
           label="Engineering confidence score"
           icon={Brain}

@@ -8,12 +8,22 @@ import { DevicesPage } from '@/pages/DevicesPage';
 import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
 import { LiveTelemetryPage } from '@/pages/LiveTelemetryPage';
 import { AnomalyDetectionPage } from '@/pages/AnomalyDetectionPage';
+import { AnomalyReportsPage } from '@/pages/AnomalyReportsPage';
 import {
   ActiveEventsDetailPage,
   CategoryBreakdownDetailPage,
   LiveStatusDetailPage,
   TaxonomySignaturesDetailPage,
 } from '@/pages/anomaly-details';
+import {
+  BusinessImpactMetricPage,
+  EngineeringConfidenceMetricPage,
+  FalseNegativesMetricPage,
+  FalsePositivesMetricPage,
+  LatencySlaMetricPage,
+  PredictionHorizonMetricPage,
+  RecommendationAcceptanceMetricPage,
+} from '@/pages/anomaly-metrics';
 import { PredictiveMaintenancePage } from '@/pages/PredictiveMaintenancePage';
 import { PreventiveMaintenancePage } from '@/pages/PreventiveMaintenancePage';
 import { PrescriptiveMaintenancePage } from '@/pages/PrescriptiveMaintenancePage';
@@ -58,9 +68,45 @@ export const AppRoutes = () => (
           path="anomaly-detection/details/taxonomy-signatures"
           element={<TaxonomySignaturesDetailPage />}
         />
-        {/* A bare /details is not a page — send it back to the module. */}
+        {/* The module's own report surface — the journal with its taxonomy,
+            exportable. Distinct from Historical Reports, which browses several
+            archived record sets at daily resolution. */}
+        <Route path="anomaly-detection/reports" element={<AnomalyReportsPage />} />
+
+        {/* Detection-quality drill-downs, one per KPI tile. */}
+        <Route
+          path="anomaly-detection/metrics/false-positives"
+          element={<FalsePositivesMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/false-negatives"
+          element={<FalseNegativesMetricPage />}
+        />
+        <Route path="anomaly-detection/metrics/latency-sla" element={<LatencySlaMetricPage />} />
+        <Route
+          path="anomaly-detection/metrics/prediction-horizon"
+          element={<PredictionHorizonMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/recommendation-acceptance"
+          element={<RecommendationAcceptanceMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/business-impact"
+          element={<BusinessImpactMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/engineering-confidence"
+          element={<EngineeringConfidenceMetricPage />}
+        />
+
+        {/* A bare /details or /metrics is not a page — send it back to the module. */}
         <Route
           path="anomaly-detection/details"
+          element={<Navigate to={PATHS.anomaly} replace />}
+        />
+        <Route
+          path="anomaly-detection/metrics"
           element={<Navigate to={PATHS.anomaly} replace />}
         />
 

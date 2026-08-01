@@ -153,6 +153,10 @@ export interface DetectionQuality {
     downtimeHoursAvoided: number;
     hardwareSaved: number;
     actioned: number;
+    /** Measured mean time to clear, in minutes — the term the hours are built on. */
+    meanTimeToClearMinutes: number;
+    /** Devices whose critical events were closed rather than left standing. */
+    devicesRetained: number;
   };
   confidence: {
     scorePct: number;
@@ -627,6 +631,8 @@ export const useAnomalyModule = () => {
         downtimeHoursAvoided: Math.round(downtimeHoursAvoided * 10) / 10,
         hardwareSaved,
         actioned,
+        meanTimeToClearMinutes: snapshot.mttrMinutes,
+        devicesRetained: savedAssets,
       },
       confidence: {
         scorePct: Math.round(modelConfidence * (snr / 100) * 10) / 10,

@@ -14,6 +14,17 @@ export const PATHS = {
   anomalyActiveEvents: '/app/anomaly-detection/details/active-events',
   anomalyCategoryBreakdown: '/app/anomaly-detection/details/category-breakdown',
   anomalyTaxonomySignatures: '/app/anomaly-detection/details/taxonomy-signatures',
+  /** Module-scoped anomaly report — the journal with its taxonomy, exportable. */
+  anomalyReports: '/app/anomaly-detection/reports',
+  /* Detection-quality metric drill-downs, one per KPI tile. Same nesting rule as
+   * the status-bar drill-downs above. */
+  metricFalsePositives: '/app/anomaly-detection/metrics/false-positives',
+  metricFalseNegatives: '/app/anomaly-detection/metrics/false-negatives',
+  metricLatencySla: '/app/anomaly-detection/metrics/latency-sla',
+  metricPredictionHorizon: '/app/anomaly-detection/metrics/prediction-horizon',
+  metricRecommendationAcceptance: '/app/anomaly-detection/metrics/recommendation-acceptance',
+  metricBusinessImpact: '/app/anomaly-detection/metrics/business-impact',
+  metricEngineeringConfidence: '/app/anomaly-detection/metrics/engineering-confidence',
   predictive: '/app/predictive-maintenance',
   preventive: '/app/preventive-maintenance',
   prescriptive: '/app/prescriptive-maintenance',

@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from app.config import settings
 from app.routers import (
     anomalies,
+    anomaly_taxonomy,
     apm,
     assets,
     dashboard,
@@ -26,6 +27,11 @@ api_router.include_router(dashboard.router)
 api_router.include_router(assets.router)
 api_router.include_router(telemetry.router)
 api_router.include_router(anomalies.router)
+# Taxonomy surface at /api/v1/anomalies. Mounted alongside the older
+# /api/anomalies rather than replacing it: the reporting endpoints and the live
+# client both read that one, and versioning is what lets this one land without
+# breaking either.
+api_router.include_router(anomaly_taxonomy.router)
 api_router.include_router(predictive.router)
 api_router.include_router(maintenance.preventive_router)
 api_router.include_router(maintenance.prescriptive_router)

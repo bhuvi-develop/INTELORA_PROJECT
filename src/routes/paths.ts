@@ -7,6 +7,13 @@ export const PATHS = {
   deviceDetail: '/app/devices/:assetId',
   telemetry: '/app/live-telemetry',
   anomaly: '/app/anomaly-detection',
+  /* Anomaly drill-downs. Nested under the module path so `navItemByPath` and the
+   * sidebar's NavLink both resolve them to Anomaly Detection by prefix — a
+   * sibling path would silently un-highlight the module the user is still in. */
+  anomalyLiveStatus: '/app/anomaly-detection/details/live-status',
+  anomalyActiveEvents: '/app/anomaly-detection/details/active-events',
+  anomalyCategoryBreakdown: '/app/anomaly-detection/details/category-breakdown',
+  anomalyTaxonomySignatures: '/app/anomaly-detection/details/taxonomy-signatures',
   predictive: '/app/predictive-maintenance',
   preventive: '/app/preventive-maintenance',
   prescriptive: '/app/prescriptive-maintenance',

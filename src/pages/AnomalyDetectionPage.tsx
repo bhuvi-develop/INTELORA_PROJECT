@@ -2,39 +2,29 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
   Activity,
-  AlertTriangle,
   CheckCheck,
-  Crosshair,
   Download,
   Radar,
   ShieldAlert,
   ShieldCheck,
-  Timer,
+  Waves,
+  X,
 } from 'lucide-react';
-import type { AnomalyRecord, AnomalyStatus, AnomalyType, Severity } from '@/engine/types';
-import { ANOMALY_DEFS, SEVERITY_TONE } from '@/engine/derive';
-import {
-  CHANNEL_FOR_ANOMALY,
-  SEVERITY_ORDER,
-  bucketBySeverity,
-  sortBySeverity,
-  tallyByType,
-} from '@/engine/analytics';
-import { DEVICE_CATEGORIES, channelMeta } from '@/engine/catalog';
+import type { AnomalyRecord, AnomalyStatus } from '@/engine/types';
+import { SEVERITY_TONE } from '@/engine/derive';
+import { SEVERITY_ORDER, bucketBySeverity, sortBySeverity } from '@/engine/analytics';
+import { DEVICE_CATEGORIES } from '@/engine/catalog';
 import { MODULE_TITLES } from '@/config/navigation';
-import { CHANNEL_COLOR, SERIES } from '@/config/viz';
 import { env } from '@/config/env';
 import { useAnomalyJournal, useAssetList, useEngineControl, useSnapshot } from '@/engine/store';
-import { formatDateTime, formatNumber, formatPercent, formatRelative } from '@/utils/format';
+import { formatDateTime, formatNumber, formatRelative } from '@/utils/format';
 import { exportReport, type ReportColumn, type ReportFormat } from '@/utils/report';
 import { useDebounce, useToast, useUI } from '@/hooks';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
-import { AreaTrend, BarTrend, LineTrend } from '@/components/charts';
+import { AreaTrend, LineTrend } from '@/components/charts';
 import type { SeriesDef } from '@/components/charts';
-import { AiPanel } from '@/components/ai';
 import { GrafanaPanel } from '@/components/grafana';
 import { DataTable, Pagination, TableToolbar, type FilterDef } from '@/components/data';
 import {
@@ -43,31 +33,47 @@ import {
   MetaStat,
   PageHeader,
   SeverityBadge,
-  StatTile,
 } from '@/components/common';
+import {
+  DetectionQualityGrid,
+  EventDetailDrawer,
+  FAULT_CLASSES,
+  FAULT_RULES,
+  FailureClassification,
+  TaxonomyReference,
+  TaxonomyStatusBar,
+  faultClass,
+  faultRule,
+  useAnomalyModule,
+  type CategorySelection,
+  type SeveritySelection,
+} from '@/components/anomaly';
 
 /* ───────────────────────────────────────────────────────────────────────────
  * Anomaly detection.
  *
  * Every record here was raised by the engine when a live reading breached a
  * threshold held on the device's own profile and stayed there — a charger at
- * 19.8 V and a UPS at 230 V are each judged against their own tolerance. Nothing
- * on this page is generated for display.
+ * 19.8 V and a laptop at 20.5 V are each judged against their own tolerance.
+ * Nothing on this page is generated for display.
+ *
+ * The view is three blocks over one shared selection:
+ *
+ *   1 · status bar        — is the stream trustworthy, and what is open on it
+ *   2 · classification    — which failure modes those open events resolve to
+ *   3 · detection quality — how well the detector is doing at the selection
+ *
+ * Selecting a class in block 2 narrows block 3, the traces and the table
+ * together. The selection is held in `useAnomalyModule` and never leaves this
+ * page, so no other module can be reached by a drill-down made here.
  * ─────────────────────────────────────────────────────────────────────────── */
 
-const TIMELINE_SERIES: SeriesDef[] = SEVERITY_ORDER.map((severity) => ({
-  key: severity,
-  name: severity,
-  color: SEVERITY_TONE[severity].color,
-  decimals: 0,
-}));
-
-const SEVERITY_OPTIONS: Array<{ value: Severity | 'all'; label: string }> = [
-  { value: 'all', label: 'All severities' },
-  { value: 'Critical', label: 'Critical' },
-  { value: 'Major', label: 'Major' },
-  { value: 'Warning', label: 'Warning' },
-  { value: 'Info', label: 'Info' },
+const SEVERITY_OPTIONS: Array<{ value: SeveritySelection; label: string }> = [
+  { value: 'ALL', label: 'All severities' },
+  { value: 'CRITICAL', label: 'Critical' },
+  { value: 'MAJOR', label: 'Major' },
+  { value: 'WARNING', label: 'Warning' },
+  { value: 'INFO', label: 'Info' },
 ];
 
 const STATUS_OPTIONS: Array<{ value: AnomalyStatus | 'all'; label: string }> = [
@@ -87,11 +93,14 @@ export const AnomalyDetectionPage = () => {
   const { at, mttrMinutes } = useSnapshot();
   const { acknowledge, acknowledgeAll } = useEngineControl();
 
+  const module = useAnomalyModule();
+  const { state, taxonomy, status, quality, signal, scoped, ruleFor } = module;
+
+  /* Table-local controls. These narrow what is already in module scope; they are
+   * not part of the taxonomy selection and nothing else on the page reads them. */
   const [search, setSearch] = useState('');
-  const [severity, setSeverity] = useState<Severity | 'all'>('all');
-  const [status, setStatus] = useState<AnomalyStatus | 'all'>('all');
-  const [type, setType] = useState<AnomalyType | 'all'>('all');
-  const [category, setCategory] = useState('all');
+  const [recordStatus, setRecordStatus] = useState<AnomalyStatus | 'all'>('all');
+  const [deviceCategory, setDeviceCategory] = useState('all');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [selected, setSelected] = useState<AnomalyRecord | null>(null);
@@ -101,21 +110,20 @@ export const AnomalyDetectionPage = () => {
 
   const filtered = useMemo(() => {
     const needle = debouncedSearch.trim().toLowerCase();
-    return journal
+    return scoped
       .filter((record) => {
-        if (severity !== 'all' && record.severity !== severity) return false;
-        if (status !== 'all' && record.status !== status) return false;
-        if (type !== 'all' && record.type !== type) return false;
-        if (category !== 'all' && record.category !== category) return false;
+        if (recordStatus !== 'all' && record.status !== recordStatus) return false;
+        if (deviceCategory !== 'all' && record.category !== deviceCategory) return false;
         if (needle.length > 0) {
+          const rule = ruleFor(record);
           const haystack =
-            `${record.code} ${record.assetId} ${record.assetName} ${record.title} ${record.category}`.toLowerCase();
+            `${record.code} ${record.assetId} ${record.assetName} ${record.title} ${record.category} ${rule?.id ?? ''} ${rule?.signature ?? ''}`.toLowerCase();
           if (!haystack.includes(needle)) return false;
         }
         return true;
       })
       .sort(sortBySeverity);
-  }, [journal, debouncedSearch, severity, status, type, category]);
+  }, [scoped, debouncedSearch, recordStatus, deviceCategory, ruleFor]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount);
@@ -126,65 +134,36 @@ export const AnomalyDetectionPage = () => {
 
   const stats = useMemo(() => {
     const active = journal.filter((record) => record.status === 'Active');
-    const acknowledged = journal.filter((record) => record.status === 'Acknowledged');
-    const resolved = journal.filter((record) => record.status === 'Resolved');
     return {
       active: active.length,
       critical: active.filter((record) => record.severity === 'Critical').length,
-      acknowledged: acknowledged.length,
-      resolved: resolved.length,
-      mttr: mttrMinutes,
+      acknowledged: journal.filter((record) => record.status === 'Acknowledged').length,
+      resolved: journal.filter((record) => record.status === 'Resolved').length,
       affected: new Set(active.map((record) => record.assetId)).size,
     };
-  }, [journal, mttrMinutes]);
+  }, [journal]);
 
-  const timeline = useMemo(() => bucketBySeverity(journal, at), [journal, at]);
-  const tallies = useMemo(() => tallyByType(journal), [journal]);
+  /* The timeline follows the selection, so narrowing to a class shows when that
+   * class was raised rather than when anything was. */
+  const timeline = useMemo(() => bucketBySeverity(scoped, at), [scoped, at]);
 
-  const typeBars = useMemo(
-    () => tallies.filter((entry) => entry.count > 0).map((entry) => ({ label: entry.label, count: entry.count })),
-    [tallies],
+  const timelineSeries = useMemo<SeriesDef[]>(
+    () =>
+      SEVERITY_ORDER.map((severity) => ({
+        key: severity,
+        name: severity,
+        color: SEVERITY_TONE[severity].color,
+        decimals: 0,
+      })),
+    [],
   );
 
-  /* Channel history around the selected event, so the evidence is the actual
-   * stream rather than a redrawn illustration. */
-  const evidence = useMemo(() => {
-    if (!selected) return null;
-    const asset = assets.find((entry) => entry.device.assetId === selected.assetId);
-    if (!asset) return null;
+  const selectedAsset = useMemo(
+    () => (selected ? assets.find((entry) => entry.device.assetId === selected.assetId) : undefined),
+    [selected, assets],
+  );
 
-    const channel = CHANNEL_FOR_ANOMALY[selected.type];
-    const meta = channelMeta(channel);
-
-    return {
-      asset,
-      channel,
-      meta,
-      data: asset.history.slice(-90).map((sample) => ({
-        label: sample.label,
-        t: sample.t,
-        [channel]: sample[channel],
-        threshold: selected.threshold,
-      })),
-      series: [
-        {
-          key: channel,
-          name: meta.label,
-          color: CHANNEL_COLOR[channel] ?? SERIES[0],
-          unit: meta.unit,
-          decimals: meta.decimals,
-        },
-        {
-          key: 'threshold',
-          name: 'Threshold',
-          color: SEVERITY_TONE.Critical.color,
-          unit: meta.unit,
-          decimals: meta.decimals,
-          reference: true,
-        },
-      ] satisfies SeriesDef[],
-    };
-  }, [selected, assets]);
+  /* ─── Table ────────────────────────────────────────────────────────────── */
 
   const columns = useMemo<Array<ColumnDef<AnomalyRecord, unknown>>>(
     () => [
@@ -201,12 +180,31 @@ export const AnomalyDetectionPage = () => {
         ),
       },
       {
-        id: 'title',
-        header: 'Title',
-        accessorFn: (row) => row.title,
+        id: 'signature',
+        header: 'Failure mode',
+        accessorFn: (row) => ruleFor(row)?.id ?? '',
         enableSorting: true,
-        meta: { width: '13rem' },
-        cell: ({ row }) => <span className="text-[12.5px] font-semibold text-fg">{row.original.title}</span>,
+        meta: { width: '15rem' },
+        cell: ({ row }) => {
+          const rule = ruleFor(row.original);
+          if (!rule) return <span className="text-[12.5px] text-fg-dim">Unclassified</span>;
+          const def = faultClass(rule.classId);
+          return (
+            <span className="flex min-w-0 items-center gap-2">
+              <span
+                className="h-2 w-2 shrink-0 rounded-[3px]"
+                style={{ backgroundColor: def.color }}
+                aria-hidden
+              />
+              <span className="min-w-0">
+                <span className="block truncate text-[12.5px] font-semibold text-fg">{rule.signature}</span>
+                <span className="block truncate font-mono text-[10.5px] text-fg-faint">
+                  {rule.id} · {def.short}
+                </span>
+              </span>
+            </span>
+          );
+        },
       },
       {
         id: 'device',
@@ -283,80 +281,141 @@ export const AnomalyDetectionPage = () => {
           ) : null,
       },
     ],
-    [acknowledge, toast],
+    [acknowledge, toast, ruleFor],
   );
 
   const filters: FilterDef[] = [
     {
+      key: 'class',
+      label: 'Fault class',
+      value: state.selectedCategory,
+      options: [
+        { value: 'ALL', label: 'All classes' },
+        ...FAULT_CLASSES.map((entry) => ({ value: entry.id, label: entry.label })),
+      ],
+      onChange: (value) => {
+        module.selectCategory(value as CategorySelection);
+        setPage(1);
+      },
+    },
+    {
+      key: 'signature',
+      label: 'Failure mode',
+      value: state.activeFailureTypeId ?? 'all',
+      options: [
+        { value: 'all', label: 'All failure modes' },
+        ...FAULT_RULES.map((rule) => ({ value: rule.id, label: `${rule.id} · ${rule.signature}` })),
+      ],
+      onChange: (value) => {
+        module.setFailureType(value === 'all' ? null : value);
+        setPage(1);
+      },
+    },
+    {
       key: 'severity',
       label: 'Severity',
-      value: severity,
-      options: SEVERITY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+      value: state.selectedSeverity,
+      options: SEVERITY_OPTIONS,
       onChange: (value) => {
-        setSeverity(value as Severity | 'all');
+        module.selectSeverity(value as SeveritySelection);
         setPage(1);
       },
     },
     {
       key: 'status',
       label: 'State',
-      value: status,
-      options: STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+      value: recordStatus,
+      options: STATUS_OPTIONS,
       onChange: (value) => {
-        setStatus(value as AnomalyStatus | 'all');
+        setRecordStatus(value as AnomalyStatus | 'all');
         setPage(1);
       },
     },
     {
-      key: 'type',
-      label: 'Type',
-      value: type,
+      key: 'device',
+      label: 'Device type',
+      value: deviceCategory,
       options: [
-        { value: 'all', label: 'All types' },
-        ...(Object.keys(ANOMALY_DEFS) as AnomalyType[]).map((entry) => ({
-          value: entry,
-          label: `${ANOMALY_DEFS[entry].code} · ${ANOMALY_DEFS[entry].title}`,
-        })),
-      ],
-      onChange: (value) => {
-        setType(value as AnomalyType | 'all');
-        setPage(1);
-      },
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      value: category,
-      options: [
-        { value: 'all', label: 'All categories' },
+        { value: 'all', label: 'All device types' },
         ...DEVICE_CATEGORIES.map((entry) => ({ value: entry, label: entry })),
       ],
       onChange: (value) => {
-        setCategory(value);
+        setDeviceCategory(value);
         setPage(1);
       },
     },
   ];
 
-  const activeFilterCount = [severity, status, type, category].filter((value) => value !== 'all').length;
+  const activeFilterCount =
+    (state.selectedCategory === 'ALL' ? 0 : 1) +
+    (state.selectedSeverity === 'ALL' ? 0 : 1) +
+    (state.activeFailureTypeId === null ? 0 : 1) +
+    (state.classifiedOnly ? 1 : 0) +
+    (recordStatus === 'all' ? 0 : 1) +
+    (deviceCategory === 'all' ? 0 : 1);
 
   const reset = useCallback(() => {
     setSearch('');
-    setSeverity('all');
-    setStatus('all');
-    setType('all');
-    setCategory('all');
+    setRecordStatus('all');
+    setDeviceCategory('all');
     setPage(1);
-  }, []);
+    module.clearDrilldown();
+  }, [module]);
+
+  /* ─── Drill-down chips ─────────────────────────────────────────────────── */
+
+  const drilldown: Array<{ key: string; label: string; color?: string; onClear: () => void }> = [];
+  if (state.selectedCategory !== 'ALL') {
+    const def = faultClass(state.selectedCategory);
+    drilldown.push({
+      key: 'class',
+      label: def.label,
+      color: def.color,
+      onClear: () => module.selectCategory('ALL'),
+    });
+  }
+  if (state.activeFailureTypeId !== null) {
+    const rule = faultRule(state.activeFailureTypeId);
+    drilldown.push({
+      key: 'signature',
+      label: rule ? `${rule.id} · ${rule.signature}` : state.activeFailureTypeId,
+      onClear: () => module.setFailureType(null),
+    });
+  }
+  if (state.selectedSeverity !== 'ALL') {
+    drilldown.push({
+      key: 'severity',
+      label: `${state.selectedSeverity.charAt(0)}${state.selectedSeverity.slice(1).toLowerCase()} severity`,
+      onClear: () => module.selectSeverity('ALL'),
+    });
+  }
+  if (state.classifiedOnly) {
+    drilldown.push({
+      key: 'classified',
+      label: 'Classified only',
+      onClear: module.toggleClassifiedOnly,
+    });
+  }
+
+  /* ─── Export ───────────────────────────────────────────────────────────── */
 
   const exportColumns: Array<ReportColumn<AnomalyRecord>> = [
     { header: 'Error Code', value: (row) => row.code },
+    { header: 'Rule', value: (row) => ruleFor(row)?.id ?? '' },
+    { header: 'Failure Mode', value: (row) => ruleFor(row)?.signature ?? 'Unclassified' },
+    {
+      header: 'Fault Class',
+      value: (row) => {
+        const rule = ruleFor(row);
+        return rule ? faultClass(rule.classId).label : '';
+      },
+    },
     { header: 'Title', value: (row) => row.title },
     { header: 'Severity', value: (row) => row.severity },
     { header: 'Status', value: (row) => row.status },
     { header: 'Asset ID', value: (row) => row.assetId },
     { header: 'Asset Name', value: (row) => row.assetName },
-    { header: 'Category', value: (row) => row.category },
+    { header: 'Device Type', value: (row) => row.category },
     { header: 'Observed', value: (row) => row.observed, numeric: true },
     { header: 'Threshold', value: (row) => row.threshold, numeric: true },
     { header: 'Unit', value: (row) => row.unit },
@@ -376,6 +435,9 @@ export const AnomalyDetectionPage = () => {
       generatedAt: at,
       notes: [
         `${stats.active} active, ${stats.critical} at critical severity`,
+        state.selectedCategory === 'ALL'
+          ? 'All fault classes'
+          : `Class: ${faultClass(state.selectedCategory).label}`,
         activeFilterCount > 0 ? `${activeFilterCount} filter(s) applied` : 'No filters applied',
       ],
     });
@@ -413,7 +475,7 @@ export const AnomalyDetectionPage = () => {
             <MetaStat label="Devices affected" value={formatNumber(stats.affected)} />
             <MetaStat label="Acknowledged" value={formatNumber(stats.acknowledged)} />
             <MetaStat label="Self-cleared" value={formatNumber(stats.resolved)} />
-            <MetaStat label="Mean time to clear" value={`${formatNumber(stats.mttr, 1)} min`} />
+            <MetaStat label="Mean time to clear" value={`${formatNumber(mttrMinutes, 1)} min`} />
           </>
         }
         actions={
@@ -449,64 +511,92 @@ export const AnomalyDetectionPage = () => {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile
-          label="Active anomalies"
-          value={formatNumber(stats.active)}
-          caption={`${stats.affected} device${stats.affected === 1 ? '' : 's'} affected`}
-          icon={ShieldAlert}
-          accent={stats.active > 0 ? SEVERITY_TONE.Critical.color : SEVERITY_TONE.Info.color}
-        />
-        <StatTile
-          label="Critical severity"
-          value={formatNumber(stats.critical)}
-          caption="Breach magnitude above 18% of threshold"
-          icon={AlertTriangle}
-          accent={SEVERITY_TONE.Critical.color}
-        />
-        <StatTile
-          label="Acknowledged"
-          value={formatNumber(stats.acknowledged)}
-          caption="Claimed and under investigation"
-          icon={CheckCheck}
-          accent={SEVERITY_TONE.Warning.color}
-        />
-        <StatTile
-          label="Mean time to clear"
-          value={formatNumber(stats.mttr, 1)}
-          unit="min"
-          caption={`${stats.resolved} events self-cleared`}
-          icon={Timer}
-          accent={SERIES[2]}
-        />
-      </div>
+      {/* ─── 1 · Real-time taxonomy and status ──────────────────────────── */}
+      <TaxonomyStatusBar
+        status={status}
+        taxonomy={taxonomy}
+        selectedCategory={state.selectedCategory}
+        onSelectCategory={module.toggleCategory}
+        onOpenTaxonomy={() => module.setTaxonomyModal(true)}
+      />
 
-      <AiPanel module="anomaly" />
+      {drilldown.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-overlay/[0.06] bg-ink-850/40 px-3.5 py-2.5">
+          <span className="eyebrow shrink-0">Drill-down</span>
+          {drilldown.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={chip.onClear}
+              className="inline-flex h-6 items-center gap-1.5 rounded-md bg-overlay/[0.06] px-2 text-[11.5px] font-medium text-fg-soft ring-1 ring-inset ring-overlay/10 transition-colors hover:bg-overlay/[0.1] hover:text-fg"
+            >
+              {chip.color ? (
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: chip.color }}
+                  aria-hidden
+                />
+              ) : null}
+              {chip.label}
+              <X size={11} aria-hidden />
+            </button>
+          ))}
+          <span className="text-[11px] tabular-nums text-fg-dim">
+            {formatNumber(scoped.length)} of {formatNumber(journal.length)} events in scope
+          </span>
+          <Button variant="ghost" size="xs" className="ml-auto" onClick={module.clearDrilldown}>
+            Clear all
+          </Button>
+        </div>
+      ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+      {/* ─── 2 · Failure classification ─────────────────────────────────── */}
+      <FailureClassification
+        taxonomy={taxonomy}
+        selectedCategory={state.selectedCategory}
+        activeFailureTypeId={state.activeFailureTypeId}
+        classifiedOnly={state.classifiedOnly}
+        onSelectCategory={module.toggleCategory}
+        onSelectFailureType={module.selectFailureType}
+        onOpenTaxonomy={() => module.setTaxonomyModal(true)}
+        onViewClassified={module.toggleClassifiedOnly}
+      />
+
+      {/* ─── 3 · Detection quality ──────────────────────────────────────── */}
+      <DetectionQualityGrid
+        quality={quality}
+        selectedCategory={state.selectedCategory}
+        scopedCount={scoped.length}
+      />
+
+      {/* ─── Streams, isolated to the selection ─────────────────────────── */}
+      <div className="grid gap-4 xl:grid-cols-2">
         <AreaTrend
           title="Detection timeline"
-          subtitle="Anomalies raised per two-minute window, stacked by severity"
+          subtitle="Events raised per two-minute window, stacked by severity"
           eyebrow="Volume"
           icon={Activity}
           data={timeline}
-          series={TIMELINE_SERIES}
+          series={timelineSeries}
           height={280}
           stacked
           footnote="An event is raised only after a breach persists across consecutive samples, and cleared only once the reading returns inside the threshold with margin — so a single noisy sample never appears here."
         />
 
-        <BarTrend
-          title="Signature families"
-          subtitle="Event count by anomaly type, ranked by volume"
-          eyebrow="Attribution"
-          icon={Crosshair}
-          data={typeBars}
-          series={[{ key: 'count', name: 'Events', color: SERIES[0], decimals: 0 }]}
-          layout="horizontal"
+        <LineTrend
+          title="Signal isolation"
+          subtitle={
+            state.selectedCategory === 'ALL'
+              ? `Channels carrying the current queue, across ${formatNumber(signal.assets)} device${signal.assets === 1 ? '' : 's'}`
+              : `${faultClass(state.selectedCategory).label} channels only, across ${formatNumber(signal.assets)} affected device${signal.assets === 1 ? '' : 's'}`
+          }
+          eyebrow="Live stream"
+          icon={Waves}
+          data={signal.data}
+          series={signal.series}
           height={280}
-          categoryWidth={132}
-          footnote="A family spanning several categories points at a shared cause rather than isolated component wear."
+          domain={['auto', 'auto']}
+          footnote="Channels carry different units, so each is plotted as its departure from that device's own mean over the window — one axis, one meaning. Selecting a fault class drops the channels that class cannot explain."
         />
       </div>
 
@@ -518,11 +608,11 @@ export const AnomalyDetectionPage = () => {
         onRowClick={(row) => setSelected(row)}
         minWidth="88rem"
         emptyIcon={ShieldCheck}
-        emptyTitle={journal.length === 0 ? 'No anomalies raised yet' : 'No anomalies match the current filters'}
+        emptyTitle={journal.length === 0 ? 'No anomalies raised yet' : 'No anomalies match the current selection'}
         emptyDescription={
           journal.length === 0
             ? 'The stream has not produced a sustained threshold breach since this session started. Leave it running and events will appear here.'
-            : 'Clear a filter or widen the search term.'
+            : 'Clear a drill-down chip or widen the search term.'
         }
         toolbar={
           <TableToolbar
@@ -531,7 +621,7 @@ export const AnomalyDetectionPage = () => {
               setSearch(value);
               setPage(1);
             }}
-            searchPlaceholder="Search code, device, title or category…"
+            searchPlaceholder="Search code, device, failure mode or rule…"
             filters={filters}
             activeFilterCount={activeFilterCount}
             onReset={reset}
@@ -561,93 +651,41 @@ export const AnomalyDetectionPage = () => {
         subtitle="Residual distribution and score thresholds served from Grafana"
         height={320}
         refresh="30s"
-        variables={{ severity, type }}
+        variables={{ severity: state.selectedSeverity, class: state.selectedCategory }}
       />
 
-      {/* ─── Event detail ───────────────────────────────────────────────── */}
-      <Modal
-        open={selected !== null}
+      {/* ─── Reference and detail ───────────────────────────────────────── */}
+      <TaxonomyReference
+        open={state.isTaxonomyModalOpen}
+        onClose={() => module.setTaxonomyModal(false)}
+        taxonomy={taxonomy}
+        activeFailureTypeId={state.activeFailureTypeId}
+        onSelectFailureType={(id) => {
+          module.setFailureType(id);
+          setPage(1);
+        }}
+      />
+
+      <EventDetailDrawer
+        record={selected}
+        rule={selected ? ruleFor(selected) : null}
+        asset={selectedAsset}
+        now={at}
+        flaggedFalseAlarm={selected !== null && module.falseAlarms.has(selected.id)}
+        onToggleFalseAlarm={(id) => {
+          module.toggleFalseAlarm(id);
+          toast.info(
+            module.falseAlarms.has(id) ? 'False alarm withdrawn' : 'Logged as a false alarm',
+            'Precision and the noise envelope for this signature update for the session.',
+          );
+        }}
+        onAcknowledge={(record) => {
+          acknowledge(record.id);
+          toast.success('Anomaly acknowledged', `${record.code} on ${record.assetId}.`);
+          setSelected(null);
+        }}
         onClose={() => setSelected(null)}
-        size="lg"
-        title={selected ? `${selected.code} · ${selected.title}` : ''}
-        subtitle={selected ? `${selected.assetName} · detected ${formatRelative(selected.timestamp)}` : undefined}
-        footer={
-          <>
-            <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
-              Close
-            </Button>
-            {selected?.status === 'Active' ? (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  acknowledge(selected.id);
-                  toast.success('Anomaly acknowledged', `${selected.code} on ${selected.assetId}.`);
-                  setSelected(null);
-                }}
-              >
-                Acknowledge and assign
-              </Button>
-            ) : null}
-          </>
-        }
-      >
-        {selected ? (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <SeverityBadge severity={selected.severity} />
-              <AnomalyStatusBadge status={selected.status} />
-              <Badge tone="neutral" size="sm">
-                {selected.category}
-              </Badge>
-              <Badge tone="neutral" size="sm">
-                {selected.assetId}
-              </Badge>
-            </div>
-
-            <p className="text-[12.5px] leading-relaxed text-fg-muted">{selected.detail}</p>
-
-            {evidence ? (
-              <LineTrend
-                title="Channel evidence"
-                subtitle={`${evidence.meta.label} on ${selected.assetId} against the threshold that was breached`}
-                eyebrow="Live stream"
-                data={evidence.data}
-                series={evidence.series}
-                height={220}
-                domain={['auto', 'auto']}
-                footnote="Taken from the retained sample window on this device — the same stream the detector reads."
-              />
-            ) : null}
-
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                { label: 'Observed', value: `${formatNumber(selected.observed, 2)} ${selected.unit}` },
-                { label: 'Threshold', value: `${formatNumber(selected.threshold, 2)} ${selected.unit}` },
-                {
-                  label: 'Breach',
-                  value:
-                    selected.threshold === 0
-                      ? '—'
-                      : formatPercent(
-                          (Math.abs(selected.observed - selected.threshold) / Math.abs(selected.threshold)) * 100,
-                          1,
-                        ),
-                },
-                {
-                  label: 'Cleared',
-                  value: selected.resolvedAt ? formatRelative(selected.resolvedAt) : 'Still open',
-                },
-              ].map((row) => (
-                <div key={row.label} className="rounded-xl border border-overlay/[0.06] bg-ink-850/50 p-3">
-                  <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-fg-faint">{row.label}</dt>
-                  <dd className="mt-1.5 truncate text-[12.5px] font-semibold tabular-nums text-fg">{row.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        ) : null}
-      </Modal>
+      />
     </div>
   );
 };

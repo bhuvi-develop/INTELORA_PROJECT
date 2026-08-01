@@ -8,6 +8,12 @@ import { DevicesPage } from '@/pages/DevicesPage';
 import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
 import { LiveTelemetryPage } from '@/pages/LiveTelemetryPage';
 import { AnomalyDetectionPage } from '@/pages/AnomalyDetectionPage';
+import {
+  ActiveEventsDetailPage,
+  CategoryBreakdownDetailPage,
+  LiveStatusDetailPage,
+  TaxonomySignaturesDetailPage,
+} from '@/pages/anomaly-details';
 import { PredictiveMaintenancePage } from '@/pages/PredictiveMaintenancePage';
 import { PreventiveMaintenancePage } from '@/pages/PreventiveMaintenancePage';
 import { PrescriptiveMaintenancePage } from '@/pages/PrescriptiveMaintenancePage';
@@ -38,6 +44,26 @@ export const AppRoutes = () => (
         <Route path="live-telemetry" element={<LiveTelemetryPage />} />
 
         <Route path="anomaly-detection" element={<AnomalyDetectionPage />} />
+        {/* Drill-downs from the module's status bar. Nested under the module
+            path so the sidebar keeps Anomaly Detection highlighted, and declared
+            as siblings rather than children because each replaces the module
+            view rather than rendering inside it. */}
+        <Route path="anomaly-detection/details/live-status" element={<LiveStatusDetailPage />} />
+        <Route path="anomaly-detection/details/active-events" element={<ActiveEventsDetailPage />} />
+        <Route
+          path="anomaly-detection/details/category-breakdown"
+          element={<CategoryBreakdownDetailPage />}
+        />
+        <Route
+          path="anomaly-detection/details/taxonomy-signatures"
+          element={<TaxonomySignaturesDetailPage />}
+        />
+        {/* A bare /details is not a page — send it back to the module. */}
+        <Route
+          path="anomaly-detection/details"
+          element={<Navigate to={PATHS.anomaly} replace />}
+        />
+
         <Route path="predictive-maintenance" element={<PredictiveMaintenancePage />} />
         <Route path="preventive-maintenance" element={<PreventiveMaintenancePage />} />
         <Route path="prescriptive-maintenance" element={<PrescriptiveMaintenancePage />} />

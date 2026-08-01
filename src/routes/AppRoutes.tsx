@@ -9,6 +9,7 @@ import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
 import { LiveTelemetryPage } from '@/pages/LiveTelemetryPage';
 import { AnomalyDetectionPage } from '@/pages/AnomalyDetectionPage';
 import { AnomalyReportsPage } from '@/pages/AnomalyReportsPage';
+import { FeedbackLogReportPage } from '@/pages/FeedbackLogReportPage';
 import {
   ActiveEventsDetailPage,
   CategoryBreakdownDetailPage,
@@ -72,6 +73,10 @@ export const AppRoutes = () => (
             exportable. Distinct from Historical Reports, which browses several
             archived record sets at daily resolution. */}
         <Route path="anomaly-detection/reports" element={<AnomalyReportsPage />} />
+        {/* Declared after the parent so the more specific path is unambiguous.
+            This is the engineer-judgement surface — the only place a false alarm
+            can be flagged — which is why it is a page and not an embedded table. */}
+        <Route path="anomaly-detection/reports/feedback" element={<FeedbackLogReportPage />} />
 
         {/* Detection-quality drill-downs, one per KPI tile. */}
         <Route

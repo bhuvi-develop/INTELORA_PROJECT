@@ -162,14 +162,15 @@ export const LiveStatusDetailPage = () => {
       {
         id: 'device',
         header: 'Endpoint',
-        accessorFn: (row) => row.device.assetName,
+        accessorFn: (row) => row.device.assetId,
         enableSorting: true,
         meta: { width: '17rem' },
         cell: ({ row }) => (
           <DeviceIdentity
             assetId={row.original.device.assetId}
             assetName={row.original.device.assetName}
-            meta={`${row.original.device.brand} ${row.original.device.model}`}
+            meta={row.original.category}
+            idOnly
           />
         ),
       },

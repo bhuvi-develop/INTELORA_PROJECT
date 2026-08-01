@@ -90,7 +90,7 @@ export const EngineeringConfidenceMetricPage = () => {
           const openHere = unresolved.filter((record) => record.assetId === asset.device.assetId).length;
           return {
             id: asset.device.assetId,
-            name: asset.device.assetName,
+            category: asset.category,
             reporting,
             health: asset.health,
             samples: asset.history.length,
@@ -349,7 +349,10 @@ export const EngineeringConfidenceMetricPage = () => {
                 aria-hidden
               />
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-mono text-[11px] text-fg-soft">{row.id}</span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span className="shrink-0 font-mono text-[11px] text-fg-soft">{row.id}</span>
+                  <span className="truncate text-[10.5px] text-fg-dim">{row.category}</span>
+                </span>
                 <span className="block truncate text-[10.5px] text-fg-dim">
                   {row.reporting ? `${formatNumber(row.samples)} samples retained` : 'not publishing'}
                 </span>

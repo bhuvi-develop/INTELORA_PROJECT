@@ -269,7 +269,7 @@ export const ActiveEventsDetailPage = () => {
       {
         id: 'device',
         header: 'Device',
-        accessorFn: (row) => row.assetName,
+        accessorFn: (row) => row.assetId,
         enableSorting: true,
         meta: { width: '16rem' },
         cell: ({ row }) => (
@@ -277,6 +277,7 @@ export const ActiveEventsDetailPage = () => {
             assetId={row.original.assetId}
             assetName={row.original.assetName}
             meta={row.original.category}
+            idOnly
           />
         ),
       },

@@ -16,6 +16,12 @@ export const PATHS = {
   anomalyTaxonomySignatures: '/app/anomaly-detection/details/taxonomy-signatures',
   /** Module-scoped anomaly report — the journal with its taxonomy, exportable. */
   anomalyReports: '/app/anomaly-detection/reports',
+  /**
+   * Feedback log report — engineer verdicts and the rule-only detections awaiting
+   * one. The only surface that can flag a false alarm, so it is a page in its own
+   * right rather than a table embedded in the analytics view.
+   */
+  anomalyFeedbackReport: '/app/anomaly-detection/reports/feedback',
   /* Detection-quality metric drill-downs, one per KPI tile. Same nesting rule as
    * the status-bar drill-downs above. */
   metricFalsePositives: '/app/anomaly-detection/metrics/false-positives',

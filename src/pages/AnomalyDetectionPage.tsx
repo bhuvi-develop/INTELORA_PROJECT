@@ -209,7 +209,7 @@ export const AnomalyDetectionPage = () => {
       {
         id: 'device',
         header: 'Device',
-        accessorFn: (row) => row.assetName,
+        accessorFn: (row) => row.assetId,
         enableSorting: true,
         meta: { width: '17rem' },
         cell: ({ row }) => (
@@ -217,6 +217,7 @@ export const AnomalyDetectionPage = () => {
             assetId={row.original.assetId}
             assetName={row.original.assetName}
             meta={row.original.category}
+            idOnly
           />
         ),
       },

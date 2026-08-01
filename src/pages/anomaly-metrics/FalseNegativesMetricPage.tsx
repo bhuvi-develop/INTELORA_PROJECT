@@ -76,7 +76,7 @@ export const FalseNegativesMetricPage = () => {
         y: Math.round(row.asset.prediction.primary.rulDays * 10) / 10,
         z: Math.max(1, row.open),
         group: row.missed ? 'Unflagged at risk' : row.open > 0 ? 'Flagged' : 'Healthy',
-        meta: `${row.asset.device.assetName} · ${row.open} open · weakest ${row.asset.prediction.primary.component}`,
+        meta: `${row.asset.category} · ${row.open} open · weakest ${row.asset.prediction.primary.component}`,
       })),
     [rows],
   );
@@ -131,14 +131,15 @@ export const FalseNegativesMetricPage = () => {
       {
         id: 'device',
         header: 'Device',
-        accessorFn: (row) => row.asset.device.assetName,
+        accessorFn: (row) => row.asset.device.assetId,
         enableSorting: true,
         meta: { width: '18rem' },
         cell: ({ row }) => (
           <DeviceIdentity
             assetId={row.original.asset.device.assetId}
             assetName={row.original.asset.device.assetName}
-            meta={`${row.original.asset.device.brand} ${row.original.asset.device.model}`}
+            meta={row.original.asset.category}
+            idOnly
           />
         ),
       },

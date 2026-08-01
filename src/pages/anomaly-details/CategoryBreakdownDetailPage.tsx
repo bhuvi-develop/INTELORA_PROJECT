@@ -237,14 +237,15 @@ export const CategoryBreakdownDetailPage = () => {
       {
         id: 'device',
         header: 'Device',
-        accessorFn: (row) => row.asset.device.assetName,
+        accessorFn: (row) => row.asset.device.assetId,
         enableSorting: true,
         meta: { width: '18rem' },
         cell: ({ row }) => (
           <DeviceIdentity
             assetId={row.original.asset.device.assetId}
             assetName={row.original.asset.device.assetName}
-            meta={`${row.original.asset.device.brand} ${row.original.asset.device.model}`}
+            meta={row.original.asset.category}
+            idOnly
           />
         ),
       },

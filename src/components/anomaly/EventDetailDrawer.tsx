@@ -95,7 +95,7 @@ export const EventDetailDrawer = ({
       title={record ? `${record.code} · ${record.title}` : ''}
       subtitle={
         record
-          ? `${record.assetName} · ${rule ? `${rule.id} ${rule.signature} · ` : ''}detected ${formatRelative(record.timestamp)}`
+          ? `${record.assetId} · ${record.category} · ${rule ? `${rule.id} ${rule.signature} · ` : ''}detected ${formatRelative(record.timestamp)}`
           : undefined
       }
       footer={

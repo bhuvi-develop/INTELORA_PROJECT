@@ -181,7 +181,7 @@ export const PredictionHorizonMetricPage = () => {
       {selected && degradation.length > 0 ? (
         <DegradationChart
           title={`Remaining-life trajectory · ${selected.device.assetId}`}
-          subtitle={`${selected.device.assetName} — condition to date, then the published curve to the failure threshold`}
+          subtitle={`${selected.category} — condition to date, then the published curve to the failure threshold`}
           eyebrow="Trajectory"
           icon={Waypoints}
           data={degradation}
@@ -288,7 +288,7 @@ export const PredictionHorizonMetricPage = () => {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[12.5px] font-semibold text-fg">
                       {asset.device.assetId}
-                      <span className="ml-2 font-normal text-fg-dim">{asset.device.assetName}</span>
+                      <span className="ml-2 font-normal text-fg-dim">{asset.category}</span>
                     </span>
                     <span className="block truncate text-[11px] text-fg-dim">
                       {primary.component} · {primary.recommendation}

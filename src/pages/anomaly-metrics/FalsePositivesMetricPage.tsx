@@ -1,30 +1,28 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ColumnDef } from '@tanstack/react-table';
 import {
   AlertOctagon,
   ArrowRight,
   Download,
   FileText,
   Filter,
+  Gavel,
   Radio,
   Sigma,
   Target,
   TrendingUp,
 } from 'lucide-react';
-import type { AnomalyRecord } from '@/engine/types';
 import { useAnomalyJournal, useSnapshot } from '@/engine/store';
 import { PATHS } from '@/routes/paths';
 import { SERIES, STATUS_COLOR } from '@/config/viz';
-import { formatDateTime, formatNumber, formatPercent, formatRelative } from '@/utils/format';
+import { formatNumber, formatPercent } from '@/utils/format';
 import { exportReport, type ReportColumn } from '@/utils/report';
-import { useToast, useUI } from '@/hooks';
+import { useToast } from '@/hooks';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { AreaTrend, BarTrend, LineTrend, type SeriesDef } from '@/components/charts';
-import { DataTable } from '@/components/data';
-import { DeviceIdentity, SeverityBadge } from '@/components/common';
-import { breachRatio, classifyRecord, faultClass, useAnomalyModule } from '@/components/anomaly';
+import { breachRatio, classifyRecord, useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
 import { bucketJournal, groupByChannel, ratioPct } from './metricSeries';
 
@@ -44,10 +42,9 @@ import { bucketJournal, groupByChannel, ratioPct } from './metricSeries';
 export const FalsePositivesMetricPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { density } = useUI();
   const journal = useAnomalyJournal();
   const snapshot = useSnapshot();
-  const { quality, falseAlarms, toggleFalseAlarm } = useAnomalyModule();
+  const { quality, falseAlarms } = useAnomalyModule();
 
   const now = snapshot.at;
   const fp = quality.falsePositive;
@@ -94,17 +91,12 @@ export const FalsePositivesMetricPage = () => {
       .slice(0, 20);
   }, [journal, now, falseAlarms]);
 
-  /* The feedback log: what an engineer has actually judged, plus the rule-only
-   * candidates waiting on a judgement. */
-  const feedbackRows = useMemo(
+  /* Only the size of the log is needed here — the rows themselves live on the
+   * report page, so this page does not build or hold them. */
+  const feedbackCount = useMemo(
     () =>
-      journal
-        .filter((record) => falseAlarms.has(record.id) || record.detectionMethod === 'rule')
-        .sort((a, b) => {
-          const aFlagged = falseAlarms.has(a.id) ? 1 : 0;
-          const bFlagged = falseAlarms.has(b.id) ? 1 : 0;
-          return bFlagged - aFlagged || b.timestamp - a.timestamp;
-        }),
+      journal.filter((record) => falseAlarms.has(record.id) || record.detectionMethod === 'rule')
+        .length,
     [journal, falseAlarms],
   );
 
@@ -156,142 +148,6 @@ export const FalsePositivesMetricPage = () => {
     { key: 'corroborated', name: 'Model-backed', color: '#22C55E', decimals: 0 },
     { key: 'uncorroborated', name: 'Rule only', color: STATUS_COLOR.critical, decimals: 0 },
   ];
-
-  const columns = useMemo<Array<ColumnDef<AnomalyRecord, unknown>>>(
-    () => [
-      {
-        id: 'verdict',
-        header: 'Verdict',
-        accessorFn: (row) => (falseAlarms.has(row.id) ? 'flagged' : 'pending'),
-        enableSorting: true,
-        cell: ({ row }) =>
-          falseAlarms.has(row.original.id) ? (
-            <Badge tone="warning" size="xs" icon={AlertOctagon}>
-              False alarm
-            </Badge>
-          ) : (
-            <Badge tone="neutral" size="xs">
-              Unjudged
-            </Badge>
-          ),
-      },
-      {
-        id: 'signature',
-        header: 'Failure mode',
-        accessorFn: (row) => classifyRecord(row, now)?.id ?? '',
-        enableSorting: true,
-        meta: { width: '14rem' },
-        cell: ({ row }) => {
-          const rule = classifyRecord(row.original, now);
-          if (!rule) return <span className="text-[12.5px] text-fg-dim">Unclassified</span>;
-          const def = faultClass(rule.classId);
-          return (
-            <span className="flex min-w-0 items-center gap-2">
-              <span
-                className="h-2 w-2 shrink-0 rounded-[3px]"
-                style={{ backgroundColor: def.color }}
-                aria-hidden
-              />
-              <span className="min-w-0">
-                <span className="block truncate text-[12.5px] font-semibold text-fg">{rule.signature}</span>
-                <span className="block truncate font-mono text-[10.5px] text-fg-faint">{rule.id}</span>
-              </span>
-            </span>
-          );
-        },
-      },
-      {
-        id: 'device',
-        header: 'Device',
-        accessorFn: (row) => row.assetName,
-        enableSorting: true,
-        meta: { width: '15rem' },
-        cell: ({ row }) => (
-          <DeviceIdentity
-            assetId={row.original.assetId}
-            assetName={row.original.assetName}
-            meta={row.original.category}
-          />
-        ),
-      },
-      {
-        id: 'method',
-        header: 'Corroboration',
-        accessorFn: (row) => row.detectionMethod,
-        enableSorting: true,
-        cell: ({ row }) => (
-          <span className="text-[12px] text-fg-soft">
-            {row.original.detectionMethod === 'rule' ? (
-              <span className="text-rose-300">rule only</span>
-            ) : (
-              row.original.detectionMethod
-            )}
-            <span className="ml-1.5 text-[10.5px] tabular-nums text-fg-faint">
-              score {formatNumber(row.original.anomalyScore, 2)}
-            </span>
-          </span>
-        ),
-      },
-      {
-        id: 'severity',
-        header: 'Severity',
-        accessorFn: (row) => row.severity,
-        enableSorting: true,
-        cell: ({ row }) => <SeverityBadge severity={row.original.severity} size="xs" />,
-      },
-      {
-        id: 'breach',
-        header: 'Breach',
-        accessorFn: (row) => breachRatio(row),
-        enableSorting: true,
-        meta: { numeric: true, align: 'right' },
-        cell: ({ row }) => (
-          <span className="text-[12px] tabular-nums text-fg-soft">
-            {formatPercent(breachRatio(row.original) * 100, 1)}
-          </span>
-        ),
-      },
-      {
-        id: 'raised',
-        header: 'Raised',
-        accessorFn: (row) => row.timestamp,
-        enableSorting: true,
-        meta: { align: 'right' },
-        cell: ({ row }) => (
-          <span className="text-[11.5px] text-fg-dim" title={formatDateTime(row.original.timestamp)}>
-            {formatRelative(row.original.timestamp)}
-          </span>
-        ),
-      },
-      {
-        id: 'action',
-        header: '',
-        enableSorting: false,
-        meta: { align: 'right', width: '11rem' },
-        cell: ({ row }) => {
-          const flagged = falseAlarms.has(row.original.id);
-          return (
-            <Button
-              variant={flagged ? 'subtle' : 'ghost'}
-              size="xs"
-              icon={AlertOctagon}
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleFalseAlarm(row.original.id);
-                toast.info(
-                  flagged ? 'False alarm withdrawn' : 'Logged as a false alarm',
-                  `${row.original.code} — precision recomputes for the session.`,
-                );
-              }}
-            >
-              {flagged ? 'Withdraw' : 'Retune'}
-            </Button>
-          );
-        },
-      },
-    ],
-    [falseAlarms, toggleFalseAlarm, toast, now],
-  );
 
   const runExport = () => {
     if (envelopes.length === 0) {
@@ -386,46 +242,77 @@ export const FalsePositivesMetricPage = () => {
         footnote="Channel is a published property of each event — the detector evaluates nine channel rules — so this is measured rather than inferred. A channel where most events are rule-only is a threshold problem, not a hardware problem."
       />
 
-      <DataTable<AnomalyRecord>
-        data={feedbackRows}
-        columns={columns}
-        rowKey={(row) => row.id}
-        density={density}
-        minWidth="88rem"
-        emptyIcon={Target}
-        emptyTitle="Nothing awaiting judgement"
-        emptyDescription="Every event in the journal was corroborated by the model, and none has been flagged as noise."
-        toolbar={
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-fg">Feedback log</p>
-              <p className="mt-0.5 text-[11.5px] text-fg-dim">
-                Engineer verdicts first, then rule-only events awaiting one. Marking noise is held for this
-                session — the platform exposes a feedback endpoint but this client does not yet post to it.
-              </p>
-            </div>
+      {/* ─── Feedback log, as an entry point rather than a table ─────────
+          The log itself is a working surface: hundreds of rows, each with a
+          retune control. It belongs on its own page, so this page stays the
+          summary and links to it. */}
+      <Card
+        className="group relative cursor-pointer"
+        interactive
+        onMouseEnter={(event) => {
+          event.currentTarget.style.boxShadow =
+            'inset 0 0 0 1px #38BDF859, 0 8px 26px -12px #38BDF84D';
+        }}
+        onMouseLeave={(event) => {
+          event.currentTarget.style.boxShadow = '';
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate(PATHS.anomalyFeedbackReport)}
+          className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400/60"
+        >
+          <span className="sr-only">Open the feedback log report</span>
+        </button>
 
-            <div className="flex shrink-0 items-center gap-3">
-              <span className="text-[11px] tabular-nums text-fg-dim">
-                {formatNumber(feedbackRows.length)} row{feedbackRows.length === 1 ? '' : 's'} ·{' '}
-                {ratioPct(fp.flagged, feedbackRows.length) ?? 0}% judged
-              </span>
-              {/* This log is scoped to precision — rule-only and flagged events.
-                  The full journal, with every class and severity, lives on the
-                  module's report page. */}
-              <Button
-                variant="subtle"
-                size="sm"
-                icon={FileText}
-                iconRight={ArrowRight}
-                onClick={() => navigate(PATHS.anomalyReports)}
-              >
-                View full anomaly report
-              </Button>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span
+              className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ring-overlay/[0.07]"
+              style={{ backgroundColor: '#38BDF81A', color: '#38BDF8' }}
+            >
+              <Gavel size={16} aria-hidden />
+            </span>
+
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-semibold text-fg">Feedback log</p>
+              <p className="mt-1 max-w-2xl text-[11.5px] leading-relaxed text-fg-dim">
+                Engineer verdicts and the rule-only detections still awaiting one. Flagging a false alarm
+                retunes that device and channel — the control lives on the report.
+              </p>
+
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] tabular-nums text-fg-muted">
+                <span>
+                  <span className="font-semibold text-fg">{formatNumber(feedbackCount)}</span> row
+                  {feedbackCount === 1 ? '' : 's'}
+                </span>
+                <span>
+                  <span className="font-semibold text-fg">
+                    {formatNumber(ratioPct(fp.flagged, feedbackCount) ?? 0, 0)}%
+                  </span>{' '}
+                  judged
+                </span>
+                <span>
+                  <span className="font-semibold text-fg">{formatNumber(envelopes.length)}</span> envelope
+                  {envelopes.length === 1 ? '' : 's'} to retune
+                </span>
+              </div>
             </div>
           </div>
-        }
-      />
+
+          <span className="relative z-20 shrink-0">
+            <Button
+              variant="subtle"
+              size="sm"
+              icon={FileText}
+              iconRight={ArrowRight}
+              onClick={() => navigate(PATHS.anomalyFeedbackReport)}
+            >
+              Open feedback log report
+            </Button>
+          </span>
+        </div>
+      </Card>
     </DetailShell>
   );
 };

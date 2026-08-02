@@ -1,362 +1,103 @@
-import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { LucideIcon } from 'lucide-react';
-import {
-  BadgeCheck,
-  Brain,
-  CircleDollarSign,
-  Clock3,
-  Info,
-  Target,
-  ThumbsUp,
-  TrendingDown,
-} from 'lucide-react';
-import { PATHS } from '@/routes/paths';
 import { cn } from '@/lib/cn';
-import { formatCurrency, formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import { Card } from '@/components/ui/Card';
-import { Progress } from '@/components/ui/Progress';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { SectionHeader } from '@/components/common';
-import { BROADCAST_SLA_MS, COST_MODEL, faultClass, type CategorySelection } from './taxonomy';
+import { faultClass, type CategorySelection } from './taxonomy';
+import { METRIC_CARDS } from './metricCatalog';
 import type { DetectionQuality } from './useAnomalyModule';
 
 /* ───────────────────────────────────────────────────────────────────────────
- * Section 3 — detection quality and engineering KPI analytics.
+ * Section 3 — detection quality and engineering KPIs, as navigation.
  *
- * Seven tiles, each one a claim with its working shown. The formula line states
- * how the headline was composed, the sub-stats give the terms that went into
- * it, and the tooltip says what the metric is for and where it stops being
- * trustworthy. Every tile recomputes against the current class selection.
+ * Seven tiles, each one an icon and a name. Nothing else: the headline, the
+ * formula that composed it, the terms that went into it and its caveat all live
+ * on the metric's own page now, where there is room to show them beside the
+ * charts that expand on them. A tile that reported four sub-stats and a meter
+ * was a second dashboard competing with the first, and the drill-down it opened
+ * said everything the tile did and more.
+ *
+ * The grid, the spans, the accents and the routes are unchanged — only what is
+ * rendered inside each card. Definitions come from `metricCatalog`, which is
+ * also what the drill-downs read, so the tile and the page it opens cannot
+ * drift apart.
  * ─────────────────────────────────────────────────────────────────────────── */
 
-interface MetricTileProps {
-  accent: string;
-  label: string;
-  icon: LucideIcon;
-  value: string;
-  unit?: string;
-  /** The composition, written the way an engineer would check it. */
-  formula: ReactNode;
-  /** What the tile is for — surfaced on hover. */
-  explainer: string;
-  stats: Array<{ label: string; value: string; tone?: 'good' | 'bad' | 'neutral' }>;
-  meter?: { value: number; max?: number };
-  caveat?: string;
-  className?: string;
-  /** Drill-down route. Omit to leave the tile inert. */
-  to?: string;
-}
-
-const TONE: Record<'good' | 'bad' | 'neutral', string> = {
-  good: 'text-emerald-300',
-  bad: 'text-rose-300',
-  neutral: 'text-fg-soft',
-};
-
-const MetricTile = ({
-  accent,
-  label,
-  icon: Icon,
-  value,
-  unit,
-  formula,
-  explainer,
-  stats,
-  meter,
-  caveat,
-  className,
-  to,
-}: MetricTileProps) => {
-  const navigate = useNavigate();
-
-  return (
-  <Card
-    className={cn(
-      'group relative flex flex-col pl-5',
-      to && 'cursor-pointer hover:-translate-y-px',
-      className,
-    )}
-    interactive
-    // The hover glow is drawn in the tile's own accent rather than a fixed
-    // colour, so the affordance carries the identity of the metric it opens.
-    onMouseEnter={
-      to
-        ? (event) => {
-            event.currentTarget.style.boxShadow = `inset 0 0 0 1px ${accent}59, 0 8px 26px -12px ${accent}4D`;
-          }
-        : undefined
-    }
-    onMouseLeave={
-      to
-        ? (event) => {
-            event.currentTarget.style.boxShadow = '';
-          }
-        : undefined
-    }
-  >
-    <span
-      aria-hidden
-      className="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl"
-      style={{ backgroundColor: accent }}
-    />
-
-    {/* Whole tile is the hit target, but the tooltip trigger and any focusable
-        content stay above it — see the z-20 wrapper on the info icon. */}
-    {to ? (
-      <button
-        type="button"
-        onClick={() => navigate(to)}
-        className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400/60"
-      >
-        <span className="sr-only">{label} — open detail</span>
-      </button>
-    ) : null}
-
-    <div className="flex items-start justify-between gap-2">
-      <div className="flex min-w-0 items-center gap-1.5">
-        <p className="eyebrow truncate">{label}</p>
-        <span className="relative z-20 shrink-0">
-          <Tooltip content={explainer} side="top">
-            <span
-              tabIndex={0}
-              role="note"
-              aria-label={`${label} — ${explainer}`}
-              className="flex h-4 w-4 shrink-0 cursor-help items-center justify-center rounded-full text-fg-faint transition-colors hover:text-fg-muted focus:text-fg-muted focus:outline-none"
-            >
-              <Info size={11} aria-hidden />
-            </span>
-          </Tooltip>
-        </span>
-      </div>
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ring-overlay/[0.07]"
-        style={{ backgroundColor: `${accent}1A`, color: accent }}
-      >
-        <Icon size={14} aria-hidden />
-      </span>
-    </div>
-
-    <div className="mt-2 flex items-baseline gap-1.5">
-      <span className="text-[1.625rem] font-semibold leading-none tracking-[-0.02em] text-fg">{value}</span>
-      {unit ? <span className="text-[12px] font-medium text-fg-muted">{unit}</span> : null}
-    </div>
-
-    {meter ? (
-      <Progress value={meter.value} max={meter.max ?? 100} color={accent} size="xs" className="mt-2.5" label={label} />
-    ) : null}
-
-    <p className="mt-2.5 font-mono text-[10.5px] leading-relaxed text-fg-dim">{formula}</p>
-
-    <dl className="mt-2.5 space-y-1 border-t border-overlay/[0.06] pt-2.5">
-      {stats.map((stat) => (
-        <div key={stat.label} className="flex items-center justify-between gap-3">
-          <dt className="truncate text-[11px] text-fg-muted">{stat.label}</dt>
-          <dd className={cn('shrink-0 text-[11px] font-semibold tabular-nums', TONE[stat.tone ?? 'neutral'])}>
-            {stat.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
-
-    {caveat ? <p className="mt-2 text-[10px] leading-relaxed text-fg-faint">{caveat}</p> : null}
-
-    {to ? (
-      <p
-        className="mt-2.5 text-[10px] font-medium uppercase tracking-[0.12em] opacity-70 transition-opacity group-hover:opacity-100"
-        style={{ color: accent }}
-      >
-        Open analysis
-      </p>
-    ) : null}
-  </Card>
-  );
-};
-
 export interface DetectionQualityGridProps {
+  /**
+   * Live analytics for the seven KPIs.
+   *
+   * Not read here any more — the tiles carry no figures. Kept on the props so
+   * the call site in `AnomalyDetectionPage` is unchanged and the section still
+   * declares what it is a view onto.
+   */
   quality: DetectionQuality;
   selectedCategory: CategorySelection;
   scopedCount: number;
 }
 
-/**
- * A ratio with no denominator is not zero, it is unknown. Saying 0.0% precision
- * on an empty selection would be a claim the data does not support.
- */
-const ratio = (value: string, denominator: number): string => (denominator > 0 ? value : '—');
+export const DetectionQualityGrid = ({ selectedCategory, scopedCount }: DetectionQualityGridProps) => {
+  const navigate = useNavigate();
 
-export const DetectionQualityGrid = ({ quality, selectedCategory, scopedCount }: DetectionQualityGridProps) => {
   const scopeLabel =
     selectedCategory === 'ALL' ? 'the whole open journal' : faultClass(selectedCategory).label.toLowerCase();
-
-  const { falsePositive, falseNegative, latency, horizon, adoption, impact, confidence } = quality;
-  const recallBase = falseNegative.detectedAssets + falseNegative.missedAssets;
-  const adoptionBase = adoption.accepted + adoption.outstanding;
 
   return (
     <section className="space-y-3">
       <SectionHeader
         title="Detection quality and engineering KPIs"
-        subtitle={`Recomputed over ${formatNumber(scopedCount)} event${scopedCount === 1 ? '' : 's'} in scope — ${scopeLabel}. Hover any tile for what it measures.`}
+        subtitle={`Seven analyses over ${formatNumber(scopedCount)} event${scopedCount === 1 ? '' : 's'} in scope — ${scopeLabel}. Open one for its figures, formula and charts.`}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* ── 1 · False positives ─────────────────────────────────────── */}
-        <MetricTile
-          to={PATHS.metricFalsePositives}
-          accent="#F43F5E"
-          label="False positive analytics"
-          icon={Target}
-          value={ratio(formatPercent(falsePositive.precisionPct, 1), scopedCount)}
-          formula={<>Precision = TP / (TP + FP)</>}
-          explainer="A rule raises the event and the isolation forest corroborates it. An event the model never backed, or one an engineer has marked as a false alarm in the detail drawer, is counted against precision. Marking one here retunes what this page reports for the session; the platform holds no feedback endpoint."
-          meter={{ value: falsePositive.precisionPct }}
-          stats={[
-            { label: 'True positives', value: formatNumber(falsePositive.truePositives), tone: 'good' },
-            { label: 'False positives', value: formatNumber(falsePositive.falsePositives), tone: 'bad' },
-            { label: 'Model uncorroborated', value: formatNumber(falsePositive.uncorroborated) },
-            { label: 'Envelopes to retune', value: formatNumber(falsePositive.envelopesTuned) },
-          ]}
-          caveat={
-            falsePositive.flagged > 0
-              ? `${formatNumber(falsePositive.flagged)} flagged by an engineer this session.`
-              : 'Open an event and mark it a false alarm to tune the noise envelope.'
-          }
-        />
+        {METRIC_CARDS.map(({ key, label, icon: Icon, accent, to, className }) => (
+          <Card
+            key={key}
+            role="link"
+            tabIndex={0}
+            aria-label={`${label} — open analysis`}
+            className={cn(
+              'group relative flex min-h-[7.25rem] cursor-pointer flex-col justify-center pl-5',
+              'hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400/60',
+              className,
+            )}
+            interactive
+            onClick={() => navigate(to)}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return;
+              event.preventDefault();
+              navigate(to);
+            }}
+            // The hover glow is drawn in the tile's own accent rather than a
+            // fixed colour, so the affordance carries the identity of the metric
+            // it opens.
+            onMouseEnter={(event) => {
+              event.currentTarget.style.boxShadow = `inset 0 0 0 1px ${accent}59, 0 8px 26px -12px ${accent}4D`;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.boxShadow = '';
+            }}
+          >
+            <span
+              aria-hidden
+              className="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl"
+              style={{ backgroundColor: accent }}
+            />
 
-        {/* ── 2 · False negatives ─────────────────────────────────────── */}
-        <MetricTile
-          to={PATHS.metricFalseNegatives}
-          accent="#A855F7"
-          label="False negative analytics"
-          icon={TrendingDown}
-          value={ratio(formatPercent(falseNegative.recallPct, 1), recallBase)}
-          formula={<>Recall = TP / (TP + FN), at device level</>}
-          explainer="A device the platform already rates critical or high-risk while nothing has been raised against it is a breakdown the detector did not see. Both terms count devices rather than events, so they are comparable. These are the units that would go into the next retraining set."
-          meter={{ value: falseNegative.recallPct }}
-          stats={[
-            { label: 'Detected devices', value: formatNumber(falseNegative.detectedAssets), tone: 'good' },
-            {
-              label: 'Unflagged at risk',
-              value: formatNumber(falseNegative.missedAssets),
-              tone: falseNegative.missedAssets > 0 ? 'bad' : 'good',
-            },
-            {
-              label: 'Retrain queue',
-              value: falseNegative.retrainQueue.length > 0 ? falseNegative.retrainQueue.join(', ') : 'empty',
-            },
-          ]}
-          caveat="Misses are counted estate-wide: an event that was never raised carries no class to attribute it to."
-        />
+            <div className="flex items-center gap-3">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ring-overlay/[0.07]"
+                style={{ backgroundColor: `${accent}1A`, color: accent }}
+              >
+                <Icon size={18} aria-hidden />
+              </span>
 
-        {/* ── 3 · Latency and SLA ─────────────────────────────────────── */}
-        <MetricTile
-          to={PATHS.metricLatencySla}
-          accent="#38BDF8"
-          label="Detection latency & SLA"
-          icon={Clock3}
-          value={ratio(formatNumber(latency.broadcastMs), latency.samples)}
-          unit={latency.samples > 0 ? 'ms' : undefined}
-          formula={<>TTD = dwell + (t_alert − t_onset)</>}
-          explainer="Two legs, measured separately. The dwell is the detector's own confirm window — deliberate, and the reason a single noisy sample never becomes an alert. The broadcast leg is the round trip this client has timed since the view mounted, and it is the leg the 200 ms target applies to."
-          meter={{ value: latency.slaPct }}
-          stats={[
-            {
-              label: `SLA < ${BROADCAST_SLA_MS} ms`,
-              value: ratio(formatPercent(latency.slaPct, 1), latency.samples),
-              tone: latency.samples === 0 ? 'neutral' : latency.slaPct >= 95 ? 'good' : 'bad',
-            },
-            { label: 'p95 round trip', value: `${formatNumber(latency.p95Ms)} ms` },
-            { label: 'Mean rule dwell', value: `${formatNumber(latency.dwellSeconds, 1)} s` },
-            { label: 'Observations', value: formatNumber(latency.samples) },
-          ]}
-          caveat="Round trips sampled once per backend tick since this view mounted."
-        />
-
-        {/* ── 4 · Prediction horizon ──────────────────────────────────── */}
-        <MetricTile
-          to={PATHS.metricPredictionHorizon}
-          accent="#22C55E"
-          label="Prediction horizon reliability"
-          icon={BadgeCheck}
-          value={ratio(formatNumber(horizon.leadDays, 1), horizon.assets)}
-          unit={horizon.assets > 0 ? 'days' : undefined}
-          formula={<>Horizon = t_breakdown − t_first_warning</>}
-          explainer="For every device carrying an open event, the lead time is the remaining useful life the platform publishes for its weakest component — the window between this warning and the failure it is warning about. A short horizon on a warned device is the one to act on first."
-          stats={[
-            { label: 'Warned devices', value: formatNumber(horizon.assets) },
-            {
-              label: 'Soonest RUL',
-              value: `${formatNumber(horizon.soonestDays, 1)} d`,
-              tone: horizon.soonestDays > 0 && horizon.soonestDays < 7 ? 'bad' : 'neutral',
-            },
-            { label: 'Model confidence', value: formatPercent(horizon.confidencePct, 1) },
-          ]}
-          caveat="Remaining life and its confidence are the platform's published figures, passed through."
-        />
-
-        {/* ── 5 · Recommendation acceptance ───────────────────────────── */}
-        <MetricTile
-          to={PATHS.metricRecommendationAcceptance}
-          accent="#14B8A6"
-          label="Recommendation acceptance"
-          icon={ThumbsUp}
-          value={ratio(formatPercent(adoption.adoptionPct, 1), adoptionBase)}
-          formula={<>Adoption = accepted / (accepted + outstanding)</>}
-          explainer="Every raised event carries a prescriptive action. Claiming it is the acceptance; leaving it in the queue is not. Events that cleared before anyone claimed them are excluded from both terms — nobody accepted or rejected those, the device fixed itself."
-          meter={{ value: adoption.adoptionPct }}
-          stats={[
-            { label: 'Accepted', value: formatNumber(adoption.accepted), tone: 'good' },
-            {
-              label: 'Outstanding',
-              value: formatNumber(adoption.outstanding),
-              tone: adoption.outstanding > 0 ? 'bad' : 'good',
-            },
-            { label: 'Self-cleared', value: formatNumber(adoption.selfCleared) },
-          ]}
-        />
-
-        {/* ── 6 · Business impact ─────────────────────────────────────── */}
-        <MetricTile
-          to={PATHS.metricBusinessImpact}
-          accent="#B45309"
-          label="Business impact & cost savings"
-          icon={CircleDollarSign}
-          value={formatCurrency(impact.costSaved)}
-          formula={<>Σ(hours × rate) + hardware retained</>}
-          explainer={`Avoided downtime is the count of actioned events times the platform's measured mean time to clear. The two rates the platform cannot measure are stated: ${formatCurrency(COST_MODEL.downtimeRatePerHour)} per device-hour out of service and ${formatCurrency(COST_MODEL.unitReplacementCost)} per endpoint replacement. They are the only figures on this page not derived from telemetry.`}
-          stats={[
-            { label: 'Events actioned', value: formatNumber(impact.actioned) },
-            { label: 'Downtime avoided', value: `${formatNumber(impact.downtimeHoursAvoided, 1)} h` },
-            { label: 'Hardware retained', value: formatCurrency(impact.hardwareSaved) },
-          ]}
-          caveat={`Rates assumed: ${formatCurrency(COST_MODEL.downtimeRatePerHour)}/h downtime, ${formatCurrency(COST_MODEL.unitReplacementCost)}/unit.`}
-        />
-
-        {/* ── 7 · Engineering confidence ──────────────────────────────── */}
-        {/* Spans two columns so the second row closes flush at four across. */}
-        <MetricTile
-          className="xl:col-span-2"
-          to={PATHS.metricEngineeringConfidence}
-          accent="#EC4899"
-          label="Engineering confidence score"
-          icon={Brain}
-          value={ratio(formatPercent(confidence.scorePct, 1), scopedCount)}
-          formula={<>Confidence = P(model) × SNR factor</>}
-          explainer="The per-event confidence the detector publishes, derated by how much of the estate is actually reporting. A score drawn from a half-silent fleet should not read the same as one drawn from a complete one. The driver is the channel carrying the largest mean breach in scope."
-          meter={{ value: confidence.scorePct }}
-          stats={[
-            { label: 'Model probability', value: formatPercent(confidence.modelPct, 1) },
-            {
-              label: 'Telemetry SNR',
-              value: formatPercent(confidence.snrPct, 1),
-              tone: confidence.snrPct >= 99 ? 'good' : 'bad',
-            },
-            { label: 'Leading driver', value: confidence.driver },
-            { label: 'Mean breach', value: formatPercent(confidence.driverPct, 1) },
-          ]}
-          caveat="Attribution is measured from channel deviation; the scorer publishes no per-feature values."
-        />
+              <p className="min-w-0 text-[13.5px] font-semibold leading-snug tracking-[-0.005em] text-fg">
+                {label}
+              </p>
+            </div>
+          </Card>
+        ))}
       </div>
     </section>
   );

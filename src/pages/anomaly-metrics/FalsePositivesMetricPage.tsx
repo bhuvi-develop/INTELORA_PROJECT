@@ -24,6 +24,7 @@ import { Card } from '@/components/ui/Card';
 import { AreaTrend, BarTrend, LineTrend, type SeriesDef } from '@/components/charts';
 import { breachRatio, classifyRecord, useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { bucketJournal, groupByChannel, ratioPct } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ export const FalsePositivesMetricPage = () => {
   const toast = useToast();
   const journal = useAnomalyJournal();
   const snapshot = useSnapshot();
-  const { quality, falseAlarms } = useAnomalyModule();
+  const { quality, falseAlarms, scoped } = useAnomalyModule();
 
   const now = snapshot.at;
   const fp = quality.falsePositive;
@@ -198,6 +199,8 @@ export const FalsePositivesMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="falsePositive" quality={quality} scopedCount={scoped.length} />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <LineTrend

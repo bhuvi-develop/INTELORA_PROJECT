@@ -16,6 +16,7 @@ import {
   LiveStatusDetailPage,
   TaxonomySignaturesDetailPage,
 } from '@/pages/anomaly-details';
+import { DetectionTimelinePage, LiveStreamPage } from '@/pages/anomaly-streams';
 import {
   BusinessImpactMetricPage,
   EngineeringConfidenceMetricPage,
@@ -69,6 +70,12 @@ export const AppRoutes = () => (
           path="anomaly-detection/details/taxonomy-signatures"
           element={<TaxonomySignaturesDetailPage />}
         />
+        {/* Stream analytics, opened from the two entry cards on the module
+            overview. Siblings rather than children because each replaces the
+            module view rather than rendering inside it. */}
+        <Route path="anomaly-detection/detection-timeline" element={<DetectionTimelinePage />} />
+        <Route path="anomaly-detection/live-stream" element={<LiveStreamPage />} />
+
         {/* The module's own report surface — the journal with its taxonomy,
             exportable. Distinct from Historical Reports, which browses several
             archived record sets at daily resolution. */}
@@ -103,6 +110,39 @@ export const AppRoutes = () => (
         <Route
           path="anomaly-detection/metrics/engineering-confidence"
           element={<EngineeringConfidenceMetricPage />}
+        />
+
+        {/* Short aliases for the seven metric pages, one level up from
+            /metrics. Redirects rather than second mount points: two routes
+            rendering the same page would give the same analysis two canonical
+            URLs, and the sidebar highlight already resolves by prefix. */}
+        <Route
+          path="anomaly-detection/false-positive"
+          element={<Navigate to={PATHS.metricFalsePositives} replace />}
+        />
+        <Route
+          path="anomaly-detection/false-negative"
+          element={<Navigate to={PATHS.metricFalseNegatives} replace />}
+        />
+        <Route
+          path="anomaly-detection/detection-latency"
+          element={<Navigate to={PATHS.metricLatencySla} replace />}
+        />
+        <Route
+          path="anomaly-detection/prediction-horizon"
+          element={<Navigate to={PATHS.metricPredictionHorizon} replace />}
+        />
+        <Route
+          path="anomaly-detection/recommendation-acceptance"
+          element={<Navigate to={PATHS.metricRecommendationAcceptance} replace />}
+        />
+        <Route
+          path="anomaly-detection/business-impact"
+          element={<Navigate to={PATHS.metricBusinessImpact} replace />}
+        />
+        <Route
+          path="anomaly-detection/engineering-confidence"
+          element={<Navigate to={PATHS.metricEngineeringConfidence} replace />}
         />
 
         {/* A bare /details or /metrics is not a page — send it back to the module. */}

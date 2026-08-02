@@ -25,6 +25,7 @@ import { DataTable } from '@/components/data';
 import { DeviceIdentity, StatusBadge } from '@/components/common';
 import { useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { groupMissesByCategory, riskRows, type RiskRow } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ export const FalseNegativesMetricPage = () => {
   const journal = useAnomalyJournal();
   const assets = useAssetList();
   const snapshot = useSnapshot();
-  const { quality } = useAnomalyModule();
+  const { quality, scoped } = useAnomalyModule();
 
   const fn = quality.falseNegative;
 
@@ -321,6 +322,8 @@ export const FalseNegativesMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="falseNegative" quality={quality} scopedCount={scoped.length} />
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr]">
         <ScatterRisk

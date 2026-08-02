@@ -14,6 +14,10 @@ export const PATHS = {
   anomalyActiveEvents: '/app/anomaly-detection/details/active-events',
   anomalyCategoryBreakdown: '/app/anomaly-detection/details/category-breakdown',
   anomalyTaxonomySignatures: '/app/anomaly-detection/details/taxonomy-signatures',
+  /* Stream analytics, opened from the two entry cards on the module overview.
+   * Same nesting rule as the drill-downs above. */
+  anomalyDetectionTimeline: '/app/anomaly-detection/detection-timeline',
+  anomalyLiveStream: '/app/anomaly-detection/live-stream',
   /** Module-scoped anomaly report — the journal with its taxonomy, exportable. */
   anomalyReports: '/app/anomaly-detection/reports',
   /**

@@ -9,6 +9,7 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { BarTrend, LineTrend, RadialGauge, type SeriesDef } from '@/components/charts';
 import { BROADCAST_SLA_MS, PING_TOLERANCE_MS, useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, useStreamSamples, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { bucketLatency, mean, percentile, ratioPct, stdDev } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -30,7 +31,7 @@ import { bucketLatency, mean, percentile, ratioPct, stdDev } from './metricSerie
 export const LatencySlaMetricPage = () => {
   const snapshot = useSnapshot();
   const connection = useConnection();
-  const { quality } = useAnomalyModule();
+  const { quality, scoped } = useAnomalyModule();
   const { samples, spanSeconds } = useStreamSamples();
 
   const { platform } = snapshot;
@@ -129,6 +130,8 @@ export const LatencySlaMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="latency" quality={quality} scopedCount={scoped.length} />
 
       <LineTrend
         title="Ingestion to detection latency"

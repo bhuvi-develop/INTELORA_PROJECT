@@ -9,6 +9,7 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { COST_MODEL, classifyRecord, faultClass, useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { bucketJournal, ratioPct } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -28,7 +29,7 @@ export const BusinessImpactMetricPage = () => {
   const journal = useAnomalyJournal();
   const assets = useAssetList();
   const snapshot = useSnapshot();
-  const { quality } = useAnomalyModule();
+  const { quality, scoped } = useAnomalyModule();
 
   const now = snapshot.at;
   const impact = quality.impact;
@@ -179,6 +180,8 @@ export const BusinessImpactMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="impact" quality={quality} scopedCount={scoped.length} />
 
       {/* ─── The assumptions, stated before the charts that use them ────── */}
       <Card>

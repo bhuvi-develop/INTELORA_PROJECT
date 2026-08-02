@@ -18,6 +18,7 @@ import {
   type ContributionSlice,
 } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { groupByChannel, mean } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ export const EngineeringConfidenceMetricPage = () => {
   const journal = useAnomalyJournal();
   const assets = useAssetList();
   const snapshot = useSnapshot();
-  const { quality } = useAnomalyModule();
+  const { quality, scoped } = useAnomalyModule();
 
   const now = snapshot.at;
   const confidence = quality.confidence;
@@ -167,6 +168,8 @@ export const EngineeringConfidenceMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="confidence" quality={quality} scopedCount={scoped.length} />
 
       <div className="grid gap-4 xl:grid-cols-[1.25fr_1fr]">
         <BarTrend

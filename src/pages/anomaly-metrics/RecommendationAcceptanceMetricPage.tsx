@@ -24,6 +24,7 @@ import { BarTrend, DonutSplit, type SeriesDef } from '@/components/charts';
 import { UrgencyBadge } from '@/components/common';
 import { FAULT_CLASSES, classifyRecord, faultClass, useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { ratioPct } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ export const RecommendationAcceptanceMetricPage = () => {
   const assets = useAssetList();
   const snapshot = useSnapshot();
   const { acknowledge } = useEngineControl();
-  const { quality } = useAnomalyModule();
+  const { quality, scoped } = useAnomalyModule();
 
   const now = snapshot.at;
   const adoption = quality.adoption;
@@ -184,6 +185,8 @@ export const RecommendationAcceptanceMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="adoption" quality={quality} scopedCount={scoped.length} />
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
         {disposition.length > 0 ? (

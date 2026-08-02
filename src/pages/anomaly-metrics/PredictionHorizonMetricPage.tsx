@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { BarTrend, DegradationChart, type SeriesDef } from '@/components/charts';
 import { useAnomalyModule } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from '@/pages/anomaly-details';
+import { MetricSummaryPanel } from './MetricSummaryPanel';
 import { mean } from './metricSeries';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ export const PredictionHorizonMetricPage = () => {
   const assets = useAssetList();
   const journal = useAnomalyJournal();
   const snapshot = useSnapshot();
-  const { quality } = useAnomalyModule();
+  const { quality, scoped } = useAnomalyModule();
 
   const now = snapshot.at;
   const horizon = quality.horizon;
@@ -177,6 +178,8 @@ export const PredictionHorizonMetricPage = () => {
       }
     >
       <DetailStatStrip stats={stats} />
+
+      <MetricSummaryPanel metric="horizon" quality={quality} scopedCount={scoped.length} />
 
       {selected && degradation.length > 0 ? (
         <DegradationChart

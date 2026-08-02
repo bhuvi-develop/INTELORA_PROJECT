@@ -15,6 +15,21 @@ export type { FailureClassificationProps } from './FailureClassification';
 export { DetectionQualityGrid } from './DetectionQualityGrid';
 export type { DetectionQualityGridProps } from './DetectionQualityGrid';
 
+/* One definition per KPI — read by the overview tiles for their identity and by
+ * the drill-downs for the working behind the figure. */
+export { METRIC_CARDS, metricCard, metricDetail } from './metricCatalog';
+export type {
+  MetricCard,
+  MetricChartForm,
+  MetricComposition,
+  MetricDetail,
+  MetricKey,
+  MetricStat,
+  MetricTerm,
+} from './metricCatalog';
+
+export { StreamNavGrid } from './StreamNavGrid';
+
 export { TaxonomyReference } from './TaxonomyReference';
 export type { TaxonomyReferenceProps } from './TaxonomyReference';
 

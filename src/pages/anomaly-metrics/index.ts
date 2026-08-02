@@ -13,6 +13,11 @@ export { RecommendationAcceptanceMetricPage } from './RecommendationAcceptanceMe
 export { BusinessImpactMetricPage } from './BusinessImpactMetricPage';
 export { EngineeringConfidenceMetricPage } from './EngineeringConfidenceMetricPage';
 
+/* The metric's own definition — headline, formula, terms and caveat — as it
+ * reads on its page, with the derivation drawn out beside it. */
+export { MetricSummaryPanel } from './MetricSummaryPanel';
+export type { MetricSummaryPanelProps } from './MetricSummaryPanel';
+
 export {
   TREND_BUCKETS,
   TREND_BUCKET_MS,

@@ -1,18 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import {
-  Activity,
-  CheckCheck,
-  Download,
-  Radar,
-  ShieldAlert,
-  ShieldCheck,
-  Waves,
-  X,
-} from 'lucide-react';
+import { CheckCheck, Download, Radar, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import type { AnomalyRecord, AnomalyStatus } from '@/engine/types';
-import { SEVERITY_TONE } from '@/engine/derive';
-import { SEVERITY_ORDER, bucketBySeverity, sortBySeverity } from '@/engine/analytics';
+import { sortBySeverity } from '@/engine/analytics';
 import { DEVICE_CATEGORIES } from '@/engine/catalog';
 import { MODULE_TITLES } from '@/config/navigation';
 import { env } from '@/config/env';
@@ -23,8 +13,6 @@ import { useDebounce, useToast, useUI } from '@/hooks';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { AreaTrend, LineTrend } from '@/components/charts';
-import type { SeriesDef } from '@/components/charts';
 import { GrafanaPanel } from '@/components/grafana';
 import { DataTable, Pagination, TableToolbar, type FilterDef } from '@/components/data';
 import {
@@ -40,6 +28,7 @@ import {
   FAULT_CLASSES,
   FAULT_RULES,
   FailureClassification,
+  StreamNavGrid,
   TaxonomyReference,
   TaxonomyStatusBar,
   faultClass,
@@ -94,7 +83,7 @@ export const AnomalyDetectionPage = () => {
   const { acknowledge, acknowledgeAll } = useEngineControl();
 
   const module = useAnomalyModule();
-  const { state, taxonomy, status, quality, signal, scoped, ruleFor } = module;
+  const { state, taxonomy, status, quality, scoped, ruleFor } = module;
 
   /* Table-local controls. These narrow what is already in module scope; they are
    * not part of the taxonomy selection and nothing else on the page reads them. */
@@ -142,21 +131,6 @@ export const AnomalyDetectionPage = () => {
       affected: new Set(active.map((record) => record.assetId)).size,
     };
   }, [journal]);
-
-  /* The timeline follows the selection, so narrowing to a class shows when that
-   * class was raised rather than when anything was. */
-  const timeline = useMemo(() => bucketBySeverity(scoped, at), [scoped, at]);
-
-  const timelineSeries = useMemo<SeriesDef[]>(
-    () =>
-      SEVERITY_ORDER.map((severity) => ({
-        key: severity,
-        name: severity,
-        color: SEVERITY_TONE[severity].color,
-        decimals: 0,
-      })),
-    [],
-  );
 
   const selectedAsset = useMemo(
     () => (selected ? assets.find((entry) => entry.device.assetId === selected.assetId) : undefined),
@@ -570,36 +544,13 @@ export const AnomalyDetectionPage = () => {
         scopedCount={scoped.length}
       />
 
-      {/* ─── Streams, isolated to the selection ─────────────────────────── */}
-      <div className="grid gap-4 xl:grid-cols-2">
-        <AreaTrend
-          title="Detection timeline"
-          subtitle="Events raised per two-minute window, stacked by severity"
-          eyebrow="Volume"
-          icon={Activity}
-          data={timeline}
-          series={timelineSeries}
-          height={280}
-          stacked
-          footnote="An event is raised only after a breach persists across consecutive samples, and cleared only once the reading returns inside the threshold with margin — so a single noisy sample never appears here."
-        />
-
-        <LineTrend
-          title="Signal isolation"
-          subtitle={
-            state.selectedCategory === 'ALL'
-              ? `Channels carrying the current queue, across ${formatNumber(signal.assets)} device${signal.assets === 1 ? '' : 's'}`
-              : `${faultClass(state.selectedCategory).label} channels only, across ${formatNumber(signal.assets)} affected device${signal.assets === 1 ? '' : 's'}`
-          }
-          eyebrow="Live stream"
-          icon={Waves}
-          data={signal.data}
-          series={signal.series}
-          height={280}
-          domain={['auto', 'auto']}
-          footnote="Channels carry different units, so each is plotted as its departure from that device's own mean over the window — one axis, one meaning. Selecting a fault class drops the channels that class cannot explain."
-        />
-      </div>
+      {/* ─── Streams ────────────────────────────────────────────────────
+          Two entry points rather than two charts. Both charts that stood here
+          were compromises the slot forced — four severities stacked into one
+          plot, and channels normalised out of their own units so they could
+          share an axis. Each now opens a page that does not need either
+          compromise. */}
+      <StreamNavGrid />
 
       <DataTable<AnomalyRecord>
         data={paged}

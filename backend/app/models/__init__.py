@@ -6,6 +6,7 @@ gets created.
 """
 
 from app.models.anomaly import Alert, AnomalyDetection
+from app.models.apm import ApmAssetSnapshot, WorkOrder
 from app.models.asset import Asset, AssetComponent, Device
 from app.models.maintenance import AiInsight, AssetPerformance, Oee, PredictiveMaintenance
 from app.models.telemetry import Telemetry
@@ -15,6 +16,7 @@ __all__ = [
     "AiInsight",
     "Alert",
     "AnomalyDetection",
+    "ApmAssetSnapshot",
     "Asset",
     "AssetComponent",
     "AssetPerformance",
@@ -23,4 +25,5 @@ __all__ = [
     "PredictiveMaintenance",
     "Telemetry",
     "User",
+    "WorkOrder",
 ]

@@ -570,3 +570,195 @@ export interface SystemStatusDto {
   configuration: Record<string, unknown>;
   meta: ApiMeta;
 }
+
+/* ─── Asset Performance Management ───────────────────────────────────────── */
+/*
+ * Additive. `ApmResponseDto` above is the original fleet-ranking shape and is
+ * unchanged — the ranking endpoint still serves it.
+ *
+ * These describe the APM module's own projection: the composites it computes from
+ * the outputs of Anomaly Detection, Predictive Maintenance and Platform Core.
+ * Only the fields the interface reads are typed out; the deeper decomposition
+ * blocks the backend publishes for auditing are left as records rather than
+ * mirrored field by field, because a type that has to be edited every time a
+ * rationale string moves is a type nobody keeps accurate.
+ */
+
+/** Aggregates over whatever subset was requested. Computed server-side. */
+export interface ApmScopeDto {
+  assets: number;
+  /** Mean PdM condition score across the scope. */
+  mean_health: number;
+  /** Mean APM health index across the scope. */
+  mean_health_index: number;
+  weighted_health_index: number;
+  /** Gap between the strongest and weakest condition in the scope. */
+  health_spread: number;
+  availability_pct: number;
+  inherent_availability_pct: number;
+  mtbf_hours: number;
+  mttr_minutes: number;
+  failure_rate_per_1000h: number;
+  downtime_hours: number;
+  downtime_cost: number;
+  failures: number;
+  utilisation_pct: number;
+  mean_criticality: number;
+  mean_risk: number;
+  cost_exposure: number;
+  repair_cost: number;
+  replacement_cost: number;
+  open_work_orders: number;
+  assets_at_risk: number;
+  /** Devices per band of APM's composite health index. */
+  band_counts: Record<string, number>;
+  /**
+   * Devices per band of PdM's raw health score. Distinct from `band_counts`:
+   * both use the platform's four condition boundaries, but over two different
+   * figures. A view labelled "devices per health band" needs this one.
+   */
+  condition_band_counts: Record<string, number>;
+  risk_counts: Record<string, number>;
+  criticality_counts: Record<string, number>;
+  lifecycle_counts: Record<string, number>;
+}
+
+export interface ApmAssetDto {
+  asset_id: string;
+  asset_name: string;
+  category: string;
+  brand: string;
+  model: string;
+  status: string;
+  device_uid: string;
+
+  /** The AD, PdM and Platform Core figures this record was computed from. */
+  inputs: {
+    predictive: {
+      health_score: number;
+      health_band: string;
+      rul_days: number;
+      failure_probability: number;
+      failure_mode: string;
+      prediction_confidence: number;
+    };
+    anomaly_detection: {
+      anomalies_24h: number;
+      open_total: number;
+      alarm_pressure: number;
+      anomaly_score: number;
+      device_status: string;
+      open_by_severity: Record<string, number>;
+    };
+    platform_core: Record<string, number | string>;
+    effectiveness: { availability?: number; oee?: number };
+  };
+
+  health_index: number;
+  health_index_band: string;
+  health_index_confidence: number;
+  condition_gap: number;
+
+  criticality_score: number;
+  criticality_code: string;
+  criticality_label: string;
+  assigned_criticality: string;
+
+  availability_pct: number;
+  inherent_availability_pct: number;
+  mtbf_hours: number;
+  mtbf_censored: boolean;
+  mttr_minutes: number;
+  mttr_censored: boolean;
+  failure_rate_per_1000h: number;
+  failures: number;
+  open_failures: number;
+  downtime_hours: number;
+  downtime_events: number;
+  downtime_cost: number;
+  utilisation_pct: number;
+
+  effective_age_days: number;
+  ageing_factor: number;
+  calendar_age_days: number;
+
+  risk_score: number;
+  risk_tier: string;
+  risk_label: string;
+  risk_driver: string;
+
+  priority_score: number;
+  priority_code: string;
+  priority: string;
+  response_target_hours: number;
+
+  cost_exposure: number;
+  lifecycle_decision: string;
+
+  open_work_orders: number;
+  work_order_ids: string[];
+
+  health_index_rank: number;
+  risk_rank: number;
+  priority_rank: number;
+
+  health_index_terms: Array<Record<string, unknown>>;
+  criticality_factors: Array<Record<string, unknown>>;
+  risk_signals: Record<string, number>;
+  exposure_breakdown: Record<string, unknown>;
+  repair_estimate: Record<string, unknown>;
+  lifecycle: Record<string, unknown>;
+  recommended_action: Record<string, unknown>;
+}
+
+export interface ApmTierCountDto {
+  tier: string;
+  label: string;
+  count: number;
+  share_pct: number;
+}
+
+export interface ApmClassCountDto {
+  code: string;
+  label: string;
+  count: number;
+  share_pct: number;
+}
+
+export interface ApmOverviewDto {
+  assets: ApmAssetDto[];
+  scope: ApmScopeDto;
+  fleet_health: {
+    assets: number;
+    mean_index: number;
+    weighted_index: number;
+    band_counts: Record<string, number>;
+    below_floor: number;
+    operationally_impaired: number;
+  };
+  fleet_reliability: {
+    assets: number;
+    availability_pct: number;
+    inherent_availability_pct: number;
+    total_downtime_hours: number;
+    total_failures: number;
+    mtbf_sample: number;
+    mtbf_hours: number;
+    mttr_sample: number;
+    mttr_minutes: number;
+    failure_rate_per_1000h: number;
+    rate_credible: boolean;
+    assets_with_open_failures: number;
+    assets_below_target: number;
+  };
+  economics: Record<string, number | string>;
+  backlog: Record<string, unknown>;
+  effectiveness: Record<string, unknown>;
+  risk_distribution: ApmTierCountDto[];
+  criticality_distribution: ApmClassCountDto[];
+  lifecycle_distribution: Record<string, number>;
+  total: number;
+  returned: number;
+  config: Record<string, unknown>;
+  meta: ApiMeta;
+}

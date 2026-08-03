@@ -64,13 +64,7 @@ export interface TaxonomyStatusBarProps {
   onOpenTaxonomy: () => void;
 }
 
-export const TaxonomyStatusBar = ({
-  status,
-  taxonomy,
-  selectedCategory,
-  onSelectCategory,
-  onOpenTaxonomy,
-}: TaxonomyStatusBarProps) => {
+export const TaxonomyStatusBar = (_props: TaxonomyStatusBarProps) => {
   const navigate = useNavigate();
 
   return (

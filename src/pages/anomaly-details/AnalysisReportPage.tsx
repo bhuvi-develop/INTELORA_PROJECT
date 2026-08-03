@@ -27,7 +27,6 @@ import {
   type CategorySelection,
   type SeveritySelection,
 } from '@/components/anomaly';
-import { PATHS } from '@/routes/paths';
 
 const SEVERITY_OPTIONS: Array<{ value: SeveritySelection; label: string }> = [
   { value: 'ALL', label: 'All severities' },

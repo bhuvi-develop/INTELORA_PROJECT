@@ -11,6 +11,7 @@ from app.models.anomaly import (
     AnomalyEventRecord,
     AnomalyFeedbackLog,
 )
+from app.models.apm import ApmAssetSnapshot, WorkOrder
 from app.models.asset import Asset, AssetComponent, Device
 from app.models.maintenance import AiInsight, AssetPerformance, Oee, PredictiveMaintenance
 from app.models.telemetry import Telemetry
@@ -22,6 +23,7 @@ __all__ = [
     "AnomalyDetection",
     "AnomalyEventRecord",
     "AnomalyFeedbackLog",
+    "ApmAssetSnapshot",
     "Asset",
     "AssetComponent",
     "AssetPerformance",
@@ -30,4 +32,5 @@ __all__ = [
     "PredictiveMaintenance",
     "Telemetry",
     "User",
+    "WorkOrder",
 ]

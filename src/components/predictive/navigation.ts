@@ -43,6 +43,7 @@ export interface WorkspaceDef {
   question: string;
   /** Single line under the metric on the launcher card. */
   summary: string;
+  description?: string;
 }
 
 export const WORKSPACES: WorkspaceDef[] = [

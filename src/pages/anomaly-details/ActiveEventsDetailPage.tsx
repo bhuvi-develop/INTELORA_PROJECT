@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import type { AnomalyRecord } from '@/engine/types';
 import { SEVERITY_TONE } from '@/engine/derive';
-import { SEVERITY_ORDER, sortBySeverity } from '@/engine/analytics';
+import { sortBySeverity } from '@/engine/analytics';
 import { useAnomalyJournal, useEngineControl, useSnapshot } from '@/engine/store';
 import { PATHS, deviceDetailPath } from '@/routes/paths';
 import { SERIES, STATUS_COLOR } from '@/config/viz';
@@ -24,14 +24,13 @@ import { useToast, useUI } from '@/hooks';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { BarTrend, type SeriesDef } from '@/components/charts';
+import { BarTrend } from '@/components/charts';
 import { DataTable } from '@/components/data';
 import { AnomalyStatusBadge, DeviceIdentity, SeverityBadge } from '@/components/common';
 import {
   breachRatio,
   classifyRecord,
   faultClass,
-  isTransient,
 } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from './DetailShell';
 
@@ -42,57 +41,6 @@ import { DetailShell, DetailStatStrip, type DetailStat } from './DetailShell';
  * an engineer. Everything here is scoped to that, with the self-cleared trail
  * shown alongside so an operator can see how much of the load resolved itself.
  * ─────────────────────────────────────────────────────────────────────────── */
-
-/** Windows the timeline is bucketed into, and how wide each one is. */
-const BUCKETS = 24;
-const BUCKET_MS = 120_000;
-
-const minuteFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-interface LifecycleBucket {
-  t: number;
-  label: string;
-  raised: number;
-  cleared: number;
-  Critical: number;
-  Major: number;
-  Warning: number;
-  Info: number;
-}
-
-/**
- * Bucket raises against clears on one axis.
- *
- * A raise count alone cannot answer the question an operator actually has —
- * whether the queue is growing. Pairing it with the clear count in the same
- * window does.
- */
-const bucketLifecycle = (records: readonly AnomalyRecord[], now: number): LifecycleBucket[] => {
-  const out: LifecycleBucket[] = [];
-
-  for (let index = BUCKETS - 1; index >= 0; index -= 1) {
-    const to = now - index * BUCKET_MS;
-    const from = to - BUCKET_MS;
-
-    const raised = records.filter((record) => record.timestamp > from && record.timestamp <= to);
-    const cleared = records.filter(
-      (record) => record.resolvedAt !== null && record.resolvedAt > from && record.resolvedAt <= to,
-    );
-
-    out.push({
-      t: to,
-      label: minuteFmt.format(new Date(to)),
-      raised: raised.length,
-      cleared: cleared.length,
-      Critical: raised.filter((record) => record.severity === 'Critical').length,
-      Major: raised.filter((record) => record.severity === 'Major').length,
-      Warning: raised.filter((record) => record.severity === 'Warning').length,
-      Info: raised.filter((record) => record.severity === 'Info').length,
-    });
-  }
-
-  return out;
-};
 
 export const ActiveEventsDetailPage = () => {
   const navigate = useNavigate();
@@ -154,18 +102,6 @@ export const ActiveEventsDetailPage = () => {
       .filter((value) => value > 0);
     return dwells.length === 0 ? null : dwells.reduce((sum, value) => sum + value, 0) / dwells.length;
   }, [unresolved, ruleFor]);
-
-  const timeline = useMemo(() => bucketLifecycle(journal, now), [journal, now]);
-
-  const timelineSeries = useMemo<SeriesDef[]>(
-    () => SEVERITY_ORDER.map((severity) => ({
-      key: severity,
-      name: severity,
-      color: SEVERITY_TONE[severity].color,
-      decimals: 0,
-    })),
-    [],
-  );
 
   /* ─── Breach magnitude ─────────────────────────────────────────────────── */
 

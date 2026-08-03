@@ -1,5 +1,6 @@
 import type {
   AnomalyResponseDto,
+  ApmOverviewDto,
   ApmResponseDto,
   AssetDetailDto,
   AssetListDto,
@@ -53,6 +54,18 @@ export interface AssetQuery {
   band?: string;
 }
 
+export interface CreateAssetPayload {
+  asset_id?: string;
+  asset_name: string;
+  category: string;
+  brand: string;
+  model: string;
+  criticality: string;
+  rated_power_w?: number;
+  nominal_voltage_v?: number;
+  duty_factor?: number;
+}
+
 export const assetService = {
   list: (query: AssetQuery = {}, options: Signal = {}) =>
     get<AssetListDto>('/assets', query as Record<string, unknown>, options),
@@ -60,6 +73,8 @@ export const assetService = {
     get<AssetDetailDto>(`/assets/${encodeURIComponent(assetId)}`, undefined, options),
   components: (assetId: string, options: Signal = {}) =>
     get<Record<string, unknown>>(`/assets/${encodeURIComponent(assetId)}/components`, undefined, options),
+  create: (payload: CreateAssetPayload, options: Signal = {}) =>
+    post<Record<string, unknown>>('/assets', payload, options),
 };
 
 /* ─── Telemetry ──────────────────────────────────────────────────────────── */
@@ -147,6 +162,99 @@ export const performanceService = {
   oee: (query: { category?: string } = {}, options: Signal = {}) =>
     get<OeeResponseDto>('/oee', query as Record<string, unknown>, options),
   losses: (options: Signal = {}) => get<Record<string, unknown>>('/oee/losses', undefined, options),
+};
+
+/* ─── Asset Performance Management ───────────────────────────────────────── */
+
+export interface ApmQuery {
+  category?: string;
+  /** Criticality class A, B, C or D. */
+  criticality?: string;
+  risk_tier?: string;
+  /** Health index band. */
+  band?: string;
+  status?: string;
+  /** priority, risk, health_index, health, criticality, exposure or asset_id. */
+  sort?: string;
+}
+
+/**
+ * The APM module's own projection.
+ *
+ * `overview` is a single call by design, for the same reason the dashboard is: a
+ * view assembled from eight parallel requests can render eight different instants
+ * of the estate, and every figure in this payload is stamped with the analytics
+ * tick it was computed from.
+ *
+ * Filtering is a query parameter rather than something applied to the response.
+ * The backend returns aggregates over the filtered scope alongside the estate
+ * roll-up, so a scoped view never has to average anything in the browser.
+ *
+ * The remaining APM endpoints — criticality, reliability, cost, risk, backlog,
+ * effectiveness, hierarchy, work orders and the OEE and executive contracts — are
+ * enumerated here so the surface is discoverable from this file, even where no
+ * view reads them yet.
+ */
+export const apmService = {
+  overview: (query: ApmQuery = {}, options: Signal = {}) =>
+    get<ApmOverviewDto>('/apm/overview', query as Record<string, unknown>, options),
+  asset: (assetId: string, options: Signal = {}) =>
+    get<Record<string, unknown>>(`/apm/assets/${encodeURIComponent(assetId)}`, undefined, options),
+  healthIndex: (query: { category?: string } = {}, options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/health-index', query as Record<string, unknown>, options),
+  criticality: (options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/criticality', undefined, options),
+  reliability: (query: { category?: string } = {}, options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/reliability', query as Record<string, unknown>, options),
+  risk: (query: { tier?: string } = {}, options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/risk', query as Record<string, unknown>, options),
+  cost: (options: Signal = {}) => get<Record<string, unknown>>('/apm/cost', undefined, options),
+  backlog: (options: Signal = {}) => get<Record<string, unknown>>('/apm/backlog', undefined, options),
+  effectiveness: (options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/effectiveness', undefined, options),
+  hierarchy: (query: { depth?: number } = {}, options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/hierarchy', query as Record<string, unknown>, options),
+  history: (query: { asset_id?: string; days?: number } = {}, options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/history', query as Record<string, unknown>, options),
+
+  config: (options: Signal = {}) => get<Record<string, unknown>>('/apm/config', undefined, options),
+
+  /* Contracts APM publishes downstream. */
+  oeeInputs: (options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/outputs/oee', undefined, options),
+  executiveOutputs: (options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/outputs/executive', undefined, options),
+  outcomes: (query: { hours?: number; unpublished_only?: boolean } = {}, options: Signal = {}) =>
+    get<Record<string, unknown>>('/apm/outcomes', query as Record<string, unknown>, options),
+
+  /* Work orders. */
+  workOrders: (
+    query: {
+      asset_id?: string;
+      status?: string;
+      priority?: string;
+      type?: string;
+      origin?: string;
+      open_only?: boolean;
+      overdue_only?: boolean;
+      limit?: number;
+    } = {},
+    options: Signal = {},
+  ) => get<Record<string, unknown>>('/apm/work-orders', query as Record<string, unknown>, options),
+  workOrder: (id: string, options: Signal = {}) =>
+    get<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}`, undefined, options),
+  raiseWorkOrder: (payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>('/apm/work-orders', payload, options),
+  approveWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/approve`, payload, options),
+  rejectWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/reject`, payload, options),
+  assignWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/assign`, payload, options),
+  completeWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/complete`, payload, options),
+  verifyWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/verify`, payload, options),
 };
 
 /* ─── Reports ────────────────────────────────────────────────────────────── */

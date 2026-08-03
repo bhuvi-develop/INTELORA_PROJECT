@@ -1,7 +1,6 @@
 import { useSnapshot } from '@/engine/store';
 import { ArrowLeft } from 'lucide-react';
 import { SectionHeader } from '@/components/common';
-import { formatNumber } from '@/utils/format';
 
 export const AlertSummaryWorkspace = ({ onBack }: { onBack: () => void }) => {
   const { kpis, anomalies } = useSnapshot();

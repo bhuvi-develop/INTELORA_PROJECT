@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { OEE_TARGET } from '@/engine/derive';
 import { useSnapshot } from '@/engine/store';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import {
   AiExecutiveSummary,
   CockpitHeader,

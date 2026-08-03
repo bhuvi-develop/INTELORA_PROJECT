@@ -1,12 +1,9 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Bot, Sparkles } from 'lucide-react';
-import { asRiskTier, bandDef } from '@/engine/derive';
+import { Bot, Sparkles } from 'lucide-react';
 import { useSnapshot } from '@/engine/store';
 import { cn } from '@/lib/cn';
-import { formatNumber, formatPercent } from '@/utils/format';
-import { PATHS, deviceDetailPath } from '@/routes/paths';
+import { formatPercent } from '@/utils/format';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
@@ -22,12 +19,6 @@ import { Progress } from '@/components/ui/Progress';
  * ─────────────────────────────────────────────────────────────────────────── */
 
 const MODEL = { name: 'INTELORA Operations Copilot', version: 'v5.1.0' } as const;
-
-interface Callout {
-  assetId: string;
-  assetName: string;
-  reason: string;
-}
 
 export const AiExecutiveSummary = ({ className }: { className?: string }) => {
   const snapshot = useSnapshot();

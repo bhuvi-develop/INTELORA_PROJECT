@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Activity, Gauge, TrendingDown } from 'lucide-react';
+import { Activity, TrendingDown } from 'lucide-react';
 import { useAssetList, useFleetTrail } from '@/engine/store';
 import { OEE_TARGET } from '@/engine/derive';
 import { SERIES, STATUS_COLOR } from '@/config/viz';

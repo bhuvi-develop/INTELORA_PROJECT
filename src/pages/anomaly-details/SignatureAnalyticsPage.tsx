@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FileSignature, Search, Layers, Fingerprint, Activity, AlertTriangle } from 'lucide-react';
+import { FileSignature, Search, Layers } from 'lucide-react';
 import type { AnomalyRecord } from '@/engine/types';
 import { PageHeader } from '@/components/common';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -28,7 +28,7 @@ export const SignatureAnalyticsPage = () => {
     { id: 'code', header: 'Code', accessorFn: (row: any) => row.code },
     { id: 'signature', header: 'Signature Match', accessorFn: (row: any) => row.title },
     { id: 'device', header: 'Asset ID', accessorFn: (row: any) => row.assetId },
-    { id: 'confidence', header: 'Match Confidence', accessorFn: (row: any) => '98%' },
+    { id: 'confidence', header: 'Match Confidence', accessorFn: () => '98%' },
   ], []);
 
   return (

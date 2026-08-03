@@ -44,7 +44,7 @@ export const Dropdown = ({ trigger, children, align = 'right', width = 'w-72', c
             exit={{ opacity: 0, y: -4, scale: 0.985 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
-              'absolute z-50 mt-2 overflow-hidden rounded-xl border border-overlay/10 bg-ink-800/97 shadow-raised backdrop-blur-2xl',
+              'absolute z-[100] mt-2 overflow-hidden rounded-xl border border-slate-700/80 bg-[#0f172a] bg-ink-900 shadow-2xl backdrop-blur-2xl',
               align === 'right' ? 'right-0' : 'left-0',
               width,
             )}

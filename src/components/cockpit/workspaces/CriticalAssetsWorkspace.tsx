@@ -1,5 +1,5 @@
 import { useSnapshot } from '@/engine/store';
-import { ArrowLeft, ShieldAlert } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { SectionHeader } from '@/components/common';
 
 export const CriticalAssetsWorkspace = ({ onBack }: { onBack: () => void }) => {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Zap, Search, Activity, AlertTriangle } from 'lucide-react';
+import { Zap, Search, Activity } from 'lucide-react';
 import type { AnomalyRecord } from '@/engine/types';
 import { PageHeader } from '@/components/common';
 import { Card, CardHeader } from '@/components/ui/Card';

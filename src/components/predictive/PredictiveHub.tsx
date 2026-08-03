@@ -4,7 +4,6 @@ import { Activity, Database, Clock, Server } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { LineTrend, BarTrend } from '@/components/charts';
 import { SERIES } from '@/config/viz';
-import { cn } from '@/lib/cn';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { usePredictive } from './context';
 import { HubCard, type CardStatus } from './HubCard';

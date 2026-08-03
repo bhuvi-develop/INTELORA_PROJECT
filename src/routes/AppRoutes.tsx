@@ -35,18 +35,23 @@ import { PredictiveMaintenancePage } from '@/pages/PredictiveMaintenancePage';
 import { PreventiveMaintenancePage } from '@/pages/PreventiveMaintenancePage';
 import { PrescriptiveMaintenancePage } from '@/pages/PrescriptiveMaintenancePage';
 import { ApmPage } from '@/pages/ApmPage';
+import {
+  ApmAssetsPage,
+  ApmAvailabilityPage,
+  ApmCostPage,
+  ApmCriticalityPage,
+  ApmDashboardPage,
+  ApmHealthPage,
+  ApmMaintenancePage,
+  ApmReliabilityPage,
+  ApmReportsPage,
+  ApmWorkOrdersPage,
+} from '@/pages/apm';
 import { OeePage } from '@/pages/OeePage';
 import { HistoricalReportsPage } from '@/pages/HistoricalReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { WelcomeScreen } from '@/pages/WelcomeScreen';
-
-// APM Module Pages
-import { AssetExplorerPage } from '@/pages/apm/AssetExplorerPage';
-import { WorkOrdersPage } from '@/pages/apm/WorkOrdersPage';
-import { CostRoiPage } from '@/pages/apm/CostRoiPage';
-import { ReliabilityPage } from '@/pages/apm/ReliabilityPage';
-import { CriticalAssetsPage } from '@/pages/apm/CriticalAssetsPage';
 
 // OEE Module Pages
 import { FleetAnalyticsPage } from '@/pages/oee/FleetAnalyticsPage';
@@ -182,12 +187,22 @@ export const AppRoutes = () => (
         
         {/* APM Module routes */}
         <Route path="asset-performance" element={<ApmPage />} />
-        <Route path="asset-performance/asset-explorer" element={<AssetExplorerPage />} />
-        <Route path="asset-performance/work-orders" element={<WorkOrdersPage />} />
-        <Route path="asset-performance/cost-roi" element={<CostRoiPage />} />
-        <Route path="asset-performance/reliability" element={<ReliabilityPage />} />
-        <Route path="asset-performance/critical-assets" element={<CriticalAssetsPage />} />
-        
+        {/* The APM decision layer, served from /api/apm/*. Declared as a sibling
+            rather than a child because it replaces the module view rather than
+            rendering inside it. */}
+        <Route path="asset-performance/dashboard" element={<ApmDashboardPage />} />
+        {/* One analytics page per APM section, opened from the overview's
+            "View Analytics" controls. Siblings rather than children because
+            each replaces the module view rather than rendering inside it. */}
+        <Route path="asset-performance/assets" element={<ApmAssetsPage />} />
+        <Route path="asset-performance/reliability" element={<ApmReliabilityPage />} />
+        <Route path="asset-performance/maintenance" element={<ApmMaintenancePage />} />
+        <Route path="asset-performance/availability" element={<ApmAvailabilityPage />} />
+        <Route path="asset-performance/health" element={<ApmHealthPage />} />
+        <Route path="asset-performance/cost" element={<ApmCostPage />} />
+        <Route path="asset-performance/criticality" element={<ApmCriticalityPage />} />
+        <Route path="asset-performance/workorders" element={<ApmWorkOrdersPage />} />
+        <Route path="asset-performance/reports" element={<ApmReportsPage />} />
         <Route path="oee" element={<OeePage />} />
         <Route path="oee/fleet-analytics" element={<FleetAnalyticsPage />} />
         <Route path="oee/product-analytics" element={<ProductAnalyticsPage />} />

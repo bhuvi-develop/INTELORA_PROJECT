@@ -42,6 +42,20 @@ const levelIcon = (level: string) => {
   }
 };
 
+const stripBrandName = (name: string): string => {
+  const knownBrands = [
+    'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
+    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej', 'ThinkPad'
+  ];
+  for (const b of knownBrands) {
+    if (name.toLowerCase().startsWith(b.toLowerCase())) {
+      const trimmed = name.slice(b.length).trim();
+      if (trimmed) return trimmed;
+    }
+  }
+  return name;
+};
+
 const TreeNode = ({
   node,
   searchTerm,
@@ -56,12 +70,13 @@ const TreeNode = ({
   const children = node.children || [];
   const hasChildren = children.length > 0;
   const metrics = node.metrics as { mean_health?: number; assets?: number } | undefined;
+  const displayName = stripBrandName(node.name);
 
   const matchesSearch = useMemo(() => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     const selfMatch =
-      node.name.toLowerCase().includes(term) ||
+      displayName.toLowerCase().includes(term) ||
       node.id.toLowerCase().includes(term) ||
       node.level.toLowerCase().includes(term);
 
@@ -71,7 +86,7 @@ const TreeNode = ({
     );
 
     return selfMatch || childMatch;
-  }, [node, searchTerm, children]);
+  }, [node, searchTerm, children, displayName]);
 
   if (!matchesSearch) return null;
 
@@ -109,7 +124,7 @@ const TreeNode = ({
           )}
 
           <Icon size={14} className="text-brand-400 shrink-0" />
-          <span className="font-medium text-fg truncate">{node.name}</span>
+          <span className="font-medium text-fg truncate">{displayName}</span>
           <span className="text-[10px] font-mono text-fg-dim">({node.level})</span>
         </div>
 

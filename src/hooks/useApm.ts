@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
-import { apmService } from '@/services/platform.service';
+import { apmService, assetService } from '@/services/platform.service';
 import type {
   ApmBacklogResponse,
   ApmCostResponse,
@@ -193,4 +193,15 @@ export const useApmWorkOrderMutations = () => {
   });
 
   return { raise, approve, assign, complete, verify };
+};
+
+export const useCreateAssetMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<Record<string, unknown>, Error, Parameters<typeof assetService.create>[0]>({
+    mutationFn: (payload) => assetService.create(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: apmKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
 };

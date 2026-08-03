@@ -64,7 +64,7 @@ export const TableToolbar = ({
       />
 
       {filters.length > 0 ? (
-        <div className="scroll-thin flex items-center gap-2 overflow-x-auto pb-0.5">
+        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-0.5">
           <SlidersHorizontal size={14} className="shrink-0 text-fg-faint" aria-hidden />
           {filters.map((filter) => (
             <Select

@@ -18,6 +18,7 @@ export { ApmWorkOrderTable } from './ApmWorkOrderTable';
 export type { ApmWorkOrderTableProps } from './ApmWorkOrderTable';
 
 export { ApmAssetDetailModal } from './ApmAssetDetailModal';
+export { ApmAddAssetModal } from './ApmAddAssetModal';
 export { ApmHierarchyTree } from './ApmHierarchyTree';
 export { ApmWorkOrderLifecycleModal } from './ApmWorkOrderLifecycleModal';
 export { ApmExecutiveDashboard } from './ApmExecutiveDashboard';

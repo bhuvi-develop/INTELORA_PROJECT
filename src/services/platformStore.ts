@@ -460,7 +460,7 @@ class PlatformStore {
       applyBandThresholds(dashboard.bands.map((band) => ({ band: band.band, min: band.min })));
       applyFleetFacets(
         Array.from(new Set(assets.assets.map((asset) => asset.category))),
-        Array.from(new Set(assets.assets.map((asset) => asset.brand))).sort(),
+        ['Enterprise']
       );
       applyEffectivenessTargets(dashboard.oee.target, dashboard.oee.world_class);
 

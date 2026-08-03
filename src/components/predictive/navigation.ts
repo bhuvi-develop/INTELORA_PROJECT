@@ -43,6 +43,7 @@ export interface WorkspaceDef {
   question: string;
   /** Single line under the metric on the launcher card. */
   summary: string;
+  description?: string;
 }
 
 export const WORKSPACES: WorkspaceDef[] = [
@@ -81,10 +82,11 @@ export const WORKSPACES: WorkspaceDef[] = [
   {
     id: 'prescriptive',
     label: 'Prescriptive Maintenance',
-    discipline: 'AI Decision Engine',
+    discipline: 'Decision Engine',
     icon: Lightbulb,
-    question: 'What action should be taken?',
+    question: 'What is the recommended action?',
     summary: 'Recommended intervention per device, by urgency',
+    description: 'Auto-generated repair protocols mapped to predicted failure modes',
   },
   {
     id: 'queue',

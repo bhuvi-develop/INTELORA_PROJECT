@@ -327,18 +327,21 @@
    * the sides.
    */
   .panel {
-    @apply relative rounded-3xl border border-line/[0.15] bg-ink-800/40 bg-surface-2 shadow-panel backdrop-blur-3xl;
+    @apply relative rounded-3xl border border-line/[0.15] bg-ink-800/40 shadow-panel backdrop-blur-3xl;
+    background-image: var(--surface-2);
   }
 
   .panel::after {
     content: '';
-    @apply pointer-events-none absolute inset-x-4 top-0 h-px rounded-full bg-bevel-top opacity-70;
+    @apply pointer-events-none absolute inset-x-4 top-0 h-px rounded-full opacity-70;
+    background-image: var(--bevel-top);
   }
 
   /* On paper, a 70% card over a white page is invisible — light mode gets a
      solid card and leans on the bevel, border and shadow to separate planes. */
   :root[data-theme='light'] .panel {
-    @apply border-line/[0.11] bg-ink-800 bg-surface-2 backdrop-blur-none;
+    @apply border-line/[0.11] bg-ink-800 backdrop-blur-none;
+    background-image: var(--surface-2);
   }
 
   :root[data-theme='light'] .panel::after {
@@ -351,7 +354,8 @@
   }
 
   .panel-flat {
-    @apply relative rounded-3xl border border-line/[0.1] bg-ink-850/50 bg-surface-1 backdrop-blur-2xl;
+    @apply relative rounded-3xl border border-line/[0.1] bg-ink-850/50 backdrop-blur-2xl;
+    background-image: var(--surface-1);
   }
 
   /* A recessed well — readouts, inputs and anything that should look cut into
@@ -362,7 +366,8 @@
 
   .panel-sheen::before {
     content: '';
-    @apply pointer-events-none absolute inset-0 rounded-3xl bg-panel-sheen opacity-70;
+    @apply pointer-events-none absolute inset-0 rounded-3xl opacity-70;
+    background-image: var(--panel-sheen);
   }
 
   :root[data-theme='light'] .panel-sheen::before {

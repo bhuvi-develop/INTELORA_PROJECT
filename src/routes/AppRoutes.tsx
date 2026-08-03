@@ -34,6 +34,7 @@ import { OeePage } from '@/pages/OeePage';
 import { HistoricalReportsPage } from '@/pages/HistoricalReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { WelcomeScreen } from '@/pages/WelcomeScreen';
 
 export const AppRoutes = () => (
   <Routes>
@@ -41,11 +42,12 @@ export const AppRoutes = () => (
 
     {/* Authentication is bypassed; the former sign-in route now lands on the
         dashboard so any existing bookmark still resolves somewhere useful. */}
-    <Route path="/login" element={<Navigate to={PATHS.cockpit} replace />} />
+    <Route path="/login" element={<Navigate to={PATHS.workspace} replace />} />
 
     <Route element={<ProtectedRoute />}>
       <Route path="/app" element={<AppShell />}>
-        <Route index element={<Navigate to={PATHS.cockpit} replace />} />
+        {/* The workspace opens empty. A module is chosen, not assumed. */}
+        <Route index element={<WelcomeScreen />} />
 
         <Route path="cockpit" element={<CockpitPage />} />
         {/* Legacy path from the pre-cockpit build. */}

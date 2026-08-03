@@ -5,8 +5,34 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Cascadia Mono', 'Consolas', 'monospace'],
+        /* Industrial UI stack. Segoe UI Variable leads on Windows because its
+         * Text and Display optical sizes are drawn for exactly this job — dense
+         * control panels at small sizes — and it is present on every target
+         * machine. Inter is the cross-platform equivalent where installed. No
+         * webfont is linked: a CDN font that fails to load falls back silently
+         * and the interface ships in a face nobody chose. */
+        sans: [
+          'Segoe UI Variable Text',
+          'Segoe UI Variable',
+          'Inter',
+          'Segoe UI',
+          'system-ui',
+          '-apple-system',
+          'Roboto',
+          'Helvetica Neue',
+          'sans-serif',
+        ],
+        /* Display cut for large figures and titles: tighter, more contrast. */
+        display: [
+          'Segoe UI Variable Display',
+          'Segoe UI Variable',
+          'Inter Display',
+          'Inter',
+          'Segoe UI',
+          'system-ui',
+          'sans-serif',
+        ],
+        mono: ['Cascadia Mono', 'JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace'],
       },
       colors: {
         /* ─── Structural planes ─────────────────────────────────────────────
@@ -100,6 +126,15 @@ export default {
        * planes, light mode on soft diffusion plus a hairline. Both are declared
        * as variables so a card never carries the wrong elevation language. */
       boxShadow: {
+        /* Four elevations, each a real light model: an inset top highlight where
+         * the surface catches the key light, a contact shadow, and an ambient
+         * shadow that spreads with height. */
+        'elev-1': 'var(--elev-1)',
+        'elev-2': 'var(--elev-2)',
+        'elev-3': 'var(--elev-3)',
+        'elev-4': 'var(--elev-4)',
+        /* Pressed: the surface sits below the plane. */
+        inset: 'var(--elev-inset)',
         panel: 'var(--shadow-panel)',
         raised: 'var(--shadow-raised)',
         glow: 'var(--shadow-glow)',
@@ -110,6 +145,12 @@ export default {
           'linear-gradient(to right, var(--grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px)',
         'radial-brand': 'radial-gradient(ellipse 80% 60% at 50% 0%, var(--brand-wash), transparent 70%)',
         'panel-sheen': 'var(--panel-sheen)',
+        /* Surfaces are never a flat fill: a shallow vertical gradient gives the
+         * plane a top and a bottom, which is what makes it read as material. */
+        'surface-1': 'var(--surface-1)',
+        'surface-2': 'var(--surface-2)',
+        'surface-raised': 'var(--surface-raised)',
+        'bevel-top': 'var(--bevel-top)',
       },
       backgroundSize: {
         'grid-fine': '44px 44px',

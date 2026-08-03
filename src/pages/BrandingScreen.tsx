@@ -4,22 +4,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { APP } from '@/config/env';
 import { PATHS } from '@/routes/paths';
 import { usePrefersReducedMotion } from '@/hooks/useMediaQuery';
-import { LogoMark } from '@/components/common/Logo';
 
-/* ───────────────────────────────────────────────────────────────────────────
- * Branding screen.
- *
- * The mark and the wordmark, nothing else. No progress, no percentage, no
- * initialisation copy, no version footer — the application is already running by
- * the time this paints, so anything implying work in progress would be theatre.
- *
- * It holds for 1.2 s, fades, and hands off to the dashboard. Reduced-motion
- * users skip it entirely rather than watching a static hold for no reason.
- * ─────────────────────────────────────────────────────────────────────────── */
+const HOLD_MS = 2_600;
+const FADE_MS = 520;
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
-const HOLD_MS = 1_200;
-const FADE_MS = 420;
-
+/** A single-brand opening sequence: no progress copy, subtitle, or metadata. */
 export const BrandingScreen = () => {
   const navigate = useNavigate();
   const reducedMotion = usePrefersReducedMotion();
@@ -27,13 +17,12 @@ export const BrandingScreen = () => {
 
   useEffect(() => {
     if (reducedMotion) {
-      navigate(PATHS.cockpit, { replace: true });
+      navigate(PATHS.workspace, { replace: true });
       return;
     }
 
     const fade = window.setTimeout(() => setLeaving(true), HOLD_MS);
-    const go = window.setTimeout(() => navigate(PATHS.cockpit, { replace: true }), HOLD_MS + FADE_MS);
-
+    const go = window.setTimeout(() => navigate(PATHS.workspace, { replace: true }), HOLD_MS + FADE_MS);
     return () => {
       window.clearTimeout(fade);
       window.clearTimeout(go);
@@ -43,108 +32,51 @@ export const BrandingScreen = () => {
   if (reducedMotion) return null;
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink-950">
-      {/* A single soft blue bloom behind the mark. */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/[0.13] blur-[130px]" />
-        <div className="absolute left-1/2 top-1/2 h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-400/[0.09] blur-[70px]" />
-      </div>
-
-      <AnimatePresence>
-        {!leaving ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, filter: 'blur(8px)', scale: 1.03 }}
-            transition={{ duration: FADE_MS / 1000, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 flex flex-col items-center"
-          >
-            {/* ─── Mark ─────────────────────────────────────────────────────
-             * Depth comes from three stacked layers rather than a filter: a
-             * blurred colour bloom beneath, the mark itself, and a bevelled
-             * glass plate above with a specular sweep.
-             * ───────────────────────────────────────────────────────────── */}
+    <AnimatePresence>
+      {!leaving ? (
+        <motion.div
+          key="branding"
+          exit={{ opacity: 0, filter: 'blur(6px)' }}
+          transition={{ duration: FADE_MS / 1000, ease: EASE_OUT }}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-ink-950"
+        >
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
             <motion.div
-              initial={{ opacity: 0, scale: 0.86, y: 10, rotateX: 14 }}
-              animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
-              transition={{ duration: 0.78, ease: [0.16, 1, 0.3, 1] }}
-              className="relative"
-              style={{ perspective: 800 }}
-            >
-              {/* Bloom cast by the mark. */}
-              <div
-                className="absolute inset-0 -z-10 scale-125 rounded-[2rem] bg-brand-500/45 blur-3xl"
-                aria-hidden
-              />
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 2, ease: EASE_OUT }}
+              className="absolute left-1/2 top-1/2 h-[50rem] w-[50rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/[0.25] blur-[160px]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-ink-950/40 to-ink-950/90 backdrop-blur-[2px]" />
+          </div>
 
-              <div
-                className="relative rounded-[1.65rem] p-[1.5px]"
-                style={{
-                  /* Bevel: a bright top-left edge falling to a dark bottom-right,
-                   * which is what reads as a machined metal rim. */
-                  background:
-                    'linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 38%, rgba(0,0,0,0.5) 100%)',
-                  boxShadow:
-                    '0 28px 70px -20px rgba(61,142,240,0.55), 0 8px 24px -10px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.35)',
-                }}
-              >
-                <div
-                  className="relative overflow-hidden rounded-[1.55rem] p-7"
-                  style={{
-                    background:
-                      'linear-gradient(160deg, #17233a 0%, #0d1524 46%, #070c16 100%)',
-                  }}
-                >
-                  {/* Glass highlight across the upper third. */}
-                  <div
-                    className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[1.5rem]"
-                    style={{
-                      background:
-                        'linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.03) 60%, transparent 100%)',
-                    }}
-                    aria-hidden
-                  />
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9, filter: 'blur(12px)' }}
+            animate={{ opacity: 1, y: 0, scale: 1.05, filter: 'blur(0px)' }}
+            transition={{ duration: HOLD_MS / 1000, ease: 'easeOut' }}
+            className="relative z-10 glass px-20 py-14 rounded-[3rem] shadow-[0_20px_80px_-15px_rgba(0,110,230,0.4)] border border-white/10 overflow-hidden backdrop-blur-3xl"
+          >
+            {/* Shimmer / Light Reflection */}
+            <motion.div
+              initial={{ x: '-150%' }}
+              animate={{ x: '250%' }}
+              transition={{ duration: 1.8, delay: 0.6, ease: 'easeInOut' }}
+              className="absolute inset-0 z-20 w-[150%] -skew-x-[30deg] bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none"
+              aria-hidden
+            />
 
-                  {/* Specular sweep — one pass, then it is gone. */}
-                  <div
-                    className="animate-brand-sheen pointer-events-none absolute inset-y-0 -left-1/2 w-1/2"
-                    style={{
-                      background:
-                        'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-                    }}
-                    aria-hidden
-                  />
-
-                  <LogoMark size={84} className="relative" />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* ─── Wordmark ────────────────────────────────────────────────
-             * Metallic by gradient fill rather than by texture: a bright core
-             * between two darker stops gives the impression of a polished edge
-             * catching light, and it stays crisp at any size.
-             * ─────────────────────────────────────────────────────────── */}
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.66, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="relative mt-8 select-none text-[2.25rem] font-semibold leading-none tracking-[0.34em] sm:text-[2.75rem]"
+            <h1
+              className="relative z-10 bg-gradient-to-b from-[#ffffff] via-[#cde3ff] to-[#005ac8] bg-clip-text text-[3rem] font-black uppercase leading-none tracking-[0.45em] text-transparent sm:text-[4.5rem]"
               style={{
-                backgroundImage:
-                  'linear-gradient(180deg, #ffffff 0%, #cfe0f8 38%, #7fa9e0 62%, #dce9fb 100%)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-                /* A faint dark cast under the glyphs gives the metal a body. */
-                filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.55)) drop-shadow(0 0 22px rgba(61,142,240,0.4))',
+                paddingLeft: '0.45em',
+                textShadow: '0px 1px 1px rgba(255,255,255,0.7), 0px 2px 0px #004499, 0px 3px 0px #003377, 0px 4px 0px #002255, 0px 5px 0px #001133, 0px 12px 30px rgba(0,110,230,0.7), 0px 24px 48px rgba(0,0,0,0.9)'
               }}
             >
               {APP.name}
-            </motion.p>
+            </h1>
           </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 };

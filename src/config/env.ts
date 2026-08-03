@@ -49,7 +49,9 @@ export const grafanaEnabled = env.grafana.baseUrl.trim().length > 0;
 
 export const APP = {
   name: 'INTELORA',
-  tagline: 'Enterprise AIoT Intelligence',
+  tagline: 'Enterprise AIoT Intelligence Platform',
+  /** Operating organisation, shown in the workspace header. */
+  organisation: str(import.meta.env.VITE_ORGANISATION, 'ABC Manufacturing Pvt Ltd'),
   device: 'MIKOS Smart Energy Sensor',
   vendor: 'Intelora Industrial Systems',
   version: '1.0.0',

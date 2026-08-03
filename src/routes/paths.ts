@@ -1,7 +1,9 @@
 export const PATHS = {
-  /** Branding screen — the only thing shown before the dashboard. */
+  /** Branding screen — the only thing shown before the workspace. */
   branding: '/',
-  /** The Enterprise Cockpit — landing surface after sign-in and the module hub. */
+  /** The empty workspace. Nothing loads until a module is chosen. */
+  workspace: '/app',
+  /** The Enterprise Cockpit — one module among several, no longer the landing. */
   cockpit: '/app/cockpit',
   devices: '/app/devices',
   deviceDetail: '/app/devices/:assetId',

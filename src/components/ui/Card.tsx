@@ -18,7 +18,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         'panel overflow-hidden',
         sheen && 'panel-sheen',
         !flush && 'p-4 sm:p-5',
-        interactive && 'transition-all duration-200 ease-enterprise hover:border-overlay/[0.13] hover:shadow-raised',
+        interactive && 'panel-interactive',
         className,
       )}
       {...rest}

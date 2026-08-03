@@ -296,11 +296,11 @@ ASSET_SEEDS: tuple[AssetSeed, ...] = (
     AssetSeed("CHR-007", "Baseus 30W PD Charger", MOBILE_CHARGER, "Baseus", "GaN5 Pro 30W", "Low", 0.79,
               (0.09, 0.05, 0.12, 0.04, 0.16, 0.03),
               {"rated_power_w": 30.0, "max_current_a": 1.7}),
-    AssetSeed("CHR-008", "Dell 45W USB-C Adapter", MOBILE_CHARGER, "Dell", "LA45NM170", "Medium", 1.18,
+    AssetSeed("CHR-008", "Dell 45W USB-C Adapter", LAPTOP, "Dell", "LA45NM170", "Medium", 1.18,
               (0.38, 0.22, 0.44, 0.17, 0.61, 0.14)),
-    AssetSeed("CHR-009", "HP 45W USB-C Adapter", MOBILE_CHARGER, "HP", "L43407-001", "Low", 1.06,
+    AssetSeed("CHR-009", "HP 45W USB-C Adapter", LAPTOP, "HP", "L43407-001", "Low", 1.06,
               (0.21, 0.13, 0.26, 0.09, 0.33, 0.08)),
-    AssetSeed("CHR-010", "Lenovo 45W Slim Adapter", MOBILE_CHARGER, "Lenovo", "ADLX45YCC3D", "Medium", 1.37,
+    AssetSeed("CHR-010", "Lenovo 45W Slim Adapter", LAPTOP, "Lenovo", "ADLX45YCC3D", "Medium", 1.37,
               (0.51, 0.31, 0.61, 0.24, 0.73, 0.19)),
 )
 

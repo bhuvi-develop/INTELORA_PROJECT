@@ -144,7 +144,7 @@ def build(
 
         path = [
             ("portfolio", seed.category),
-            ("site", "Primary Facility"),
+            ("site", seed.brand),
             ("floor", _model_family(seed.model)),
             ("zone", f"{zone_label} criticality"),
         ]

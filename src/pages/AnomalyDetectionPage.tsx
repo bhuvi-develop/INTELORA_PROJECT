@@ -259,6 +259,7 @@ export const AnomalyDetectionPage = () => {
     [acknowledge, toast, ruleFor],
   );
 
+
   const filters: FilterDef[] = [
     {
       key: 'class',

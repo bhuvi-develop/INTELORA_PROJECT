@@ -114,7 +114,7 @@ def strip_brand_name(name: str, brand: str | None = None) -> str:
             return trimmed
     known_brands = [
         "Baseus", "Samsung", "Ugreen", "Anker", "Belkin", "Apple", "Dell", "HP", "Lenovo",
-        "Daikin", "Voltas", "Blue Star", "LG", "Mitsubishi", "Carrier", "Hitachi", "Panasonic", "Lloyd", "Godrej"
+        "Daikin", "Voltas", "Blue Star", "LG", "Mitsubishi", "Carrier", "Hitachi", "Panasonic", "Lloyd", "Godrej", "ThinkPad"
     ]
     for b in known_brands:
         if name.lower().startswith(b.lower()):
@@ -141,11 +141,12 @@ def build(
     for state in sorted(states, key=lambda entry: entry.asset_id):
         seed = state.seed
         zone_label = labels.get(state.asset_id, seed.criticality)
+        floor_name = strip_brand_name(_model_family(seed.model), seed.brand)
 
         path = [
+            ("site", "Primary Facility"),
             ("portfolio", seed.category),
-            ("site", seed.brand),
-            ("floor", _model_family(seed.model)),
+            ("floor", floor_name),
             ("zone", f"{zone_label} criticality"),
         ]
 

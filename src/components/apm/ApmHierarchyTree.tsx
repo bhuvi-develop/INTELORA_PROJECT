@@ -45,7 +45,7 @@ const levelIcon = (level: string) => {
 const stripBrandName = (name: string): string => {
   const knownBrands = [
     'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
-    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej'
+    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej', 'ThinkPad'
   ];
   for (const b of knownBrands) {
     if (name.toLowerCase().startsWith(b.toLowerCase())) {

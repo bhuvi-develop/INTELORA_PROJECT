@@ -54,6 +54,18 @@ export interface AssetQuery {
   band?: string;
 }
 
+export interface CreateAssetPayload {
+  asset_id?: string;
+  asset_name: string;
+  category: string;
+  brand: string;
+  model: string;
+  criticality: string;
+  rated_power_w?: number;
+  nominal_voltage_v?: number;
+  duty_factor?: number;
+}
+
 export const assetService = {
   list: (query: AssetQuery = {}, options: Signal = {}) =>
     get<AssetListDto>('/assets', query as Record<string, unknown>, options),
@@ -61,6 +73,8 @@ export const assetService = {
     get<AssetDetailDto>(`/assets/${encodeURIComponent(assetId)}`, undefined, options),
   components: (assetId: string, options: Signal = {}) =>
     get<Record<string, unknown>>(`/assets/${encodeURIComponent(assetId)}/components`, undefined, options),
+  create: (payload: CreateAssetPayload, options: Signal = {}) =>
+    post<Record<string, unknown>>('/assets', payload, options),
 };
 
 /* ─── Telemetry ──────────────────────────────────────────────────────────── */

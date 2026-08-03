@@ -204,6 +204,11 @@ class MikosSimulator:
         for seed in ASSET_SEEDS:
             self.states[seed.asset_id] = self._build_state(seed, self.started_at)
 
+    def add_asset(self, seed: AssetSeed) -> AssetState:
+        state = self._build_state(seed, datetime.now(timezone.utc))
+        self.states[seed.asset_id] = state
+        return state
+
     # ── Construction ────────────────────────────────────────────────────
 
     @staticmethod

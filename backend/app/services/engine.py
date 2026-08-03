@@ -79,6 +79,13 @@ class InteloraEngine:
         self._analytics: Analytics = Analytics(computed_at=self.started_at)
         self._lock = threading.RLock()
 
+    def register_asset(self, seed: AssetSeed) -> AssetState:
+        """Commission a new asset into the running simulation and recalculate analytics."""
+        with self._lock:
+            state = self.simulator.add_asset(seed)
+            self.refresh_analytics()
+            return state
+
     # ── Simulation ──────────────────────────────────────────────────────
 
     def step(self, dt: float | None = None, *, now: datetime | None = None) -> StepResult:

@@ -4,11 +4,91 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.database.base import SessionLocal
+from app.mock_data.catalog import AssetSeed
+from app.models.asset import Asset
 from app.routers.deps import build_meta, get_engine
-from app.schemas.asset import AssetDetailResponse, AssetListResponse
+from app.schemas.asset import AssetCreateRequest, AssetDetailResponse, AssetListResponse
 from app.services.engine import InteloraEngine
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
+
+
+@router.post("", status_code=status.HTTP_201_CREATED, summary="Commission a new asset")
+def create_asset(
+    payload: AssetCreateRequest,
+    engine: InteloraEngine = Depends(get_engine),
+) -> dict:
+    cat_prefix = "CHR" if payload.category == "Mobile Charger" else ("AIR" if payload.category == "Air Conditioner" else "LAP")
+    if not payload.asset_id:
+        existing_ids = [aid for aid in engine.simulator.states.keys() if aid.startswith(cat_prefix)]
+        seq = len(existing_ids) + 1
+        asset_id = f"{cat_prefix}-{seq:03d}"
+    else:
+        asset_id = payload.asset_id
+
+    if asset_id in engine.simulator.states:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Asset ID {asset_id} is already commissioned",
+        )
+
+    duty = payload.duty_factor if payload.duty_factor > 0 else 1.0
+    initial_wear = (0.05, 0.03, 0.04, 0.02, 0.03, 0.04)
+
+    overrides: dict[str, float] = {}
+    if payload.rated_power_w is not None:
+        overrides["rated_power_w"] = float(payload.rated_power_w)
+    if payload.nominal_voltage_v is not None:
+        overrides["nominal_voltage"] = float(payload.nominal_voltage_v)
+
+    seed = AssetSeed(
+        asset_id=asset_id,
+        asset_name=payload.asset_name,
+        category=payload.category,
+        brand=payload.brand,
+        model=payload.model,
+        criticality=payload.criticality,
+        duty_factor=duty,
+        initial_wear=initial_wear,
+        overrides=overrides,
+    )
+
+    state = engine.register_asset(seed)
+
+    try:
+        with SessionLocal() as db:
+            existing = db.query(Asset).filter(Asset.asset_id == asset_id).first()
+            if not existing:
+                db_asset = Asset(
+                    asset_id=asset_id,
+                    asset_name=payload.asset_name,
+                    category=payload.category,
+                    brand=payload.brand,
+                    model=payload.model,
+                    status="Online",
+                    criticality=payload.criticality,
+                    rated_power_w=state.profile.rated_power_w,
+                    nominal_voltage_v=state.profile.nominal_voltage,
+                    max_temperature_c=state.profile.max_temperature_c,
+                    max_current_a=state.profile.max_current_a,
+                )
+                db.add(db_asset)
+                db.commit()
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": f"Asset {asset_id} commissioned successfully",
+        "asset_id": asset_id,
+        "asset_name": payload.asset_name,
+        "category": payload.category,
+        "brand": payload.brand,
+        "model": payload.model,
+        "criticality": payload.criticality,
+        "device_uid": state.device_uid,
+    }
 
 
 @router.get("", response_model=AssetListResponse, summary="Commissioned assets with condition")

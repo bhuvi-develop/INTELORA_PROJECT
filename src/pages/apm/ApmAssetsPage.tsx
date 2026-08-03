@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
-import { Boxes, Layers, PieChart, ShieldAlert, Wrench } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Boxes, Layers, PieChart, Plus, ShieldAlert, Wrench } from 'lucide-react';
 import { SERIES, STATUS_COLOR } from '@/config/viz';
 import { BarTrend, DonutSplit } from '@/components/charts';
 import { SectionHeader } from '@/components/common';
-import { ApmAssetTable, ApmKpiGrid, type ApmKpiCardProps } from '@/components/apm';
+import { Button } from '@/components/ui/Button';
+import { ApmAddAssetModal, ApmAssetTable, ApmKpiGrid, type ApmKpiCardProps } from '@/components/apm';
 import { ApmPageShell } from './ApmPageShell';
 import { ApmFilterControls, useApmScope } from './useApmScope';
 import { bandColor, countBy, orDash, riskColor } from './apmSelectors';
@@ -18,6 +19,7 @@ import { bandColor, countBy, orDash, riskColor } from './apmSelectors';
  * ─────────────────────────────────────────────────────────────────────────── */
 
 export const ApmAssetsPage = () => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const scope = useApmScope();
   const { assets, all } = scope;
 
@@ -151,7 +153,18 @@ export const ApmAssetsPage = () => {
         footnote="Class is the only grouping dimension the register carries — the estate has no site or plant hierarchy modelled against it."
       />
 
-      <SectionHeader title="Register" subtitle="Every column APM derives, on one table" />
+      <div className="flex items-center justify-between">
+        <SectionHeader title="Register" subtitle="Every column APM derives, on one table" />
+        <Button
+          variant="primary"
+          size="sm"
+          icon={Plus}
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-500 text-white"
+        >
+          Add Asset
+        </Button>
+      </div>
 
       <ApmAssetTable
         assets={assets}
@@ -172,6 +185,11 @@ export const ApmAssetsPage = () => {
         subtitle="Sorted, searchable and paginated across the full APM record"
         exportName="intelora_apm_assets"
         minWidth="118rem"
+      />
+
+      <ApmAddAssetModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
       />
     </ApmPageShell>
   );

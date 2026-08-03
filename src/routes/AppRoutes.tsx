@@ -40,7 +40,6 @@ import {
   ApmAvailabilityPage,
   ApmCostPage,
   ApmCriticalityPage,
-  ApmDashboardPage,
   ApmHealthPage,
   ApmMaintenancePage,
   ApmReliabilityPage,
@@ -187,10 +186,7 @@ export const AppRoutes = () => (
         
         {/* APM Module routes */}
         <Route path="asset-performance" element={<ApmPage />} />
-        {/* The APM decision layer, served from /api/apm/*. Declared as a sibling
-            rather than a child because it replaces the module view rather than
-            rendering inside it. */}
-        <Route path="asset-performance/dashboard" element={<ApmDashboardPage />} />
+        <Route path="asset-performance/dashboard" element={<ApmPage />} />
         {/* One analytics page per APM section, opened from the overview's
             "View Analytics" controls. Siblings rather than children because
             each replaces the module view rather than rendering inside it. */}

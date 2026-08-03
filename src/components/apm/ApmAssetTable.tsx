@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef, SortingState } from '@tanstack/react-table';
 import { Boxes } from 'lucide-react';
 import type { ApmAssetDto } from '@/services/apm.types';
 import { cn } from '@/lib/cn';
@@ -371,6 +371,7 @@ export const ApmAssetTable = ({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [format, setFormat] = useState<ReportFormat>('csv');
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const debounced = useDebounce(search, 240);
 
@@ -384,11 +385,35 @@ export const ApmAssetTable = ({
     );
   }, [assets, debounced]);
 
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const sortedRows = useMemo(() => {
+    if (!sorting.length) return rows;
+    const { id, desc } = sorting[0];
+    const colDef = REGISTRY[id as ApmColumnKey];
+    if (!colDef) return rows;
+
+    const fn = (colDef as any).accessorFn;
+    return [...rows].sort((a, b) => {
+      const valA = fn ? fn(a, 0) : (a as any)[id];
+      const valB = fn ? fn(b, 0) : (b as any)[id];
+
+      if (valA === valB) return 0;
+      if (valA === undefined || valA === null || valA === '') return 1;
+      if (valB === undefined || valB === null || valB === '') return -1;
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return desc ? valB - valA : valA - valB;
+      }
+      const strA = String(valA).toLowerCase();
+      const strB = String(valB).toLowerCase();
+      return desc ? strB.localeCompare(strA) : strA.localeCompare(strB);
+    });
+  }, [rows, sorting]);
+
+  const pageCount = Math.max(1, Math.ceil(sortedRows.length / pageSize));
   const safePage = Math.min(page, pageCount);
   const paged = useMemo(
-    () => rows.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [rows, safePage, pageSize],
+    () => sortedRows.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [sortedRows, safePage, pageSize],
   );
 
   const defs = useMemo(() => columns.map((key) => REGISTRY[key]), [columns]);
@@ -411,6 +436,9 @@ export const ApmAssetTable = ({
     <DataTable<ApmAssetDto>
       data={paged}
       columns={defs}
+      sorting={sorting}
+      onSortingChange={setSorting}
+      manualSorting={true}
       rowKey={(row) => row.asset_id}
       density={density}
       minWidth={minWidth}

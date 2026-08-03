@@ -47,7 +47,7 @@ export const PATHS = {
   /* APM decision dashboard — the view served from the /api/apm/* engine rather
    * than from the live telemetry snapshot. Nested under the module path so the
    * sidebar keeps Asset Performance highlighted by prefix. */
-  apmDashboard: '/app/asset-performance/dashboard',
+  apmDashboard: '/app/asset-performance',
   /* One analytics page per APM section, all nested under the module path so the
    * sidebar keeps Asset Performance highlighted by prefix. */
   apmAssets: '/app/asset-performance/assets',

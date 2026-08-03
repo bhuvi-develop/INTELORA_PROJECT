@@ -80,7 +80,7 @@ export const ApmPageShell = ({
             <ChevronRight size={12} />
           </li>
           <li>
-            <Link to={PATHS.apmDashboard} className="transition-colors hover:text-fg-soft">
+            <Link to={`${PATHS.apm}?tab=overview`} className="transition-colors hover:text-fg-soft">
               Asset Performance
             </Link>
           </li>
@@ -127,14 +127,14 @@ export const ApmPageShell = ({
           size="sm"
           icon={ArrowLeft}
           className="-ml-1"
-          onClick={() => navigate(PATHS.apmDashboard)}
+          onClick={() => navigate(`${PATHS.apm}?tab=overview`)}
         >
           Back to Asset Performance
         </Button>
       </div>
 
       {filters ? (
-        <div className="sticky top-2 z-20">
+        <div>
           <Card className="backdrop-blur-md">
             <div className="flex flex-wrap items-end gap-3">
               <div className="flex items-center gap-2 pb-1.5 pr-1">

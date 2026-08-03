@@ -32,7 +32,7 @@ export interface BadgeProps {
 export const Badge = ({ children, tone = 'neutral', size = 'sm', icon: Icon, dot = false, className }: BadgeProps) => (
   <span
     className={cn(
-      'inline-flex shrink-0 items-center rounded-md font-medium ring-1 ring-inset',
+      'inline-flex shrink-0 items-center rounded-md font-medium ring-1 ring-inset shadow-elev-1',
       TONE[tone],
       SIZE[size],
       className,

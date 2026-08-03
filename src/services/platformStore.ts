@@ -579,13 +579,17 @@ class PlatformStore {
       .catch(() => undefined);
   }
 
-  getDailyRecords(): DailyTelemetryRecord[] {
-    return this.dailyRecords;
-  }
+  /*
+   * Bound properties, not prototype methods.
+   *
+   * These are handed straight to useSyncExternalStore, which invokes them with
+   * no receiver. A prototype method loses `this` at that call site and throws
+   * on first read, so the binding is load-bearing — matching `subscribe` and
+   * `getSnapshot` above.
+   */
+  getDailyRecords = (): DailyTelemetryRecord[] => this.dailyRecords;
 
-  getPredictionRecords(): PredictionHistoryRecord[] {
-    return this.predictionRecords;
-  }
+  getPredictionRecords = (): PredictionHistoryRecord[] => this.predictionRecords;
 
   /* ── Connection bookkeeping ───────────────────────────────────────── */
 

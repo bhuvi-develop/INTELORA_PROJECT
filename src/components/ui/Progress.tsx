@@ -32,7 +32,12 @@ export const Progress = ({
 
   return (
     <div
-      className={cn('relative w-full overflow-hidden rounded-full bg-overlay/[0.07]', HEIGHT[size], trackClassName, className)}
+      className={cn(
+        'relative w-full overflow-hidden rounded-full bg-overlay/[0.07] shadow-inset',
+        HEIGHT[size],
+        trackClassName,
+        className,
+      )}
       role="progressbar"
       aria-valuenow={Math.round(value)}
       aria-valuemin={0}

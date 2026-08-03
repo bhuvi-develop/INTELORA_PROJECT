@@ -28,8 +28,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             className={cn(
               'w-full appearance-none rounded-xl bg-ink-850/80 pr-9 text-fg',
-              'ring-1 ring-inset ring-overlay/[0.09] transition-all duration-150 ease-enterprise',
-              'hover:ring-overlay/[0.14] focus:outline-none focus:ring-2 focus:ring-brand-500/70',
+              'shadow-inset ring-1 ring-inset ring-line/[0.1] transition-all duration-150 ease-enterprise',
+              'hover:ring-line/[0.16] focus:outline-none focus:ring-2 focus:ring-brand-500/70',
               'disabled:cursor-not-allowed disabled:opacity-55',
               size === 'sm' ? 'h-8.5 pl-3 text-[12.5px]' : 'h-10 pl-3.5 text-[13.5px]',
               className,

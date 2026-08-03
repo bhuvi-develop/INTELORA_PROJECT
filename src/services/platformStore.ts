@@ -460,7 +460,7 @@ class PlatformStore {
       applyBandThresholds(dashboard.bands.map((band) => ({ band: band.band, min: band.min })));
       applyFleetFacets(
         Array.from(new Set(assets.assets.map((asset) => asset.category))),
-        Array.from(new Set(assets.assets.map((asset) => asset.brand))).sort(),
+        ['Enterprise']
       );
       applyEffectivenessTargets(dashboard.oee.target, dashboard.oee.world_class);
 
@@ -579,13 +579,17 @@ class PlatformStore {
       .catch(() => undefined);
   }
 
-  getDailyRecords(): DailyTelemetryRecord[] {
-    return this.dailyRecords;
-  }
+  /*
+   * Bound properties, not prototype methods.
+   *
+   * These are handed straight to useSyncExternalStore, which invokes them with
+   * no receiver. A prototype method loses `this` at that call site and throws
+   * on first read, so the binding is load-bearing — matching `subscribe` and
+   * `getSnapshot` above.
+   */
+  getDailyRecords = (): DailyTelemetryRecord[] => this.dailyRecords;
 
-  getPredictionRecords(): PredictionHistoryRecord[] {
-    return this.predictionRecords;
-  }
+  getPredictionRecords = (): PredictionHistoryRecord[] => this.predictionRecords;
 
   /* ── Connection bookkeeping ───────────────────────────────────────── */
 

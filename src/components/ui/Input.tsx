@@ -40,8 +40,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={describedBy}
             className={cn(
               'h-10 w-full rounded-xl bg-ink-850/80 text-[13.5px] text-fg placeholder:text-fg-faint',
-              'ring-1 ring-inset ring-overlay/[0.09] transition-all duration-150 ease-enterprise',
-              'hover:ring-overlay/[0.14] focus:outline-none focus:ring-2 focus:ring-brand-500/70',
+              'shadow-inset ring-1 ring-inset ring-line/[0.1] transition-all duration-150 ease-enterprise',
+              'hover:ring-line/[0.16] focus:outline-none focus:ring-2 focus:ring-brand-500/70',
               'disabled:cursor-not-allowed disabled:opacity-55',
               Icon ? 'pl-9.5' : 'pl-3.5',
               trailing ? 'pr-11' : 'pr-3.5',

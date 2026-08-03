@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Activity,
   Download,
@@ -14,7 +15,6 @@ import { criticalByAsset } from '@/engine/analytics';
 import { DEVICE_CATEGORIES } from '@/engine/catalog';
 import { MODULE_TITLES } from '@/config/navigation';
 import { SERIES, STATUS_COLOR } from '@/config/viz';
-import { env } from '@/config/env';
 import { useApmHierarchy, useApmOverview } from '@/hooks/useApm';
 import {
   useAnomalyJournal,
@@ -36,7 +36,6 @@ import { Select } from '@/components/ui/Select';
 import { AssetStatusMatrix, BarTrend, LineTrend, RiskDistributionBar } from '@/components/charts';
 import type { SeriesDef } from '@/components/charts';
 import { AiPanel } from '@/components/ai';
-import { GrafanaPanel } from '@/components/grafana';
 import {
   HealthBandBadge,
   HealthMeter,
@@ -97,7 +96,22 @@ export const ApmPage = () => {
   const journal = useAnomalyJournal();
   const { at } = useSnapshot();
 
-  const [activeTab, setActiveTab] = useState<ApmTab>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as ApmTab | null;
+  const [activeTabState, setActiveTabState] = useState<ApmTab>('overview');
+
+  const activeTab = useMemo(() => {
+    const validTabs = ['overview', 'registry', 'criticality', 'reliability', 'maintenance', 'cost', 'executive', 'reports'];
+    if (tabParam && validTabs.includes(tabParam)) {
+      return tabParam as ApmTab;
+    }
+    return activeTabState;
+  }, [tabParam, activeTabState]);
+
+  const setActiveTab = (tab: ApmTab) => {
+    setActiveTabState(tab);
+    setSearchParams({ tab }, { replace: true });
+  };
   const [rankMode, setRankMode] = useState<RankMode>('worst');
   const [category, setCategory] = useState('all');
   const [exportFormat, setExportFormat] = useState<ReportFormat>('csv');
@@ -304,7 +318,7 @@ export const ApmPage = () => {
       />
 
       {/* Top APM Module Capabilities Segmented Navigation Bar */}
-      <Card className="p-2 backdrop-blur-md sticky top-0 z-20 bg-ink-900/90 border-overlay/[0.1]">
+      <Card className="p-2 backdrop-blur-md bg-ink-900/90 border-overlay/[0.1]">
         <Segmented
           ariaLabel="APM Capabilities Navigation"
           layoutId="apm-tabs"
@@ -530,16 +544,6 @@ export const ApmPage = () => {
             icon={ShieldAlert}
             assets={scoped}
             criticalByAsset={criticals}
-          />
-
-          <GrafanaPanel
-            dashboard={env.grafana.dashboards.apm}
-            panelId={5}
-            title="Availability and downtime attribution"
-            subtitle="Historical performance analysis served from Grafana"
-            height={320}
-            refresh="1m"
-            variables={{ category }}
           />
         </div>
       )}

@@ -6,8 +6,11 @@
 
 export { LiveStatusDetailPage } from './LiveStatusDetailPage';
 export { ActiveEventsDetailPage } from './ActiveEventsDetailPage';
+export { EventLifecyclePage } from './EventLifecyclePage';
+export { ClearRateAnalyticsPage } from './ClearRateAnalyticsPage';
 export { CategoryBreakdownDetailPage } from './CategoryBreakdownDetailPage';
 export { TaxonomySignaturesDetailPage } from './TaxonomySignaturesDetailPage';
+export { AnalysisReportPage } from './AnalysisReportPage';
 
 export { DetailShell, DetailStatStrip } from './DetailShell';
 export type { DetailShellProps, DetailStat } from './DetailShell';

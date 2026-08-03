@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
   AlertOctagon,
-  Activity,
+  ArrowRight,
   CheckCheck,
   Clock3,
   Crosshair,
@@ -14,23 +14,23 @@ import {
 } from 'lucide-react';
 import type { AnomalyRecord } from '@/engine/types';
 import { SEVERITY_TONE } from '@/engine/derive';
-import { SEVERITY_ORDER, sortBySeverity } from '@/engine/analytics';
+import { sortBySeverity } from '@/engine/analytics';
 import { useAnomalyJournal, useEngineControl, useSnapshot } from '@/engine/store';
-import { deviceDetailPath } from '@/routes/paths';
+import { PATHS, deviceDetailPath } from '@/routes/paths';
 import { SERIES, STATUS_COLOR } from '@/config/viz';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatNumber, formatPercent, formatRelative } from '@/utils/format';
 import { useToast, useUI } from '@/hooks';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { AreaTrend, BarTrend, type SeriesDef } from '@/components/charts';
+import { Card } from '@/components/ui/Card';
+import { BarTrend } from '@/components/charts';
 import { DataTable } from '@/components/data';
 import { AnomalyStatusBadge, DeviceIdentity, SeverityBadge } from '@/components/common';
 import {
   breachRatio,
   classifyRecord,
   faultClass,
-  isTransient,
 } from '@/components/anomaly';
 import { DetailShell, DetailStatStrip, type DetailStat } from './DetailShell';
 
@@ -41,57 +41,6 @@ import { DetailShell, DetailStatStrip, type DetailStat } from './DetailShell';
  * an engineer. Everything here is scoped to that, with the self-cleared trail
  * shown alongside so an operator can see how much of the load resolved itself.
  * ─────────────────────────────────────────────────────────────────────────── */
-
-/** Windows the timeline is bucketed into, and how wide each one is. */
-const BUCKETS = 24;
-const BUCKET_MS = 120_000;
-
-const minuteFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-interface LifecycleBucket {
-  t: number;
-  label: string;
-  raised: number;
-  cleared: number;
-  Critical: number;
-  Major: number;
-  Warning: number;
-  Info: number;
-}
-
-/**
- * Bucket raises against clears on one axis.
- *
- * A raise count alone cannot answer the question an operator actually has —
- * whether the queue is growing. Pairing it with the clear count in the same
- * window does.
- */
-const bucketLifecycle = (records: readonly AnomalyRecord[], now: number): LifecycleBucket[] => {
-  const out: LifecycleBucket[] = [];
-
-  for (let index = BUCKETS - 1; index >= 0; index -= 1) {
-    const to = now - index * BUCKET_MS;
-    const from = to - BUCKET_MS;
-
-    const raised = records.filter((record) => record.timestamp > from && record.timestamp <= to);
-    const cleared = records.filter(
-      (record) => record.resolvedAt !== null && record.resolvedAt > from && record.resolvedAt <= to,
-    );
-
-    out.push({
-      t: to,
-      label: minuteFmt.format(new Date(to)),
-      raised: raised.length,
-      cleared: cleared.length,
-      Critical: raised.filter((record) => record.severity === 'Critical').length,
-      Major: raised.filter((record) => record.severity === 'Major').length,
-      Warning: raised.filter((record) => record.severity === 'Warning').length,
-      Info: raised.filter((record) => record.severity === 'Info').length,
-    });
-  }
-
-  return out;
-};
 
 export const ActiveEventsDetailPage = () => {
   const navigate = useNavigate();
@@ -153,18 +102,6 @@ export const ActiveEventsDetailPage = () => {
       .filter((value) => value > 0);
     return dwells.length === 0 ? null : dwells.reduce((sum, value) => sum + value, 0) / dwells.length;
   }, [unresolved, ruleFor]);
-
-  const timeline = useMemo(() => bucketLifecycle(journal, now), [journal, now]);
-
-  const timelineSeries = useMemo<SeriesDef[]>(
-    () => SEVERITY_ORDER.map((severity) => ({
-      key: severity,
-      name: severity,
-      color: SEVERITY_TONE[severity].color,
-      decimals: 0,
-    })),
-    [],
-  );
 
   /* ─── Breach magnitude ─────────────────────────────────────────────────── */
 
@@ -390,13 +327,6 @@ export const ActiveEventsDetailPage = () => {
     [ruleFor, falseAlarms, toggleFalseAlarm, navigate, acknowledge, toast],
   );
 
-  const transientShare = useMemo(() => {
-    const resolved = journal.filter((record) => record.status === 'Resolved');
-    if (resolved.length === 0) return null;
-    const transient = resolved.filter((record) => isTransient(record, now)).length;
-    return (transient / resolved.length) * 100;
-  }, [journal, now]);
-
   return (
     <DetailShell
       title="Active Event Queue & Severity Distribution"
@@ -421,36 +351,30 @@ export const ActiveEventsDetailPage = () => {
     >
       <DetailStatStrip stats={stats} />
 
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <AreaTrend
-          title="Event lifecycle timeline"
-          subtitle="Events raised per two-minute window, stacked by severity"
-          eyebrow="Volume"
-          icon={Activity}
-          data={timeline}
-          series={timelineSeries}
-          height={300}
-          stacked
-          footnote={
-            transientShare === null
-              ? 'An event is raised only after a breach persists across consecutive samples, and cleared only once the reading returns inside the limit with margin.'
-              : `${formatPercent(transientShare, 1)} of everything that cleared did so inside a minute — transients rather than standing faults.`
-          }
-        />
-
-        <BarTrend
-          title="Clear rate"
-          subtitle="Raised against self-cleared in the same window"
-          eyebrow="Throughput"
-          icon={ShieldCheck}
-          data={timeline}
-          series={[
-            { key: 'raised', name: 'Raised', color: SEVERITY_TONE.Major.color, decimals: 0 },
-            { key: 'cleared', name: 'Self-cleared', color: '#22C55E', decimals: 0 },
-          ]}
-          height={300}
-          footnote="Windows where raises outrun clears are where the queue grew. This is the shape to watch, not the absolute count."
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="hover:border-overlay/[0.12] transition-colors cursor-pointer" onClick={() => navigate(PATHS.anomalyEventLifecycle)}>
+          <div className="p-6 flex flex-col h-full justify-center">
+            <h3 className="text-lg font-semibold text-fg flex items-center justify-between">
+              Event Lifecycle Timeline
+              <ArrowRight className="w-5 h-5 text-fg-soft" />
+            </h3>
+            <p className="mt-2 text-sm text-fg-dim">
+              Drill down into isolated timelines for Critical, Major, Warning, and Info events.
+            </p>
+          </div>
+        </Card>
+        
+        <Card className="hover:border-overlay/[0.12] transition-colors cursor-pointer" onClick={() => navigate(PATHS.anomalyClearRate)}>
+          <div className="p-6 flex flex-col h-full justify-center">
+            <h3 className="text-lg font-semibold text-fg flex items-center justify-between">
+              Clear Rate Analytics
+              <ArrowRight className="w-5 h-5 text-fg-soft" />
+            </h3>
+            <p className="mt-2 text-sm text-fg-dim">
+              Analyze throughput, resolution velocity, and Mean Time to Resolution (MTTR).
+            </p>
+          </div>
+        </Card>
       </div>
 
       <BarTrend

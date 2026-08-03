@@ -8,6 +8,24 @@ import { DevicesPage } from '@/pages/DevicesPage';
 import { DeviceDetailPage } from '@/pages/DeviceDetailPage';
 import { LiveTelemetryPage } from '@/pages/LiveTelemetryPage';
 import { AnomalyDetectionPage } from '@/pages/AnomalyDetectionPage';
+import { AnomalyReportsPage } from '@/pages/AnomalyReportsPage';
+import { FeedbackLogReportPage } from '@/pages/FeedbackLogReportPage';
+import {
+  ActiveEventsDetailPage,
+  CategoryBreakdownDetailPage,
+  LiveStatusDetailPage,
+  TaxonomySignaturesDetailPage,
+} from '@/pages/anomaly-details';
+import { DetectionTimelinePage, LiveStreamPage } from '@/pages/anomaly-streams';
+import {
+  BusinessImpactMetricPage,
+  EngineeringConfidenceMetricPage,
+  FalseNegativesMetricPage,
+  FalsePositivesMetricPage,
+  LatencySlaMetricPage,
+  PredictionHorizonMetricPage,
+  RecommendationAcceptanceMetricPage,
+} from '@/pages/anomaly-metrics';
 import { PredictiveMaintenancePage } from '@/pages/PredictiveMaintenancePage';
 import { PreventiveMaintenancePage } from '@/pages/PreventiveMaintenancePage';
 import { PrescriptiveMaintenancePage } from '@/pages/PrescriptiveMaintenancePage';
@@ -40,6 +58,105 @@ export const AppRoutes = () => (
         <Route path="live-telemetry" element={<LiveTelemetryPage />} />
 
         <Route path="anomaly-detection" element={<AnomalyDetectionPage />} />
+        {/* Drill-downs from the module's status bar. Nested under the module
+            path so the sidebar keeps Anomaly Detection highlighted, and declared
+            as siblings rather than children because each replaces the module
+            view rather than rendering inside it. */}
+        <Route path="anomaly-detection/details/live-status" element={<LiveStatusDetailPage />} />
+        <Route path="anomaly-detection/details/active-events" element={<ActiveEventsDetailPage />} />
+        <Route
+          path="anomaly-detection/details/category-breakdown"
+          element={<CategoryBreakdownDetailPage />}
+        />
+        <Route
+          path="anomaly-detection/details/taxonomy-signatures"
+          element={<TaxonomySignaturesDetailPage />}
+        />
+        {/* Stream analytics, opened from the two entry cards on the module
+            overview. Siblings rather than children because each replaces the
+            module view rather than rendering inside it. */}
+        <Route path="anomaly-detection/detection-timeline" element={<DetectionTimelinePage />} />
+        <Route path="anomaly-detection/live-stream" element={<LiveStreamPage />} />
+
+        {/* The module's own report surface — the journal with its taxonomy,
+            exportable. Distinct from Historical Reports, which browses several
+            archived record sets at daily resolution. */}
+        <Route path="anomaly-detection/reports" element={<AnomalyReportsPage />} />
+        {/* Declared after the parent so the more specific path is unambiguous.
+            This is the engineer-judgement surface — the only place a false alarm
+            can be flagged — which is why it is a page and not an embedded table. */}
+        <Route path="anomaly-detection/reports/feedback" element={<FeedbackLogReportPage />} />
+
+        {/* Detection-quality drill-downs, one per KPI tile. */}
+        <Route
+          path="anomaly-detection/metrics/false-positives"
+          element={<FalsePositivesMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/false-negatives"
+          element={<FalseNegativesMetricPage />}
+        />
+        <Route path="anomaly-detection/metrics/latency-sla" element={<LatencySlaMetricPage />} />
+        <Route
+          path="anomaly-detection/metrics/prediction-horizon"
+          element={<PredictionHorizonMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/recommendation-acceptance"
+          element={<RecommendationAcceptanceMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/business-impact"
+          element={<BusinessImpactMetricPage />}
+        />
+        <Route
+          path="anomaly-detection/metrics/engineering-confidence"
+          element={<EngineeringConfidenceMetricPage />}
+        />
+
+        {/* Short aliases for the seven metric pages, one level up from
+            /metrics. Redirects rather than second mount points: two routes
+            rendering the same page would give the same analysis two canonical
+            URLs, and the sidebar highlight already resolves by prefix. */}
+        <Route
+          path="anomaly-detection/false-positive"
+          element={<Navigate to={PATHS.metricFalsePositives} replace />}
+        />
+        <Route
+          path="anomaly-detection/false-negative"
+          element={<Navigate to={PATHS.metricFalseNegatives} replace />}
+        />
+        <Route
+          path="anomaly-detection/detection-latency"
+          element={<Navigate to={PATHS.metricLatencySla} replace />}
+        />
+        <Route
+          path="anomaly-detection/prediction-horizon"
+          element={<Navigate to={PATHS.metricPredictionHorizon} replace />}
+        />
+        <Route
+          path="anomaly-detection/recommendation-acceptance"
+          element={<Navigate to={PATHS.metricRecommendationAcceptance} replace />}
+        />
+        <Route
+          path="anomaly-detection/business-impact"
+          element={<Navigate to={PATHS.metricBusinessImpact} replace />}
+        />
+        <Route
+          path="anomaly-detection/engineering-confidence"
+          element={<Navigate to={PATHS.metricEngineeringConfidence} replace />}
+        />
+
+        {/* A bare /details or /metrics is not a page — send it back to the module. */}
+        <Route
+          path="anomaly-detection/details"
+          element={<Navigate to={PATHS.anomaly} replace />}
+        />
+        <Route
+          path="anomaly-detection/metrics"
+          element={<Navigate to={PATHS.anomaly} replace />}
+        />
+
         <Route path="predictive-maintenance" element={<PredictiveMaintenancePage />} />
         <Route path="preventive-maintenance" element={<PreventiveMaintenancePage />} />
         <Route path="prescriptive-maintenance" element={<PrescriptiveMaintenancePage />} />

@@ -60,6 +60,24 @@ export type ApmColumnKey =
   | 'workOrders'
   | 'action';
 
+const stripBrandName = (name: string, brand?: string): string => {
+  if (brand && name.toLowerCase().startsWith(brand.toLowerCase())) {
+    const trimmed = name.slice(brand.length).trim();
+    if (trimmed) return trimmed;
+  }
+  const knownBrands = [
+    'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
+    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej'
+  ];
+  for (const b of knownBrands) {
+    if (name.toLowerCase().startsWith(b.toLowerCase())) {
+      const trimmed = name.slice(b.length).trim();
+      if (trimmed) return trimmed;
+    }
+  }
+  return name;
+};
+
 const num = (value: number | undefined, decimals = 1, suffix = '') => (
   <span className="text-[12px] tabular-nums text-fg-soft">{orDash(value, decimals, suffix)}</span>
 );
@@ -74,7 +92,7 @@ const REGISTRY: Record<ApmColumnKey, ColumnDef<ApmAssetDto, unknown>> = {
     cell: ({ row }) => (
       <DeviceIdentity
         assetId={row.original.asset_id}
-        assetName={row.original.asset_name}
+        assetName={stripBrandName(row.original.asset_name, row.original.brand)}
         meta={row.original.brand}
       />
     ),

@@ -107,6 +107,23 @@ def _slug(value: str) -> str:
     return "".join(character if character.isalnum() else "-" for character in value.lower()).strip("-")
 
 
+def strip_brand_name(name: str, brand: str | None = None) -> str:
+    if brand and name.lower().startswith(brand.lower()):
+        trimmed = name[len(brand):].strip()
+        if trimmed:
+            return trimmed
+    known_brands = [
+        "Baseus", "Samsung", "Ugreen", "Anker", "Belkin", "Apple", "Dell", "HP", "Lenovo",
+        "Daikin", "Voltas", "Blue Star", "LG", "Mitsubishi", "Carrier", "Hitachi", "Panasonic", "Lloyd", "Godrej"
+    ]
+    for b in known_brands:
+        if name.lower().startswith(b.lower()):
+            trimmed = name[len(b):].strip()
+            if trimmed:
+                return trimmed
+    return name
+
+
 def build(
     states: list[AssetState],
     criticality_labels: dict[str, str] | None = None,
@@ -127,7 +144,7 @@ def build(
 
         path = [
             ("portfolio", seed.category),
-            ("site", seed.brand),
+            ("site", "Primary Facility"),
             ("floor", _model_family(seed.model)),
             ("zone", f"{zone_label} criticality"),
         ]
@@ -143,10 +160,11 @@ def build(
                 parent.children.append(node)
             parent = node
 
+        asset_name = strip_brand_name(seed.asset_name, seed.brand)
         asset_node = HierarchyNode(
             node_id=f"{node_id}/{state.asset_id}",
             level="asset",
-            name=seed.asset_name,
+            name=asset_name,
             asset_ids=[state.asset_id],
         )
         asset_node.children.append(

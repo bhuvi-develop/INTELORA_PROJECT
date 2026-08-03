@@ -239,7 +239,7 @@
   h1,
   h2,
   h3 {
-    @apply font-display;
+    font-family: theme('fontFamily.display');
     font-optical-sizing: auto;
   }
 

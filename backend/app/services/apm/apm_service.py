@@ -30,6 +30,7 @@ from app.services.apm import health_index as ahi
 from app.services.apm import hierarchy as hierarchy_model
 from app.services.apm import reliability as reliability_model
 from app.services.apm import risk as risk_model
+from app.services.apm import upstream
 from app.services.apm import work_orders as wo
 from app.services.apm.config import CRITICALITY_CLASSES, ApmConfig, get_apm_config
 from app.services.apm.criticality import CriticalityResult, FleetContext, score_asset

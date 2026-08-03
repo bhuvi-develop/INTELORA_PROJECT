@@ -145,12 +145,30 @@ export const ApmPage = () => {
     };
   }, [apmQuery.data, scoped]);
 
+  const stripBrandName = (name: string, brand?: string): string => {
+    if (brand && name.toLowerCase().startsWith(brand.toLowerCase())) {
+      const trimmed = name.slice(brand.length).trim();
+      if (trimmed) return trimmed;
+    }
+    const knownBrands = [
+      'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
+      'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej'
+    ];
+    for (const b of knownBrands) {
+      if (name.toLowerCase().startsWith(b.toLowerCase())) {
+        const trimmed = name.slice(b.length).trim();
+        if (trimmed) return trimmed;
+      }
+    }
+    return name;
+  };
+
   const rankRows = useMemo(() => {
     const fromApm = apmQuery.data?.assets;
     const rows = fromApm
       ? fromApm.map((asset) => ({
           assetId: asset.asset_id,
-          assetName: asset.asset_name,
+          assetName: stripBrandName(asset.asset_name, asset.brand),
           category: asset.category,
           health: asset.inputs.predictive.health_score,
           band: asset.inputs.predictive.health_band as HealthBand,
@@ -160,7 +178,7 @@ export const ApmPage = () => {
           .sort((a, b) => a.health - b.health)
           .map((asset) => ({
             assetId: asset.device.assetId,
-            assetName: asset.device.assetName,
+            assetName: stripBrandName(asset.device.assetName, asset.device.brand),
             category: asset.device.category as string,
             health: asset.health,
             band: asset.band,

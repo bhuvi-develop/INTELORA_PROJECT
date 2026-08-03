@@ -20,6 +20,24 @@ export interface ApmExecutiveDashboardProps {
   onSelectAsset?: (assetId: string) => void;
 }
 
+const stripBrandName = (name: string, brand?: string): string => {
+  if (brand && name.toLowerCase().startsWith(brand.toLowerCase())) {
+    const trimmed = name.slice(brand.length).trim();
+    if (trimmed) return trimmed;
+  }
+  const knownBrands = [
+    'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
+    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej'
+  ];
+  for (const b of knownBrands) {
+    if (name.toLowerCase().startsWith(b.toLowerCase())) {
+      const trimmed = name.slice(b.length).trim();
+      if (trimmed) return trimmed;
+    }
+  }
+  return name;
+};
+
 export const ApmExecutiveDashboard = ({
   assets,
   reliability,
@@ -100,7 +118,7 @@ export const ApmExecutiveDashboard = ({
           icon={ShieldAlert}
           items={topCritical.map((asset) => ({
             id: asset.asset_id,
-            title: asset.asset_name,
+            title: stripBrandName(asset.asset_name, asset.brand),
             tag: asset.asset_id,
             subtitle: `${asset.category} · Score ${asset.criticality_score}`,
             value: <Badge tone="brand" size="xs">Class {asset.criticality_label}</Badge>,
@@ -116,7 +134,7 @@ export const ApmExecutiveDashboard = ({
           icon={DollarSign}
           items={mostExpensive.map((asset) => ({
             id: asset.asset_id,
-            title: asset.asset_name,
+            title: stripBrandName(asset.asset_name, asset.brand),
             tag: asset.asset_id,
             subtitle: `${asset.category} · Downtime ${asset.downtime_hours}h`,
             value: <span className="text-xs font-bold text-rose-400">{money(asset.cost_exposure)}</span>,
@@ -132,7 +150,7 @@ export const ApmExecutiveDashboard = ({
           icon={HeartPulse}
           items={lowestHealth.map((asset) => ({
             id: asset.asset_id,
-            title: asset.asset_name,
+            title: stripBrandName(asset.asset_name, asset.brand),
             tag: asset.asset_id,
             subtitle: `${asset.category} · Health ${asset.health_index}%`,
             value: <HealthMeter health={asset.health_index} width="w-16" />,
@@ -150,7 +168,7 @@ export const ApmExecutiveDashboard = ({
           icon={Clock}
           items={highestDowntime.map((asset) => ({
             id: asset.asset_id,
-            title: asset.asset_name,
+            title: stripBrandName(asset.asset_name, asset.brand),
             tag: asset.asset_id,
             subtitle: `${asset.category} · Downtime Cost ${money(asset.downtime_cost)}`,
             value: <span className="text-xs font-bold text-amber-400">{asset.downtime_hours} hrs</span>,
@@ -166,7 +184,7 @@ export const ApmExecutiveDashboard = ({
           icon={Wrench}
           items={highestMttr.map((asset) => ({
             id: asset.asset_id,
-            title: asset.asset_name,
+            title: stripBrandName(asset.asset_name, asset.brand),
             tag: asset.asset_id,
             subtitle: `${asset.category} · Failures ${asset.failures}`,
             value: <span className="text-xs font-bold text-purple-400">{asset.mttr_minutes} mins</span>,

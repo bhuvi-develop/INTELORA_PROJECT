@@ -5,17 +5,13 @@ Alembic autogenerate run — a model that is never imported is a table that neve
 gets created.
 """
 
-<<<<<<< HEAD
-from app.models.anomaly import Alert, AnomalyDetection
-from app.models.apm import ApmAssetSnapshot, WorkOrder
-=======
 from app.models.anomaly import (
     Alert,
     AnomalyDetection,
     AnomalyEventRecord,
     AnomalyFeedbackLog,
 )
->>>>>>> 8efd2ceb88acc2cec81b03ca65a69f16b2b8a1df
+from app.models.apm import ApmAssetSnapshot, WorkOrder
 from app.models.asset import Asset, AssetComponent, Device
 from app.models.maintenance import AiInsight, AssetPerformance, Oee, PredictiveMaintenance
 from app.models.telemetry import Telemetry
@@ -25,12 +21,9 @@ __all__ = [
     "AiInsight",
     "Alert",
     "AnomalyDetection",
-<<<<<<< HEAD
-    "ApmAssetSnapshot",
-=======
     "AnomalyEventRecord",
     "AnomalyFeedbackLog",
->>>>>>> 8efd2ceb88acc2cec81b03ca65a69f16b2b8a1df
+    "ApmAssetSnapshot",
     "Asset",
     "AssetComponent",
     "AssetPerformance",

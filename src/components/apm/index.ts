@@ -16,3 +16,9 @@ export type { ApmAssetTableProps, ApmColumnKey } from './ApmAssetTable';
 
 export { ApmWorkOrderTable } from './ApmWorkOrderTable';
 export type { ApmWorkOrderTableProps } from './ApmWorkOrderTable';
+
+export { ApmAssetDetailModal } from './ApmAssetDetailModal';
+export { ApmHierarchyTree } from './ApmHierarchyTree';
+export { ApmWorkOrderLifecycleModal } from './ApmWorkOrderLifecycleModal';
+export { ApmExecutiveDashboard } from './ApmExecutiveDashboard';
+export { ApmBenchmarkingPanel } from './ApmBenchmarkingPanel';

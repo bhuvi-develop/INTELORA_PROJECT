@@ -229,6 +229,18 @@ export const apmService = {
   ) => get<Record<string, unknown>>('/apm/work-orders', query as Record<string, unknown>, options),
   workOrder: (id: string, options: Signal = {}) =>
     get<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}`, undefined, options),
+  raiseWorkOrder: (payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>('/apm/work-orders', payload, options),
+  approveWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/approve`, payload, options),
+  rejectWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/reject`, payload, options),
+  assignWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/assign`, payload, options),
+  completeWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/complete`, payload, options),
+  verifyWorkOrder: (id: string, payload: Record<string, unknown>, options: Signal = {}) =>
+    post<Record<string, unknown>>(`/apm/work-orders/${encodeURIComponent(id)}/verify`, payload, options),
 };
 
 /* ─── Reports ────────────────────────────────────────────────────────────── */

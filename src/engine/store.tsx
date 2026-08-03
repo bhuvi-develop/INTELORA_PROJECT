@@ -206,12 +206,26 @@ export const useEngineControl = (): EngineControl => {
  * Served from the backend's stored history, so they are fetched rather than
  * read synchronously. Both hooks return a stable array reference until new
  * records land, which is what lets the tables downstream memoise normally.
+ *
+ * Read through a closure rather than by handing the method itself to
+ * `useSyncExternalStore`. The store's subscribe/getSnapshot pair are arrow
+ * properties and so carry their instance; these two are prototype methods, and
+ * a bare `store.getDailyRecords` reference arrives at React detached from it —
+ * `this` is undefined by the time React invokes it, and reading the field off
+ * it throws. Calling through the instance restores the receiver.
+ *
+ * Defined once at module scope, not per render: `useSyncExternalStore` compares
+ * the getter by identity, and a fresh closure each render would resubscribe on
+ * every commit.
  */
+const readDailyRecords = () => store.getDailyRecords();
+const readPredictionRecords = () => store.getPredictionRecords();
+
 export const useDailyRecords = () =>
-  useSyncExternalStore(store.subscribe, store.getDailyRecords, store.getDailyRecords);
+  useSyncExternalStore(store.subscribe, readDailyRecords, readDailyRecords);
 
 export const usePredictionRecords = () =>
-  useSyncExternalStore(store.subscribe, store.getPredictionRecords, store.getPredictionRecords);
+  useSyncExternalStore(store.subscribe, readPredictionRecords, readPredictionRecords);
 
 /* ─── Provider ───────────────────────────────────────────────────────────── */
 

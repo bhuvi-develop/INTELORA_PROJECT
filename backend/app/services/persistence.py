@@ -16,13 +16,19 @@ from sqlalchemy import delete, select, text, update
 from sqlalchemy.orm import Session
 
 from app.logging_config import get_logger
-from app.models.anomaly import Alert, AnomalyDetection
+from app.models.anomaly import Alert, AnomalyDetection, AnomalyEventRecord
 from app.models.asset import Asset, AssetComponent, Device
 from app.models.maintenance import AiInsight, AssetPerformance, Oee, PredictiveMaintenance
 from app.models.telemetry import Telemetry
 from app.services.anomaly_service import AnomalyDetector
 from app.services.engine import Analytics, InteloraEngine
 from app.services.simulator import Reading
+from app.services.taxonomy import (
+    SEVERITY_FROM_DETECTOR,
+    STATUS_FALSE_POSITIVE,
+    STATUS_FROM_DETECTOR,
+    classify,
+)
 
 logger = get_logger(__name__)
 
@@ -163,10 +169,77 @@ def restore_meter_readings(session: Session, engine: InteloraEngine) -> int:
 # ── Anomalies and alerts ─────────────────────────────────────────────────
 
 
+#: Beyond this, the gap between the sample and the write is not an ingest
+#: measurement.
+#:
+#: The live path flushes events on the tick that raised them, so the gap is
+#: milliseconds. Two other paths write through here and neither is live: the
+#: historical back-fill replays days of readings at once, and a catch-up burst
+#: can run the simulated clock ahead of the wall clock. Recording those would put
+#: values ranging from zero to several days into the same column the SLA
+#: attainment figure is computed from, and a mean over that is meaningless.
+#:
+#: Rows outside the bound get NULL — "not measurable here" — which the analytics
+#: layer already excludes, rather than a number that looks like a measurement.
+INGEST_LATENCY_BOUND_MS = 60_000.0
+
+
+def _ingest_latency_ms(detected_at: datetime, now: datetime) -> float | None:
+    """Milliseconds from the sample to this write, when that is a real quantity."""
+    elapsed = (now - detected_at).total_seconds() * 1000.0
+    if elapsed < 0.0 or elapsed > INGEST_LATENCY_BOUND_MS:
+        return None
+    return round(elapsed, 3)
+
+
+def _taxonomy_rows(events: list, now: datetime) -> list[dict]:
+    """Map raised events onto `anomaly_events`, resolved to a failure mode.
+
+    The ingest latency is measured here rather than estimated: `detected_at` is
+    the timestamp of the sample that tripped the rule, and `now` is the moment
+    this row is written. On the live path events flush on the tick that raised
+    them, so this is the genuine ingest-to-stored leg — the one the 200 ms target
+    applies to.
+    """
+    rows: list[dict] = []
+
+    for event in events:
+        rule = classify(event, now)
+        if rule is None:
+            # A channel rule the taxonomy has not been extended for. Log it and
+            # move on: losing the row would be worse than storing it unclassified.
+            logger.warning(
+                "no taxonomy rule for anomaly_type=%s (%s on %s) — stored unclassified",
+                event.anomaly_type,
+                event.error_code,
+                event.asset_id,
+            )
+
+        rows.append(
+            {
+                "source_uid": event.uid,
+                "device_id": event.asset_id,
+                "category": rule.category if rule else "UNCLASSIFIED",
+                "type_id": rule.type_id if rule else f"UNMAPPED_{event.anomaly_type.upper()}",
+                "severity": SEVERITY_FROM_DETECTOR.get(event.severity, "INFO"),
+                "status": STATUS_FROM_DETECTOR.get(event.status, "ACTIVE"),
+                "breach_magnitude": round(event.deviation_pct / 100.0, 6),
+                "telemetry_snapshot": event.telemetry_snapshot or {},
+                "mechanism": event.mechanism,
+                "ingest_latency_ms": _ingest_latency_ms(event.detected_at, now),
+                "detected_at": event.detected_at,
+                "resolved_at": event.resolved_at,
+            }
+        )
+
+    return rows
+
+
 def persist_anomalies(session: Session, detector: AnomalyDetector) -> tuple[int, int]:
     """Write new events and update the lifecycle of ones already stored."""
     fresh = detector.unpersisted()
     updated = 0
+    now = datetime.now(timezone.utc)
 
     if fresh:
         session.bulk_insert_mappings(
@@ -216,6 +289,10 @@ def persist_anomalies(session: Session, detector: AnomalyDetector) -> tuple[int,
                 for event in fresh
             ],
         )
+        # Same events, resolved to a failure mode, in the same transaction — so
+        # the two projections cannot disagree about what was raised.
+        session.bulk_insert_mappings(AnomalyEventRecord, _taxonomy_rows(fresh, now))
+
         for event in fresh:
             event.persisted = True
             event.dirty = False
@@ -232,6 +309,30 @@ def persist_anomalies(session: Session, detector: AnomalyDetector) -> tuple[int,
                 acknowledged_at=event.acknowledged_at,
             )
         )
+        # The taxonomy row follows the same lifecycle, with one exception: a
+        # technician's FALSE_POSITIVE is a judgement about the alert, not a state
+        # of the device, and the detector must not be able to overwrite it.
+        session.execute(
+            update(AnomalyEventRecord)
+            .where(
+                AnomalyEventRecord.source_uid == event.uid,
+                AnomalyEventRecord.status != STATUS_FALSE_POSITIVE,
+            )
+            .values(
+                status=STATUS_FROM_DETECTOR.get(event.status, "ACTIVE"),
+                resolved_at=event.resolved_at,
+            )
+        )
+        # Reclassification on close is deliberate: an overcurrent that cleared
+        # inside a minute was an inrush transient all along (M04, not M05), and
+        # that is only knowable once it clears.
+        reclassified = classify(event, now)
+        if reclassified is not None:
+            session.execute(
+                update(AnomalyEventRecord)
+                .where(AnomalyEventRecord.source_uid == event.uid)
+                .values(category=reclassified.category, type_id=reclassified.type_id)
+            )
         session.execute(
             update(Alert)
             .where(Alert.anomaly_uid == event.uid)

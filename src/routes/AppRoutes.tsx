@@ -12,10 +12,15 @@ import { AnomalyReportsPage } from '@/pages/AnomalyReportsPage';
 import { FeedbackLogReportPage } from '@/pages/FeedbackLogReportPage';
 import {
   ActiveEventsDetailPage,
+  EventLifecyclePage,
+  ClearRateAnalyticsPage,
   CategoryBreakdownDetailPage,
   LiveStatusDetailPage,
   TaxonomySignaturesDetailPage,
+  AnalysisReportPage,
 } from '@/pages/anomaly-details';
+
+
 import { DetectionTimelinePage, LiveStreamPage } from '@/pages/anomaly-streams';
 import {
   BusinessImpactMetricPage,
@@ -35,6 +40,18 @@ import { HistoricalReportsPage } from '@/pages/HistoricalReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { WelcomeScreen } from '@/pages/WelcomeScreen';
+
+// APM Module Pages
+import { AssetExplorerPage } from '@/pages/apm/AssetExplorerPage';
+import { WorkOrdersPage } from '@/pages/apm/WorkOrdersPage';
+import { CostRoiPage } from '@/pages/apm/CostRoiPage';
+import { ReliabilityPage } from '@/pages/apm/ReliabilityPage';
+import { CriticalAssetsPage } from '@/pages/apm/CriticalAssetsPage';
+
+// OEE Module Pages
+import { FleetAnalyticsPage } from '@/pages/oee/FleetAnalyticsPage';
+import { ProductAnalyticsPage } from '@/pages/oee/ProductAnalyticsPage';
+import { OeeReportsPage } from '@/pages/oee/OeeReportsPage';
 
 export const AppRoutes = () => (
   <Routes>
@@ -58,12 +75,13 @@ export const AppRoutes = () => (
         <Route path="live-telemetry" element={<LiveTelemetryPage />} />
 
         <Route path="anomaly-detection" element={<AnomalyDetectionPage />} />
-        {/* Drill-downs from the module's status bar. Nested under the module
-            path so the sidebar keeps Anomaly Detection highlighted, and declared
-            as siblings rather than children because each replaces the module
-            view rather than rendering inside it. */}
+
+
+        {/* Legacy Drill-downs. */}
         <Route path="anomaly-detection/details/live-status" element={<LiveStatusDetailPage />} />
         <Route path="anomaly-detection/details/active-events" element={<ActiveEventsDetailPage />} />
+        <Route path="anomaly-detection/details/event-lifecycle" element={<EventLifecyclePage />} />
+        <Route path="anomaly-detection/details/clear-rate" element={<ClearRateAnalyticsPage />} />
         <Route
           path="anomaly-detection/details/category-breakdown"
           element={<CategoryBreakdownDetailPage />}
@@ -72,6 +90,7 @@ export const AppRoutes = () => (
           path="anomaly-detection/details/taxonomy-signatures"
           element={<TaxonomySignaturesDetailPage />}
         />
+        <Route path="anomaly-detection/analysis-report" element={<AnalysisReportPage />} />
         {/* Stream analytics, opened from the two entry cards on the module
             overview. Siblings rather than children because each replaces the
             module view rather than rendering inside it. */}
@@ -160,8 +179,20 @@ export const AppRoutes = () => (
         <Route path="predictive-maintenance" element={<PredictiveMaintenancePage />} />
         <Route path="preventive-maintenance" element={<PreventiveMaintenancePage />} />
         <Route path="prescriptive-maintenance" element={<PrescriptiveMaintenancePage />} />
+        
+        {/* APM Module routes */}
         <Route path="asset-performance" element={<ApmPage />} />
+        <Route path="asset-performance/asset-explorer" element={<AssetExplorerPage />} />
+        <Route path="asset-performance/work-orders" element={<WorkOrdersPage />} />
+        <Route path="asset-performance/cost-roi" element={<CostRoiPage />} />
+        <Route path="asset-performance/reliability" element={<ReliabilityPage />} />
+        <Route path="asset-performance/critical-assets" element={<CriticalAssetsPage />} />
+        
         <Route path="oee" element={<OeePage />} />
+        <Route path="oee/fleet-analytics" element={<FleetAnalyticsPage />} />
+        <Route path="oee/product-analytics" element={<ProductAnalyticsPage />} />
+        <Route path="oee/reports" element={<OeeReportsPage />} />
+
         <Route path="historical-reports" element={<HistoricalReportsPage />} />
 
         <Route path="settings" element={<SettingsPage />} />

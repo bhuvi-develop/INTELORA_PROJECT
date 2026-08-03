@@ -7,7 +7,7 @@ import { DEVICE_CATEGORIES } from '@/engine/catalog';
 import { MODULE_TITLES } from '@/config/navigation';
 import { SERIES, STATUS_COLOR } from '@/config/viz';
 import { env } from '@/config/env';
-import { deviceDetailPath } from '@/routes/paths';
+import { PATHS, deviceDetailPath } from '@/routes/paths';
 import {
   useAnomalyJournal,
   useAssetList,
@@ -211,6 +211,24 @@ export const ApmPage = () => {
           </>
         }
       />
+
+      <div className="flex gap-2 pb-4 overflow-x-auto border-b border-overlay/[0.06] mb-6">
+        <Button variant="secondary" size="sm" onClick={() => window.location.href = PATHS.apmAssetExplorer}>
+          Asset Explorer
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => window.location.href = PATHS.apmWorkOrders}>
+          Work Orders
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => window.location.href = PATHS.apmCostRoi}>
+          Cost & ROI Ledger
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => window.location.href = PATHS.apmReliability}>
+          Reliability Metrics
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => window.location.href = PATHS.apmCriticalAssets}>
+          Criticality Engine
+        </Button>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile

@@ -66,3 +66,22 @@ def read_comparison(
         "target": OEE_TARGET,
         "meta": build_meta(engine),
     }
+
+from app.services.apm_service import ApmEngine
+from app.schemas.apm import WorkOrder, ReliabilityMetrics, CriticalityScore
+
+apm_engine = ApmEngine()
+
+@router.get("/work-orders", response_model=list[WorkOrder], summary="Get work orders")
+def read_work_orders(asset_id: str | None = Query(default=None)):
+    return apm_engine.get_work_orders(asset_id)
+
+@router.get("/reliability", response_model=list[ReliabilityMetrics], summary="Get reliability metrics")
+def read_reliability(asset_ids: str = Query(description="Comma-separated asset ids")):
+    wanted = [identifier.strip() for identifier in asset_ids.split(",") if identifier.strip()]
+    return apm_engine.get_reliability_metrics(wanted)
+
+@router.get("/criticality", response_model=list[CriticalityScore], summary="Get criticality scores")
+def read_criticality(asset_ids: str = Query(description="Comma-separated asset ids")):
+    wanted = [identifier.strip() for identifier in asset_ids.split(",") if identifier.strip()]
+    return apm_engine.get_criticality(wanted)

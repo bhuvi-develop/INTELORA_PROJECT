@@ -14,6 +14,8 @@ export const PATHS = {
    * sibling path would silently un-highlight the module the user is still in. */
   anomalyLiveStatus: '/app/anomaly-detection/details/live-status',
   anomalyActiveEvents: '/app/anomaly-detection/details/active-events',
+  anomalyEventLifecycle: '/app/anomaly-detection/details/event-lifecycle',
+  anomalyClearRate: '/app/anomaly-detection/details/clear-rate',
   anomalyCategoryBreakdown: '/app/anomaly-detection/details/category-breakdown',
   anomalyTaxonomySignatures: '/app/anomaly-detection/details/taxonomy-signatures',
   /* Stream analytics, opened from the two entry cards on the module overview.
@@ -22,6 +24,7 @@ export const PATHS = {
   anomalyLiveStream: '/app/anomaly-detection/live-stream',
   /** Module-scoped anomaly report — the journal with its taxonomy, exportable. */
   anomalyReports: '/app/anomaly-detection/reports',
+  anomalyAnalysisReport: '/app/anomaly-detection/analysis-report',
   /**
    * Feedback log report — engineer verdicts and the rule-only detections awaiting
    * one. The only surface that can flag a false alarm, so it is a page in its own
@@ -41,7 +44,15 @@ export const PATHS = {
   preventive: '/app/preventive-maintenance',
   prescriptive: '/app/prescriptive-maintenance',
   apm: '/app/asset-performance',
+  apmWorkOrders: '/app/asset-performance/work-orders',
+  apmCostRoi: '/app/asset-performance/cost-roi',
+  apmReliability: '/app/asset-performance/reliability',
+  apmAssetExplorer: '/app/asset-performance/asset-explorer',
+  apmCriticalAssets: '/app/asset-performance/critical-assets',
   oee: '/app/oee',
+  oeeFleet: '/app/oee/fleet-analytics',
+  oeeProduct: '/app/oee/product-analytics',
+  oeeReports: '/app/oee/reports',
   reports: '/app/historical-reports',
   settings: '/app/settings',
 } as const;
@@ -49,3 +60,4 @@ export const PATHS = {
 export const deviceDetailPath = (assetId: string): string => `/app/devices/${assetId}`;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
+

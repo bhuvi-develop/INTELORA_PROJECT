@@ -327,7 +327,8 @@
    * the sides.
    */
   .panel {
-    @apply relative rounded-3xl border border-line/[0.15] bg-ink-800/40 shadow-panel backdrop-blur-3xl;
+    @apply relative rounded-3xl border border-line/[0.15] bg-ink-800/40 backdrop-blur-3xl;
+    box-shadow: var(--shadow-panel);
     background-image: var(--surface-2);
   }
 
@@ -366,7 +367,8 @@
   /* A recessed well — readouts, inputs and anything that should look cut into
      the panel rather than sitting on it. */
   .inset-well {
-    @apply rounded-xl border border-line/[0.08] bg-ink-900/60 shadow-inset;
+    @apply rounded-xl border border-line/[0.08] bg-ink-900/60;
+    box-shadow: var(--elev-inset);
   }
 
   .panel-sheen::before {
@@ -380,7 +382,8 @@
   }
 
   .glass {
-    @apply border border-line/15 bg-overlay/[0.05] backdrop-blur-3xl shadow-panel;
+    @apply border border-line/15 bg-overlay/[0.05] backdrop-blur-3xl;
+    box-shadow: var(--shadow-panel);
   }
 
   :root[data-theme='light'] .glass {

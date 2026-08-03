@@ -1,4 +1,4 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { apmService } from '@/services/platform.service';
 import type {
   ApmBacklogResponse,
@@ -160,3 +160,37 @@ export const useApmOeeInputs = (): UseQueryResult<ApmOeeInputs> =>
     queryFn: ({ signal }) => narrow<ApmOeeInputs>(apmService.oeeInputs({ signal })),
     ...shared,
   });
+
+export const useApmWorkOrderMutations = () => {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: apmKeys.all });
+
+  const raise = useMutation<Record<string, unknown>, Error, Record<string, unknown>>({
+    mutationFn: (payload) => apmService.raiseWorkOrder(payload),
+    onSuccess: invalidate,
+  });
+
+  const approve = useMutation<Record<string, unknown>, Error, { id: string; approver: string; note?: string }>({
+    mutationFn: ({ id, approver, note }) => apmService.approveWorkOrder(id, { approver, note }),
+    onSuccess: invalidate,
+  });
+
+  const assign = useMutation<Record<string, unknown>, Error, { id: string; technician: string; assigned_by: string; scheduled_for?: string }>({
+    mutationFn: ({ id, technician, assigned_by, scheduled_for }) =>
+      apmService.assignWorkOrder(id, { technician, assigned_by, scheduled_for }),
+    onSuccess: invalidate,
+  });
+
+  const complete = useMutation<Record<string, unknown>, Error, { id: string; completed_by: string; actual_hours?: number; actual_cost?: number; failure_cause?: string; notes?: string }>({
+    mutationFn: ({ id, completed_by, actual_hours, actual_cost, failure_cause, notes }) =>
+      apmService.completeWorkOrder(id, { completed_by, actual_hours, actual_cost, failure_cause, notes }),
+    onSuccess: invalidate,
+  });
+
+  const verify = useMutation<Record<string, unknown>, Error, { id: string; verifier: string; passed: boolean; notes?: string }>({
+    mutationFn: ({ id, verifier, passed, notes }) => apmService.verifyWorkOrder(id, { verifier, passed, notes }),
+    onSuccess: invalidate,
+  });
+
+  return { raise, approve, assign, complete, verify };
+};

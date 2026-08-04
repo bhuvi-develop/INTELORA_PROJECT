@@ -49,6 +49,7 @@ import {
 import { OeePage } from '@/pages/OeePage';
 import { HistoricalReportsPage } from '@/pages/HistoricalReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { AlertsPage } from '@/pages/AlertsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { WelcomeScreen } from '@/pages/WelcomeScreen';
 
@@ -205,7 +206,7 @@ export const AppRoutes = () => (
         <Route path="oee/reports" element={<OeeReportsPage />} />
 
         <Route path="historical-reports" element={<HistoricalReportsPage />} />
-
+        <Route path="alerts" element={<AlertsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Route>

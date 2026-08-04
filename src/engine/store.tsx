@@ -16,6 +16,7 @@ import type {
 } from './types';
 import { getPlatformStore } from '@/services/platformStore';
 import { ConnectionBanner } from '@/components/common/ConnectionBanner';
+import { AlertAggregator } from './AlertAggregator';
 
 /* ───────────────────────────────────────────────────────────────────────────
  * React binding.
@@ -243,6 +244,7 @@ export const EngineProvider = ({ children }: { children: ReactNode }) => {
     <>
       {children}
       <ConnectionBanner />
+      <AlertAggregator />
     </>
   );
 };

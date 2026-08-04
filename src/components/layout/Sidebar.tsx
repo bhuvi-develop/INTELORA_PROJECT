@@ -183,9 +183,6 @@ export const Sidebar = () => {
           >
             <SidebarLogo collapsed={sidebarCollapsed} />
           </NavLink>
-          {sidebarCollapsed ? null : (
-            <IconButton icon={PanelLeftClose} label="Collapse navigation" size="sm" onClick={toggleSidebar} />
-          )}
         </div>
 
         {/* Hairline rather than a border: the plane continues, the section changes. */}
@@ -214,17 +211,6 @@ export const Sidebar = () => {
           )}
         </div>
 
-        {sidebarCollapsed ? (
-          <div className="shrink-0 p-3">
-            <IconButton
-              icon={ChevronLeft}
-              label="Expand navigation"
-              size="sm"
-              className="mx-auto rotate-180"
-              onClick={toggleSidebar}
-            />
-          </div>
-        ) : null}
       </aside>
 
       <AnimatePresence>

@@ -269,7 +269,7 @@ const UserMenu = () => {
 };
 
 export const Topbar = () => {
-  const { setMobileNavOpen, setCommandOpen } = useUI();
+  const { setMobileNavOpen, setCommandOpen, toggleSidebar } = useUI();
   const { pathname } = useLocation();
   const active = navItemByPath(pathname) ?? NAV_ITEMS[0];
 
@@ -282,6 +282,14 @@ export const Topbar = () => {
           size="sm"
           className="lg:hidden"
           onClick={() => setMobileNavOpen(true)}
+        />
+        
+        <IconButton
+          icon={Menu}
+          label="Toggle navigation"
+          size="sm"
+          className="hidden lg:flex"
+          onClick={toggleSidebar}
         />
 
         <Logo size="sm" className="lg:hidden" />

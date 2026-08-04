@@ -41,7 +41,7 @@ export const env = {
   /** Live telemetry poll interval, used when the websocket is unavailable. */
   livePollMs: int(import.meta.env.VITE_LIVE_POLL_MS, 1_000),
   /** Cadence for the derived views — effectiveness and predictions move slowly. */
-  analyticsPollMs: int(import.meta.env.VITE_ANALYTICS_POLL_MS, 15_000),
+  analyticsPollMs: int(import.meta.env.VITE_ANALYTICS_POLL_MS, 1_000),
 } as const;
 
 /** True when Grafana embedding is configured; drives the offline fallback panel. */

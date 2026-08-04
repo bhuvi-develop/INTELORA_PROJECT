@@ -68,8 +68,8 @@ export const AppRoutes = () => (
 
     <Route element={<ProtectedRoute />}>
       <Route path="/app" element={<AppShell />}>
-        {/* The workspace opens empty. A module is chosen, not assumed. */}
-        <Route index element={<WelcomeScreen />} />
+        {/* Redirect root workspace path directly to the Cockpit */}
+        <Route index element={<Navigate to={PATHS.cockpit} replace />} />
 
         <Route path="cockpit" element={<CockpitPage />} />
         {/* Legacy path from the pre-cockpit build. */}

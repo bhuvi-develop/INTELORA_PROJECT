@@ -31,7 +31,7 @@ const WINDOW_OPTIONS: Array<{ value: LiveWindow; label: string }> = [
 
 export const SettingsPage = () => {
   const { user } = useAuth();
-  const { density, setDensity, liveWindow, setLiveWindow, sidebarCollapsed, setSidebarCollapsed } = useUI();
+  const { density, setDensity, liveWindow, setLiveWindow } = useUI();
   const { theme, setTheme } = useTheme();
   const { running, toggle, step, tick } = useEngineControl();
   const { platform, kpis, elapsedDays } = useSnapshot();
@@ -129,14 +129,6 @@ export const SettingsPage = () => {
               />
             </div>
 
-            <div className="border-t border-overlay/[0.06] pt-4">
-              <Switch
-                checked={sidebarCollapsed}
-                onChange={setSidebarCollapsed}
-                label="Collapse navigation by default"
-                description="Keeps the icon rail only, giving module content the full viewport width."
-              />
-            </div>
           </div>
         </Card>
 

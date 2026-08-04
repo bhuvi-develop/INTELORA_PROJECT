@@ -14,11 +14,8 @@ import { OEE_TARGET } from '@/engine/derive';
 import { useSnapshot } from '@/engine/store';
 import { formatNumber } from '@/utils/format';
 import {
-  AiExecutiveSummary,
   CockpitHeader,
   ExecutiveKpiCard,
-  PlatformHealthPanel,
-  FleetHealthWorkspace,
   TotalAssetsWorkspace,
   HealthyAssetsWorkspace,
   WarningAssetsWorkspace,
@@ -62,7 +59,6 @@ export const CockpitPage = () => {
     return (
       <div className="space-y-6">
         <CockpitHeader />
-        {activeWorkspace === 'FleetHealth' && <FleetHealthWorkspace onBack={onBack} />}
         {activeWorkspace === 'TotalAssets' && <TotalAssetsWorkspace onBack={onBack} />}
         {activeWorkspace === 'HealthyAssets' && <HealthyAssetsWorkspace onBack={onBack} />}
         {activeWorkspace === 'WarningAssets' && <WarningAssetsWorkspace onBack={onBack} />}
@@ -80,19 +76,6 @@ export const CockpitPage = () => {
       <CockpitHeader />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <ExecutiveKpiCard
-          label="Fleet Health"
-          value={formatNumber(operationalHealth, 1)}
-          unit="%"
-          icon={Activity}
-          status={healthStatus(operationalHealth)}
-          current={operationalHealth}
-          yesterday={yesterday.operationalHealth}
-          goodDirection="up"
-          trail={trails.compositeTrail}
-          tooltip="Composite of fleet condition, availability and open critical alerts."
-          onClick={() => setActiveWorkspace('FleetHealth')}
-        />
         <ExecutiveKpiCard
           label="Total Assets"
           value={formatNumber(kpis.totalAssets)}
@@ -175,7 +158,7 @@ export const CockpitPage = () => {
           goodDirection="up"
           decimals={0}
           tooltip="Mean projected life of each device's weakest component."
-          onClick={() => setActiveWorkspace('FleetHealth')}
+          onClick={() => setActiveWorkspace('TotalAssets')}
         />
         <ExecutiveKpiCard
           label="Today's Energy"
@@ -216,11 +199,6 @@ export const CockpitPage = () => {
           tooltip={`Availability × performance × quality against a target.`}
           onClick={() => setActiveWorkspace('Efficiency')}
         />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1fr_300px]">
-        <AiExecutiveSummary />
-        <PlatformHealthPanel />
       </div>
     </div>
   );

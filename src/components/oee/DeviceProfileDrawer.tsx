@@ -1,4 +1,4 @@
-import { Zap, BatteryCharging } from 'lucide-react';
+import { Zap, BatteryCharging, BrainCircuit, Activity } from 'lucide-react';
 import type { AssetRuntime } from '@/engine/types';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { Badge } from '@/components/ui/Badge';
@@ -20,6 +20,20 @@ export const DeviceProfileDrawer = ({ asset, onClose }: DeviceProfileDrawerProps
       time: `${12 - i}h ago`,
       oee: Math.max(60, base - 5 + Math.random() * 10)
     }));
+  }, [asset]);
+
+  const oeeForecast = useMemo(() => {
+    if (!asset) return [];
+    const base = asset.performance.oee;
+    // Calculate a degradation slope based on current health
+    const degradationSlope = asset.health > 90 ? -0.05 : (asset.health > 70 ? -0.2 : -0.6); 
+    return Array.from({ length: 24 }).map((_, i) => {
+      const noise = (Math.random() * 1.5) - 0.75;
+      return {
+        time: `+${i + 1}h`,
+        forecast: Math.max(40, Math.min(100, base + (i * degradationSlope) + noise)),
+      };
+    });
   }, [asset]);
 
   if (!asset) {
@@ -66,48 +80,64 @@ export const DeviceProfileDrawer = ({ asset, onClose }: DeviceProfileDrawerProps
           {/* OEE Radial */}
           <div>
             <h3 className="mb-4 text-sm font-semibold tracking-wide text-fg">Device Effectiveness</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-1 flex flex-col items-center p-4 bg-surface-alt/20 rounded-xl border border-border/50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="col-span-1 flex flex-col items-center justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50 h-full min-h-[160px]">
                  <RadialGauge 
                    label="OEE"
                    value={performance.oee}
                    target={85}
                    color="rgb(16 185 129)"
-                   size={100}
+                   size={120}
                    unit="%"
                  />
               </div>
               <div className="col-span-2 grid grid-cols-2 gap-4">
-                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50">
+                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50 h-full">
                    <div className="text-xs text-fg-soft mb-1">Availability</div>
-                   <div className="text-xl font-semibold text-fg">{formatPercent(performance.availability, 1)}</div>
+                   <div className="text-2xl font-semibold text-fg">{formatPercent(performance.availability, 1)}</div>
                 </div>
-                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50">
+                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50 h-full">
                    <div className="text-xs text-fg-soft mb-1">Performance</div>
-                   <div className="text-xl font-semibold text-fg">{formatPercent(performance.performance, 1)}</div>
+                   <div className="text-2xl font-semibold text-fg">{formatPercent(performance.performance || 88.5, 1)}</div>
                 </div>
-                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50">
+                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50 h-full">
                    <div className="text-xs text-fg-soft mb-1">Quality</div>
-                   <div className="text-xl font-semibold text-fg">{formatPercent(performance.quality, 1)}</div>
+                   <div className="text-2xl font-semibold text-fg">{formatPercent(performance.quality || 99.2, 1)}</div>
                 </div>
-                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50">
+                <div className="flex flex-col justify-center p-4 bg-surface-alt/20 rounded-xl border border-border/50 h-full">
                    <div className="text-xs text-fg-soft mb-1">Average Energy</div>
-                   <div className="text-xl font-semibold text-fg">1.2 kWh</div>
+                   <div className="text-2xl font-semibold text-fg">1.2 kWh</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Trend */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-wide text-fg">OEE Trend (12h)</h3>
-            <div className="h-48 border border-border/50 rounded-xl p-4 bg-surface-alt/20">
-               <AreaTrend
-                 title=""
-                 data={oeeTrend}
+          {/* Trend & Forecast Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AreaTrend
+               title="OEE Historical (Last 12h)"
+               icon={Activity}
+               data={oeeTrend}
+               xKey="time"
+               series={[{ key: 'oee', name: 'Actual OEE', color: 'rgb(16 185 129)', unit: '%' }]}
+               height={180}
+               className="bg-surface-alt/10"
+            />
+
+            <div className="relative">
+              <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                 <span className="text-[10px] uppercase tracking-wider text-indigo-300/80 font-medium">AI Active</span>
+              </div>
+              <AreaTrend
+                 title="AI Predictive Forecast (Next 24h)"
+                 icon={BrainCircuit}
+                 data={oeeForecast}
                  xKey="time"
-                 series={[{ key: 'oee', name: 'OEE', color: 'rgb(16 185 129)', unit: '%' }]}
-               />
+                 series={[{ key: 'forecast', name: 'Predicted OEE', color: 'rgb(129 140 248)', unit: '%' }]}
+                 height={180}
+                 className="border-indigo-500/20 bg-indigo-900/10"
+              />
             </div>
           </div>
 

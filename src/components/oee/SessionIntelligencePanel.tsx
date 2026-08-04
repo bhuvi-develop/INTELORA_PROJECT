@@ -1,48 +1,55 @@
 import { useMemo } from 'react';
 import { Card } from '@/components/ui/Card';
-import { AreaTrend, Heatmap } from '@/components/charts';
+import { AreaTrend, LineTrend } from '@/components/charts';
 import { KpiCard } from '@/components/common/KpiCard';
 import { BatteryCharging, PlugZap, XOctagon } from 'lucide-react';
+import { useFleetKpis } from '@/engine/store';
 
 export const SessionIntelligencePanel = () => {
+  const kpis = useFleetKpis();
+  const baseSessions = Math.round(kpis.totalAssets * 4.2);
+  const successRate = 98.4;
+  const successful = Math.round(baseSessions * (successRate / 100));
+  const failed = baseSessions - successful;
 
   const mockSessions = useMemo(() => {
     return Array.from({ length: 24 }).map((_, i) => ({
       hour: `${i.toString().padStart(2, '0')}:00`,
-      sessions: Math.floor(20 + Math.random() * 80),
-      energy: Math.floor(50 + Math.random() * 200)
+      sessions: Math.floor((baseSessions / 24) * (0.5 + Math.random())),
+      energy: Math.floor((kpis.totalPower / 24) * (0.5 + Math.random()))
     }));
-  }, []);
+  }, [baseSessions, kpis.totalPower]);
 
-  const heatmapData = useMemo(() => {
+  const dailyTrend = useMemo(() => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const hours = Array.from({ length: 24 }).map((_, i) => `${i}`);
-    const data = days.map(() => hours.map(() => ({ value: Math.floor(Math.random() * 100) })));
-    return { days, hours, data };
-  }, []);
+    return days.map(day => ({
+      day,
+      sessions: Math.floor(baseSessions * (0.8 + Math.random() * 0.4)),
+    }));
+  }, [baseSessions]);
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard
           title="Today's Sessions"
-          value="1,248"
+          value={baseSessions.toLocaleString()}
           icon={<BatteryCharging />}
-          trend={12}
+          trend={Math.round(baseSessions * 0.05)}
           trendLabel="vs yesterday"
           intent="success"
         />
         <KpiCard
           title="Successful Sessions"
-          value="1,240"
+          value={successful.toLocaleString()}
           icon={<PlugZap />}
-          trend={99.3}
+          trend={successRate}
           trendLabel="success rate"
           intent="success"
         />
         <KpiCard
           title="Failed Sessions"
-          value="8"
+          value={failed.toLocaleString()}
           icon={<XOctagon />}
           trend={-2}
           trendLabel="vs yesterday"
@@ -76,17 +83,14 @@ export const SessionIntelligencePanel = () => {
         </Card>
       </div>
 
-      <Card className="p-5 h-[400px] flex flex-col">
-        <h3 className="mb-4 text-sm font-semibold tracking-wide text-fg">Peak Charging Hour Heatmap</h3>
+      <Card className="p-5 h-[350px] flex flex-col">
+        <h3 className="mb-4 text-sm font-semibold tracking-wide text-fg">Weekly Session Volume</h3>
         <div className="flex-1 min-h-0">
-           <Heatmap
+           <LineTrend
              title=""
-             subtitle=""
-             cells={heatmapData.days.flatMap((row, y) => heatmapData.hours.map((col, x) => ({ row, col: parseInt(col), value: heatmapData.data[y][x].value })))} 
-             rows={heatmapData.days}
-             cols={heatmapData.hours.map((_, i) => i)}
-             colLabel={(col) => `${col}h`}
-             valueLabel={(val) => `${val} sessions`}
+             data={dailyTrend}
+             xKey="day"
+             series={[{ key: 'sessions', name: 'Total Sessions', color: 'rgb(168 85 247)' }]}
            />
         </div>
       </Card>

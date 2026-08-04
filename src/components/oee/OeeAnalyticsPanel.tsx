@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { useFleetKpis, useSnapshot } from '@/engine/store';
 import { Card } from '@/components/ui/Card';
-import { RadialGauge, WaterfallChart, LineTrend } from '@/components/charts';
-import { OEE_TARGET, OEE_WORLD_CLASS } from '@/engine/derive';
+import { LineTrend } from '@/components/charts';
 import { effectivenessLosses } from '@/engine/analytics';
 import { Badge } from '@/components/ui/Badge';
 
@@ -25,56 +24,6 @@ export const OeeAnalyticsPanel = () => {
 
   return (
     <div className="space-y-6">
-      {/* OEE Factors */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="flex flex-col items-center justify-center p-6 text-center shadow-sm">
-          <RadialGauge
-            label="Fleet OEE"
-            value={kpis.averageOee}
-            target={OEE_TARGET}
-            color={kpis.averageOee >= OEE_TARGET ? 'rgb(16 185 129)' : 'rgb(245 158 11)'}
-            unit="%"
-            size={160}
-          />
-          <div className="mt-4 flex gap-2 justify-center w-full">
-            <Badge tone={kpis.averageOee >= OEE_WORLD_CLASS ? "brand" : "neutral"}>World Class: {OEE_WORLD_CLASS}%</Badge>
-          </div>
-        </Card>
-        
-        <Card className="flex flex-col items-center justify-center p-6 text-center shadow-sm">
-          <RadialGauge
-            label="Availability"
-            value={kpis.averageAvailability}
-            target={90}
-            color="rgb(59 130 246)"
-            unit="%"
-            size={160}
-          />
-        </Card>
-
-        <Card className="flex flex-col items-center justify-center p-6 text-center shadow-sm">
-          <RadialGauge
-            label="Performance"
-            value={87.5} // Mock
-            target={95}
-            color="rgb(99 102 241)"
-            unit="%"
-            size={160}
-          />
-        </Card>
-
-        <Card className="flex flex-col items-center justify-center p-6 text-center shadow-sm">
-          <RadialGauge
-            label="Quality"
-            value={96.2} // Mock
-            target={99}
-            color="rgb(168 85 247)"
-            unit="%"
-            size={160}
-          />
-        </Card>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* OEE Trend Matrix */}
         <Card className="col-span-1 xl:col-span-2 p-5">
@@ -97,14 +46,19 @@ export const OeeAnalyticsPanel = () => {
         {/* Loss Breakdown Waterfall */}
         <Card className="col-span-1 p-5">
           <h3 className="mb-4 text-sm font-semibold tracking-wide text-fg">Efficiency Loss Breakdown</h3>
-          <div className="h-72">
-             <WaterfallChart 
-               title=""
-               steps={losses}
-               start={100}
-               startLabel="Target"
-               endLabel="Actual"
-             />
+          <div className="h-72 flex flex-col justify-center space-y-6 px-2">
+            {losses.map(loss => (
+              <div key={loss.key} className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-fg">{loss.label}</span>
+                  <span className="text-rose-400 font-mono">-{loss.loss}%</span>
+                </div>
+                <div className="w-full bg-overlay/5 rounded-full h-2 overflow-hidden shadow-inner">
+                   <div className="bg-rose-500 h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, loss.loss * 4)}%` }} />
+                </div>
+                <div className="text-[11px] text-fg-soft leading-relaxed">{loss.detail}</div>
+              </div>
+            ))}
           </div>
           <div className="mt-4 text-xs text-fg-soft leading-relaxed">
              Availability loss is the primary constraint. Improving uptime on offline devices will yield the highest return on overall fleet effectiveness.

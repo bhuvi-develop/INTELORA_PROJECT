@@ -1,4 +1,4 @@
-import { Contrast, Cog, Database, Gauge, KeyRound, LayoutGrid, Radio, Server, ShieldCheck } from 'lucide-react';
+import { Contrast, Cog, Database, Gauge, KeyRound, LayoutGrid, Radio, Server, ShieldCheck, BookOpen, Activity } from 'lucide-react';
 import type { LiveWindow } from '@/types';
 import { APP, env, grafanaEnabled } from '@/config/env';
 import { MODULE_TITLES } from '@/config/navigation';
@@ -207,79 +207,60 @@ export const SettingsPage = () => {
           ) : null}
         </Card>
 
-        {/* ─── Integrations ────────────────────────────────────────────── */}
-        <Card>
+        {/* ─── System Guide & Directory ─────────────────────────────────────────── */}
+        <Card className="xl:col-span-2 bg-gradient-to-br from-ink-900 to-ink-950 border-overlay/[0.08]">
           <CardHeader
-            title="Integrations"
-            subtitle="Where the platform reads data and renders historical analysis"
-            eyebrow="Platform"
-            icon={Database}
-            actions={
-              <Badge tone={grafanaEnabled ? 'good' : 'neutral'} size="xs" dot>
-                {grafanaEnabled ? 'Grafana configured' : 'Grafana not configured'}
-              </Badge>
-            }
+            title="System Guide & Application Directory"
+            subtitle="Full architectural view of INTELORA application modules and capabilities"
+            eyebrow="Documentation"
+            icon={BookOpen}
           />
-
-          <dl className="mt-4 divide-y divide-overlay/[0.045]">
-            <Row label="API base URL" value={env.apiBaseUrl} />
-            <Row label="Grafana base URL" value={grafanaEnabled ? env.grafana.baseUrl : 'not set'} />
-            <Row label="Grafana theme" value={env.grafana.theme} />
-            <Row label="Effectiveness target" value={`${OEE_TARGET}%`} />
-            <Row label="Session storage key" value={env.session.storageKey} />
-          </dl>
-
-          <p className="mt-4 rounded-xl border border-overlay/[0.07] bg-ink-850/50 p-3.5 text-[11px] leading-relaxed text-fg-dim">
-            Live telemetry is a streaming concern served by the in-app engine, not a request cache. Authentication and
-            archive queries travel over the REST gateway. Point{' '}
-            <code className="rounded bg-overlay/[0.06] px-1 py-0.5 font-mono text-[10.5px]">VITE_GRAFANA_BASE_URL</code> at
-            a Grafana instance to activate the embedded historical panels.
-          </p>
-        </Card>
-
-        {/* ─── Platform services ───────────────────────────────────────── */}
-        <Card className="xl:col-span-2">
-          <CardHeader
-            title="Platform services"
-            subtitle="Live state of the services backing the platform"
-            eyebrow="Infrastructure"
-            icon={Server}
-          />
-
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            {platform.services.map((service) => (
-              <div key={service.key} className="rounded-xl border border-overlay/[0.06] bg-ink-850/50 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-[11.5px] font-medium text-fg-soft">{service.name}</span>
-                  <span
-                    className={
-                      service.state === 'Operational'
-                        ? 'text-[10px] font-medium text-emerald-300'
-                        : 'text-[10px] font-medium text-amber-300'
-                    }
-                  >
-                    {service.state}
-                  </span>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                name: 'Enterprise Cockpit',
+                desc: 'High-level executive dashboard tracking total assets, healthy/critical ratios, and active alerts.',
+                icon: LayoutGrid,
+              },
+              {
+                name: 'OEE Hub (Operations)',
+                desc: 'Overall Equipment Effectiveness. Tracks Availability, Performance, and Quality metrics for the fleet.',
+                icon: Gauge,
+              },
+              {
+                name: 'APM Intelligence',
+                desc: 'Asset Performance Management. Deep dive into asset health, critical risks, maintenance, and ROI.',
+                icon: Server,
+              },
+              {
+                name: 'Anomaly Detection',
+                desc: 'Machine-learning engine that identifies unusual voltage, temperature, or current spikes in real-time.',
+                icon: Activity,
+              },
+              {
+                name: 'Alerts & Journal',
+                desc: 'Centralized log of all threshold breaches, AI notifications, and system warnings across the fleet.',
+                icon: ShieldCheck,
+              },
+              {
+                name: 'Settings & Identity',
+                desc: 'Configure telemetry stream, UI themes, notification preferences, and view account roles.',
+                icon: Cog,
+              },
+            ].map((module) => (
+              <div key={module.name} className="flex gap-4 items-start p-4 rounded-xl border border-overlay/[0.06] bg-ink-850/30 hover:bg-ink-850/60 transition-colors shadow-sm">
+                <div className="p-2.5 rounded-lg bg-brand-500/10 text-brand-400 shrink-0">
+                  <module.icon size={18} />
                 </div>
-                <p className="mt-1.5 text-[13px] font-semibold tabular-nums text-fg">
-                  {service.latencyMs !== null ? `${service.latencyMs} ms` : '—'}
-                </p>
-                <p className="mt-0.5 text-[9.5px] tabular-nums text-fg-faint">
-                  {formatPercent(service.uptimePct, 3)} uptime
-                </p>
+                <div>
+                  <h4 className="text-[13px] font-semibold text-fg tracking-tight">{module.name}</h4>
+                  <p className="text-[11.5px] text-fg-dim mt-1.5 leading-relaxed">{module.desc}</p>
+                </div>
               </div>
             ))}
           </div>
-
-          <dl className="mt-4 grid gap-x-8 border-t border-overlay/[0.06] pt-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Row label="Product" value={`${APP.name} ${APP.tagline}`} />
-            <Row label="Version" value={APP.version} />
-            <Row label="Build" value={APP.build} />
-            <Row label="Vendor" value={APP.vendor} />
-            <Row label="API response" value={`${platform.apiResponseMs} ms`} />
-            <Row label="Database latency" value={`${platform.databaseLatencyMs} ms`} />
-          </dl>
         </Card>
+
       </div>
 
       <div className="flex items-center gap-2 rounded-xl border border-overlay/[0.07] bg-ink-850/40 px-4 py-3">

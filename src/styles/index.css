@@ -118,46 +118,34 @@
   :root[data-theme='light'] {
     color-scheme: light;
 
-    /* Planes: a cool-grey chassis with true-white cards sitting on it.
-     *
-     * The page is deliberately NOT white. White cards on a white page have
-     * nothing to separate them and the result reads as an unstyled document —
-     * the chassis tone is what lets a panel look like a panel. The neutral is
-     * biased a few points toward the brand blue rather than pure grey, so the
-     * accent sits in the same family as its ground instead of on top of it. */
-    --ink-950: 237 241 247;
-    --ink-900: 243 246 251;
+    /* Slightly cooler, deeper neutral background so pure white cards pop beautifully */
+    --ink-950: 232 238 248;
+    --ink-900: 238 244 252;
     --ink-800: 255 255 255;
-    --ink-850: 247 250 253;
+    --ink-850: 248 251 254;
     --ink-750: 255 255 255;
-    --ink-700: 228 234 243;
-    --ink-650: 209 219 232;
-    --ink-600: 186 198 216;
-    --ink-500: 152 167 189;
+    --ink-700: 220 228 240;
+    --ink-650: 200 212 228;
+    --ink-600: 175 190 210;
+    --ink-500: 140 155 178;
 
-    /* Ink: dark grey primary, medium grey secondary. Steps are chosen for
-     * contrast against the card surface, not by inverting the dark ramp. */
-    --fg-default: 15 23 36;
-    --fg-soft: 36 49 63;
-    --fg-muted: 74 90 110;
-    --fg-dim: 100 115 134;
-    --fg-faint: 130 143 160;
+    /* Ink: Darker, crisper text for maximum legibility */
+    --fg-default: 12 18 30;
+    --fg-soft: 45 58 75;
+    --fg-muted: 85 102 125;
+    --fg-dim: 110 128 150;
+    --fg-faint: 145 160 180;
 
-    /* Washes recess into a light plane, so the overlay is near-black. Alphas are
-     * reused unchanged from dark mode and land correctly because the colour
-     * flipped rather than the opacity. */
-    --overlay: 15 23 36;
-    --line: 22 33 52;
-    /* Slate rather than black: a pure-black scrim on a light interface reads as
-     * a rendering fault, a desaturated navy reads as depth. */
-    --scrim: 30 41 59;
-    --line-solid: rgba(22, 33, 52, 0.12);
-    --grid-line: rgba(22, 33, 52, 0.045);
-    --gridline: rgba(22, 33, 52, 0.085);
-    --brand-wash: rgba(42, 120, 214, 0.1);
+    /* Washes & Overlays */
+    --overlay: 12 18 30;
+    --line: 25 38 60;
+    --scrim: 20 30 45;
+    --line-solid: rgba(25, 38, 60, 0.15);
+    --grid-line: rgba(25, 38, 60, 0.05);
+    --gridline: rgba(25, 38, 60, 0.08);
+    --brand-wash: rgba(42, 120, 214, 0.12);
 
-    /* Brand accent re-stepped darker: the same hue needs more depth to hold
-     * contrast against white than it does against navy. */
+    /* Brand accent */
     --brand-200: 28 92 171;
     --brand-300: 32 105 190;
     --brand-400: 37 112 202;
@@ -167,45 +155,43 @@
     --brand-800: 21 68 128;
     --brand-900: 15 50 96;
 
-    /* Elevation by soft diffusion plus a hairline — deep shadow on white reads
-     * as dirt, so the language changes rather than the values. */
-    --shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px 0 rgba(16, 30, 54, 0.06),
-      0 2px 6px -2px rgba(16, 30, 54, 0.08);
-    --shadow-raised: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 4px 10px -3px rgba(16, 30, 54, 0.12),
-      0 16px 34px -14px rgba(16, 30, 54, 0.2);
+    /* Deeper, more luxurious shadows for light mode cards */
+    --shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 2px 8px -2px rgba(20, 35, 60, 0.08),
+      0 12px 24px -8px rgba(20, 35, 60, 0.12);
+    --shadow-raised: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 6px 14px -4px rgba(20, 35, 60, 0.12),
+      0 24px 48px -12px rgba(20, 35, 60, 0.25);
 
-    /* Same ladder, opposite physics: on paper, height is read from a softer and
-     * wider shadow, and a deep one just looks like dirt. */
-    --elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.85) inset, 0 1px 2px 0 rgba(16, 30, 54, 0.06);
-    --elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 2px 4px -1px rgba(16, 30, 54, 0.07),
-      0 6px 14px -8px rgba(16, 30, 54, 0.12);
-    --elev-3: 0 1px 0 0 rgba(255, 255, 255, 0.95) inset, 0 4px 8px -2px rgba(16, 30, 54, 0.09),
-      0 14px 28px -12px rgba(16, 30, 54, 0.16);
-    --elev-4: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 8px 16px -4px rgba(16, 30, 54, 0.11),
-      0 28px 52px -18px rgba(16, 30, 54, 0.2);
-    --elev-inset: 0 1px 3px 0 rgba(16, 30, 54, 0.1) inset;
+    /* Elevation */
+    --elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.85) inset, 0 1px 3px 0 rgba(20, 35, 60, 0.08);
+    --elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 3px 6px -1px rgba(20, 35, 60, 0.09),
+      0 10px 20px -8px rgba(20, 35, 60, 0.14);
+    --elev-3: 0 1px 0 0 rgba(255, 255, 255, 0.95) inset, 0 6px 12px -2px rgba(20, 35, 60, 0.11),
+      0 20px 40px -12px rgba(20, 35, 60, 0.18);
+    --elev-4: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 12px 24px -4px rgba(20, 35, 60, 0.14),
+      0 35px 70px -18px rgba(20, 35, 60, 0.25);
+    --elev-inset: 0 1px 3px 0 rgba(20, 35, 60, 0.15) inset;
 
-    --surface-1: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 46%);
-    --surface-2: linear-gradient(180deg, #ffffff 0%, #fdfefe 44%, #f7f9fc 100%);
-    --surface-raised: linear-gradient(180deg, #ffffff 0%, #fbfcfe 50%, #f4f7fb 100%);
-    --bevel-top: linear-gradient(90deg, transparent, rgba(22, 33, 52, 0.1) 22%, rgba(22, 33, 52, 0.1) 78%, transparent);
-    --shadow-glow: 0 0 0 1px rgba(42, 120, 214, 0.3), 0 10px 28px -14px rgba(42, 120, 214, 0.32);
-    --shadow-glow-sm: 0 2px 10px -3px rgba(42, 120, 214, 0.32);
+    /* Brighter surface gradients */
+    --surface-1: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.5) 100%);
+    --surface-2: linear-gradient(180deg, #ffffff 0%, #ffffff 40%, #f7fafc 100%);
+    --surface-raised: linear-gradient(180deg, #ffffff 0%, #ffffff 50%, #f3f6f9 100%);
+    --bevel-top: linear-gradient(90deg, transparent, rgba(20, 35, 60, 0.08) 22%, rgba(20, 35, 60, 0.08) 78%, transparent);
+    
+    --shadow-glow: 0 0 0 1px rgba(42, 120, 214, 0.35), 0 10px 28px -14px rgba(42, 120, 214, 0.4);
+    --shadow-glow-sm: 0 2px 10px -3px rgba(42, 120, 214, 0.35);
 
-    /* A downward sheen would look like a smudge on white; light mode gets a
-     * near-invisible top highlight instead. */
     --panel-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 55%);
 
-    --scrollbar-thumb: rgba(22, 33, 52, 0.2);
-    --scrollbar-thumb-hover: rgba(22, 33, 52, 0.32);
-    --selection: rgba(42, 120, 214, 0.2);
-    --selection-ink: #0f1724;
+    --scrollbar-thumb: rgba(25, 38, 60, 0.2);
+    --scrollbar-thumb-hover: rgba(25, 38, 60, 0.35);
+    --selection: rgba(42, 120, 214, 0.25);
+    --selection-ink: #0c121e;
 
-    --chart-surface: #f6f8fc;
-    --text-primary: #0f1724;
-    --text-secondary: #4a5a6e;
-    --text-muted: #64738a;
-    --baseline: #cfd9e7;
+    --chart-surface: #f4f7fa;
+    --text-primary: #0c121e;
+    --text-secondary: #425265;
+    --text-muted: #5e6d82;
+    --baseline: #c0cbe0;
   }
 
   * {

@@ -11,8 +11,9 @@ export const FleetIntelligencePanel = () => {
   const kpis = useFleetKpis();
   const { at } = useSnapshot();
 
-  const totalRuntime = assets.reduce((sum, a) => sum + (a.performance.oee * 0.8), 0); // Mock
-  const totalDowntime = assets.reduce((sum, a) => sum + ((100 - a.performance.availability) * 0.5), 0); // Mock
+  // Project the fleet's availability over a standard 24-hour window
+  const totalRuntime = Math.round(kpis.totalAssets * 24 * (kpis.averageAvailability / 100));
+  const totalDowntime = Math.round(kpis.totalAssets * 24 * ((100 - kpis.averageAvailability) / 100));
 
   // Utilization breakdown
   const highlyUtilized = assets.filter(a => a.performance.performance >= 80).length;

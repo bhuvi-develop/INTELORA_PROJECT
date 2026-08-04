@@ -117,6 +117,18 @@ export const CockpitPage = () => {
           onClick={() => setActiveWorkspace('HealthyAssets')}
         />
         <ExecutiveKpiCard
+          label="Good Assets"
+          value={formatNumber(kpis.goodAssets)}
+          icon={ShieldCheck}
+          status="good"
+          current={kpis.goodAssets}
+          yesterday={kpis.goodAssets}
+          goodDirection="up"
+          decimals={0}
+          tooltip="Devices scoring between 80 and 94."
+          onClick={() => setActiveWorkspace('HealthyAssets')} // Fallback since GoodAssets workspace may not exist
+        />
+        <ExecutiveKpiCard
           label="Warning Assets"
           value={formatNumber(kpis.warningAssets)}
           icon={AlertTriangle}

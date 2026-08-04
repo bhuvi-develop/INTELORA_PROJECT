@@ -4,6 +4,7 @@ import type { PlatformAlert } from '@/types/alerts';
 class AlertStore {
   private alerts: Map<string, PlatformAlert> = new Map();
   private listeners: Set<() => void> = new Set();
+  private cachedSnapshot: PlatformAlert[] = [];
 
   public subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -13,11 +14,12 @@ class AlertStore {
   };
 
   private notify() {
+    this.cachedSnapshot = Array.from(this.alerts.values()).sort((a, b) => b.timestamp - a.timestamp);
     this.listeners.forEach((l) => l());
   }
 
   public getSnapshot = (): PlatformAlert[] => {
-    return Array.from(this.alerts.values()).sort((a, b) => b.timestamp - a.timestamp);
+    return this.cachedSnapshot;
   };
 
   public publish = (alert: PlatformAlert) => {

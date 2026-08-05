@@ -33,7 +33,7 @@ export const SettingsPage = () => {
   const { user } = useAuth();
   const { density, setDensity, liveWindow, setLiveWindow, sidebarCollapsed, setSidebarCollapsed } = useUI();
   const { theme, setTheme } = useTheme();
-  const { running, toggle, step, tick } = useEngineControl();
+  const { running, toggle, step, tick, streamIntervalMs, setStreamIntervalMs } = useEngineControl();
   const { platform, kpis, elapsedDays } = useSnapshot();
 
   return (
@@ -150,12 +150,32 @@ export const SettingsPage = () => {
           />
 
           <dl className="mt-4 divide-y divide-overlay/[0.045]">
-            <Row label="Sample interval" value={`${TICK_MS / 1000} s`} />
+            <Row label="Sample interval" value={`${TICK_MS / 1000} s (backend)`} />
             <Row label="Ticks elapsed" value={String(tick)} />
             <Row label="Service life consumed" value={`${formatNumber(elapsedDays, 2)} days`} />
             <Row label="Wear clock multiplier" value={`${WEAR_TIME_SCALE}×`} />
             <Row label="Stream state" value={running ? 'running' : 'paused'} />
           </dl>
+
+          <div className="mt-5 border-t border-overlay/[0.06] pt-4">
+            <p className="text-[12.5px] font-medium text-fg">Stream polling interval</p>
+            <p className="mt-1 text-[11px] text-fg-dim">
+              How frequently the interface pulls new data from the backend.
+            </p>
+            <Segmented
+              ariaLabel="Stream interval"
+              layoutId="settings-stream-interval"
+              className="mt-2.5"
+              options={[
+                { value: 1000, label: '1s (Live)' },
+                { value: 5000, label: '5s' },
+                { value: 15000, label: '15s' },
+                { value: 30000, label: '30s' },
+              ]}
+              value={streamIntervalMs}
+              onChange={(val) => setStreamIntervalMs(Number(val))}
+            />
+          </div>
 
           <p className="mt-4 rounded-xl border border-overlay/[0.07] bg-ink-850/50 p-3.5 text-[11px] leading-relaxed text-fg-dim">
             Every channel is a mean-reverting process seeded from the device identity and tick index, so the stream is
@@ -177,35 +197,7 @@ export const SettingsPage = () => {
           </div>
         </Card>
 
-        {/* ─── Identity ────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader
-            title="Account and access"
-            subtitle="Identity and role for this session"
-            eyebrow="Identity"
-            icon={KeyRound}
-          />
-          {user ? (
-            <>
-              <div className="mt-5 flex items-center gap-3.5">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-[15px] font-bold text-white">
-                  {user.initials}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-[13.5px] font-semibold text-fg">{user.name}</p>
-                  <p className="mt-0.5 truncate text-[11.5px] text-fg-dim">{user.email}</p>
-                </div>
-              </div>
 
-              <dl className="mt-5 divide-y divide-overlay/[0.045]">
-                <Row label="Role" value={user.roleLabel} />
-                <Row label="Organisation" value={user.organisation} />
-                <Row label="Session idle timeout" value={`${env.session.idleMinutes} minutes`} />
-                <Row label="Bearer scheme" value="JWT RS256 · Authorization header" />
-              </dl>
-            </>
-          ) : null}
-        </Card>
 
         {/* ─── Integrations ────────────────────────────────────────────── */}
         <Card>

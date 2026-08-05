@@ -251,6 +251,7 @@ export const ApmPage = () => {
 
       <AiPanel module="apm" />
 
+<<<<<<< Updated upstream
       <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <LineTrend
           title="Fleet condition trend"
@@ -265,6 +266,9 @@ export const ApmPage = () => {
           references={[{ value: 95, label: 'Healthy 95' }]}
           footnote="Both series are means across reporting devices. The spread below matters more than the mean: a good average can hide a failing tail."
         />
+=======
+
+>>>>>>> Stashed changes
 
         <BarTrend
           title="Condition distribution"
@@ -386,6 +390,7 @@ export const ApmPage = () => {
         </div>
       </div>
 
+<<<<<<< Updated upstream
       <BarTrend
         title="Category health against availability"
         subtitle="Grouped comparison across every device class"
@@ -400,6 +405,76 @@ export const ApmPage = () => {
         height={340}
         categoryWidth={150}
         footnote="Grouped rather than stacked: health and availability are independent measures, so stacking them would imply a total that does not exist."
+=======
+      {/* Tab 2: Asset Registry & Hierarchy */}
+      {activeTab === 'registry' && (
+        <ApmAssetsPage 
+          hierarchyContent={
+            <ApmHierarchyTree
+              root={hierarchyQuery.data?.root}
+              loading={hierarchyQuery.isLoading}
+              onSelectAsset={(id) => setSelectedAssetId(id)}
+            />
+          }
+        />
+      )}
+
+      {/* Tab 3: Composite Health & Criticality Engine */}
+      {activeTab === 'criticality' && (
+        <div className="space-y-6">
+          <ApmCriticalityPage />
+          <ApmHealthPage />
+        </div>
+      )}
+
+      {/* Tab 4: Reliability Analytics */}
+      {activeTab === 'reliability' && (
+        <div className="space-y-6">
+          <ApmReliabilityPage />
+          <ApmAvailabilityPage />
+        </div>
+      )}
+
+      {/* Tab 5: Maintenance Center & Work Orders */}
+      {activeTab === 'maintenance' && (
+        <div className="space-y-6">
+          <ApmMaintenancePage />
+          <ApmWorkOrdersPage />
+        </div>
+      )}
+
+      {/* Tab 6: Cost & ROI Analytics */}
+      {activeTab === 'cost' && (
+        <div className="space-y-6">
+          <ApmCostPage />
+        </div>
+      )}
+
+      {/* Tab 7: Executive Dashboard & Benchmarking */}
+      {activeTab === 'executive' && (
+        <div className="space-y-6">
+          <ApmExecutiveDashboard
+            assets={apmAssets}
+            reliability={apmQuery.data?.fleet_reliability}
+            onSelectAsset={(id) => setSelectedAssetId(id)}
+          />
+          <ApmBenchmarkingPanel assets={apmAssets} />
+        </div>
+      )}
+
+      {/* Tab 8: Reports */}
+      {activeTab === 'reports' && (
+        <div className="space-y-6">
+          <ApmReportsPage />
+        </div>
+      )}
+
+      {/* Asset Detail Drawer / Modal */}
+      <ApmAssetDetailModal
+        asset={selectedAssetObject}
+        isOpen={Boolean(selectedAssetId)}
+        onClose={() => setSelectedAssetId(null)}
+>>>>>>> Stashed changes
       />
 
       <AssetStatusMatrix

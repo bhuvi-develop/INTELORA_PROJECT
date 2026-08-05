@@ -28,3 +28,4 @@ export { LiveIndicator } from './LiveIndicator';
 export type { LiveIndicatorProps } from './LiveIndicator';
 export { ErrorBoundary } from './ErrorBoundary';
 export { ConnectionBanner } from './ConnectionBanner';
+export * from './KpiCard';

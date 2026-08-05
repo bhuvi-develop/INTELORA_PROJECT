@@ -141,7 +141,11 @@ class MaintenanceService:
         stamp = now or datetime.now(timezone.utc)
         out: list[PreventiveTask] = []
 
-        for state in engine.simulator.states.values():
+        active_ids = engine.get_active_asset_ids()
+        for aid in active_ids:
+            if aid not in engine.simulator.states:
+                continue
+            state = engine.simulator.states[aid]
             band = band_of(state.health)
             templates = TASK_TEMPLATES.get(state.seed.category, ())
 
@@ -192,7 +196,11 @@ class MaintenanceService:
         urgency_rank = {"Immediate": 4, "Scheduled": 3, "Monitor": 2, "None": 1}
         out: list[dict] = []
 
-        for asset_id, state in engine.simulator.states.items():
+        active_ids = engine.get_active_asset_ids()
+        for asset_id in active_ids:
+            if asset_id not in engine.simulator.states:
+                continue
+            state = engine.simulator.states[asset_id]
             prediction = analytics.predictions.get(asset_id)
             weakest = prediction.primary.component if prediction else "device"
             band = band_of(state.health)

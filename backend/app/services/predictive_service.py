@@ -78,6 +78,35 @@ class PredictiveService:
         """Re-fit the degradation regression for one asset from its live window."""
         self.degradation.fit(state.asset_id, list(state.history))
 
+    def clean_predict(self, state: AssetState, now: datetime) -> AssetPrediction:
+        predictions: list[ComponentPrediction] = []
+        for spec in state.profile.components:
+            predictions.append(
+                ComponentPrediction(
+                    asset_id=state.asset_id,
+                    component=spec.name,
+                    wear=0.0,
+                    failure_probability=0.0,
+                    rul_days=999.0,
+                    confidence=1.0,
+                    recommendation="No action needed — Device operating within safe nominal parameters.",
+                    maintenance_priority="Normal",
+                    predicted_failure_at=None,
+                    model_version="Nominal",
+                    regression_weight=0.0,
+                )
+            )
+
+        primary = predictions[0]
+        return AssetPrediction(
+            asset_id=state.asset_id,
+            asset_name=state.seed.asset_name,
+            category=state.seed.category,
+            criticality=state.seed.criticality,
+            primary=primary,
+            components=predictions,
+        )
+
     def predict(self, state: AssetState, now: datetime) -> AssetPrediction:
         predictions: list[ComponentPrediction] = []
         confidence_bonus = self.degradation.confidence_bonus(state.asset_id)

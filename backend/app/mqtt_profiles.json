@@ -1,0 +1,33 @@
+{
+  "active_profile": "HYD VM",
+  "profiles": {
+    "HYD VM": {
+      "name": "HYD VM",
+      "protocol": "mqtt://",
+      "host": "172.176.255.143",
+      "port": 1883,
+      "username": "",
+      "password": "",
+      "validate_cert": true,
+      "use_tls": false,
+      "topic": "#",
+      "qos": 0,
+      "keepalive": 60,
+      "client_id": ""
+    },
+    "test.mosquitto.org": {
+      "name": "test.mosquitto.org",
+      "protocol": "mqtt://",
+      "host": "test.mosquitto.org",
+      "port": 1883,
+      "username": "",
+      "password": "",
+      "validate_cert": false,
+      "use_tls": false,
+      "topic": "#",
+      "qos": 0,
+      "keepalive": 60,
+      "client_id": ""
+    }
+  }
+}

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Activity,
   AlertTriangle,
   Clock3,
   Gauge,
@@ -14,11 +13,8 @@ import { OEE_TARGET } from '@/engine/derive';
 import { useSnapshot } from '@/engine/store';
 import { formatNumber } from '@/utils/format';
 import {
-  AiExecutiveSummary,
   CockpitHeader,
   ExecutiveKpiCard,
-  PlatformHealthPanel,
-  FleetHealthWorkspace,
   TotalAssetsWorkspace,
   HealthyAssetsWorkspace,
   WarningAssetsWorkspace,
@@ -28,12 +24,13 @@ import {
   AlertSummaryWorkspace,
   EfficiencyWorkspace,
 } from '@/components/cockpit';
-import type { KpiStatus } from '@/components/cockpit';
+
 
 export const CockpitPage = () => {
   const [activeWorkspace, setActiveWorkspace] = useState<string>('landing');
+  const [isAssetsExpanded, setIsAssetsExpanded] = useState(false);
   const snapshot = useSnapshot();
-  const { kpis, oee, assets, energy, operationalHealth, yesterday, fleetTrail } = snapshot;
+  const { kpis, oee, assets, energy, yesterday, fleetTrail } = snapshot;
 
   const trails = useMemo(() => {
     const healthTrail = fleetTrail.map((point) => point.health);
@@ -53,8 +50,6 @@ export const CockpitPage = () => {
     [assets],
   );
 
-  const healthStatus = (value: number): KpiStatus =>
-    value >= 95 ? 'good' : value >= 80 ? 'neutral' : value >= 65 ? 'warning' : 'critical';
 
   const onBack = () => setActiveWorkspace('landing');
 
@@ -62,7 +57,6 @@ export const CockpitPage = () => {
     return (
       <div className="space-y-6">
         <CockpitHeader />
-        {activeWorkspace === 'FleetHealth' && <FleetHealthWorkspace onBack={onBack} />}
         {activeWorkspace === 'TotalAssets' && <TotalAssetsWorkspace onBack={onBack} />}
         {activeWorkspace === 'HealthyAssets' && <HealthyAssetsWorkspace onBack={onBack} />}
         {activeWorkspace === 'WarningAssets' && <WarningAssetsWorkspace onBack={onBack} />}
@@ -81,19 +75,6 @@ export const CockpitPage = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <ExecutiveKpiCard
-          label="Fleet Health"
-          value={formatNumber(operationalHealth, 1)}
-          unit="%"
-          icon={Activity}
-          status={healthStatus(operationalHealth)}
-          current={operationalHealth}
-          yesterday={yesterday.operationalHealth}
-          goodDirection="up"
-          trail={trails.compositeTrail}
-          tooltip="Composite of fleet condition, availability and open critical alerts."
-          onClick={() => setActiveWorkspace('FleetHealth')}
-        />
-        <ExecutiveKpiCard
           label="Total Assets"
           value={formatNumber(kpis.totalAssets)}
           icon={MonitorSmartphone}
@@ -101,57 +82,75 @@ export const CockpitPage = () => {
           current={kpis.totalAssets}
           yesterday={kpis.totalAssets}
           decimals={0}
-          tooltip="Every device registered on the platform, across all categories."
-          onClick={() => setActiveWorkspace('TotalAssets')}
+          tooltip={isAssetsExpanded ? "Click to collapse asset distribution" : "Every device registered on the platform. Click to view distribution."}
+          onClick={() => setIsAssetsExpanded(!isAssetsExpanded)}
+          className={isAssetsExpanded ? "border-brand-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]" : ""}
         />
-        <ExecutiveKpiCard
-          label="Healthy Assets"
-          value={formatNumber(kpis.healthyAssets)}
-          icon={ShieldCheck}
-          status="good"
-          current={kpis.healthyAssets}
-          yesterday={yesterday.healthyAssets}
-          goodDirection="up"
-          decimals={0}
-          tooltip="Devices scoring 95 or above."
-          onClick={() => setActiveWorkspace('HealthyAssets')}
-        />
-        <ExecutiveKpiCard
-          label="Warning Assets"
-          value={formatNumber(kpis.warningAssets)}
-          icon={AlertTriangle}
-          status={kpis.warningAssets > 0 ? 'warning' : 'good'}
-          current={kpis.warningAssets}
-          yesterday={yesterday.warningAssets}
-          goodDirection="down"
-          decimals={0}
-          tooltip="Devices scoring between 65 and 79."
-          onClick={() => setActiveWorkspace('WarningAssets')}
-        />
-        <ExecutiveKpiCard
-          label="Critical Assets"
-          value={formatNumber(kpis.criticalAssets)}
-          icon={ShieldAlert}
-          status={kpis.criticalAssets > 0 ? 'critical' : 'good'}
-          current={kpis.criticalAssets}
-          yesterday={yesterday.criticalAssets}
-          goodDirection="down"
-          decimals={0}
-          tooltip="Devices scoring below 65."
-          onClick={() => setActiveWorkspace('CriticalAssets')}
-        />
-        <ExecutiveKpiCard
-          label="Offline Assets"
-          value={formatNumber(kpis.offlineAssets)}
-          icon={WifiOff}
-          status={kpis.offlineAssets > 0 ? 'warning' : 'good'}
-          current={kpis.offlineAssets}
-          yesterday={yesterday.offlineAssets}
-          goodDirection="down"
-          decimals={0}
-          tooltip="Devices not delivering telemetry."
-          onClick={() => setActiveWorkspace('OfflineAssets')}
-        />
+
+        {isAssetsExpanded && (
+          <>
+            <ExecutiveKpiCard
+              label="Healthy Assets"
+              value={formatNumber(kpis.healthyAssets)}
+              icon={ShieldCheck}
+              status="good"
+              current={kpis.healthyAssets}
+              yesterday={yesterday.healthyAssets}
+              goodDirection="up"
+              decimals={0}
+              tooltip="Devices scoring 95 or above."
+              onClick={() => setActiveWorkspace('HealthyAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Good Assets"
+              value={formatNumber(kpis.goodAssets)}
+              icon={ShieldCheck}
+              status="good"
+              current={kpis.goodAssets}
+              yesterday={kpis.goodAssets}
+              goodDirection="up"
+              decimals={0}
+              tooltip="Devices scoring between 80 and 94."
+              onClick={() => setActiveWorkspace('HealthyAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Warning Assets"
+              value={formatNumber(kpis.warningAssets)}
+              icon={AlertTriangle}
+              status={kpis.warningAssets > 0 ? 'warning' : 'good'}
+              current={kpis.warningAssets}
+              yesterday={yesterday.warningAssets}
+              goodDirection="down"
+              decimals={0}
+              tooltip="Devices scoring between 65 and 79."
+              onClick={() => setActiveWorkspace('WarningAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Critical Assets"
+              value={formatNumber(kpis.criticalAssets)}
+              icon={ShieldAlert}
+              status={kpis.criticalAssets > 0 ? 'critical' : 'good'}
+              current={kpis.criticalAssets}
+              yesterday={yesterday.criticalAssets}
+              goodDirection="down"
+              decimals={0}
+              tooltip="Devices scoring below 65."
+              onClick={() => setActiveWorkspace('CriticalAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Offline Assets"
+              value={formatNumber(kpis.offlineAssets)}
+              icon={WifiOff}
+              status={kpis.offlineAssets > 0 ? 'warning' : 'good'}
+              current={kpis.offlineAssets}
+              yesterday={yesterday.offlineAssets}
+              goodDirection="down"
+              decimals={0}
+              tooltip="Devices not delivering telemetry."
+              onClick={() => setActiveWorkspace('OfflineAssets')}
+            />
+          </>
+        )}
         <ExecutiveKpiCard
           label="Average Remaining Life"
           value={formatNumber(meanRulDays, 0)}
@@ -163,7 +162,7 @@ export const CockpitPage = () => {
           goodDirection="up"
           decimals={0}
           tooltip="Mean projected life of each device's weakest component."
-          onClick={() => setActiveWorkspace('FleetHealth')}
+          onClick={() => setActiveWorkspace('TotalAssets')}
         />
         <ExecutiveKpiCard
           label="Today's Energy"
@@ -204,11 +203,6 @@ export const CockpitPage = () => {
           tooltip={`Availability × performance × quality against a target.`}
           onClick={() => setActiveWorkspace('Efficiency')}
         />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1fr_300px]">
-        <AiExecutiveSummary />
-        <PlatformHealthPanel />
       </div>
     </div>
   );

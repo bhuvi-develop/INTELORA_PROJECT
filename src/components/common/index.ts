@@ -29,6 +29,4 @@ export type { LiveIndicatorProps } from './LiveIndicator';
 export { ErrorBoundary } from './ErrorBoundary';
 export { ConnectionBanner } from './ConnectionBanner';
 export { ThemeSwitch } from './ThemeSwitch';
-export { KpiCard } from './KpiCard';
-export type { KpiCardProps } from './KpiCard';
-
+export * from './KpiCard';

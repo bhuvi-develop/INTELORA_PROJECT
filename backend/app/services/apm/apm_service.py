@@ -356,7 +356,8 @@ class ApmService:
         with self._lock:
             config = get_apm_config()
             analytics = engine.analytics
-            states = list(engine.simulator.states.values())
+            active_ids = engine.get_active_asset_ids()
+            states = [engine.simulator.states[aid] for aid in active_ids if aid in engine.simulator.states]
             orders = wo.get_work_order_engine().all()
 
             # ── Group every input once ──────────────────────────────────

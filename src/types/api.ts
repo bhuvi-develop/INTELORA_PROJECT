@@ -41,6 +41,29 @@ export interface TelemetryReadingDto {
   health_score: number;
   load_state: string;
   resolution?: string;
+  source?: string;
+  present_parameters?: string[];
+}
+
+export interface MqttProfileDto {
+  name: string;
+  protocol: string;
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+  validate_cert?: boolean;
+  use_tls?: boolean;
+  topic?: string;
+  qos?: number;
+  keepalive?: number;
+  client_id?: string;
+}
+
+export interface MqttProfilesResponseDto {
+  active_profile: string;
+  connected: boolean;
+  profiles: MqttProfileDto[];
 }
 
 export interface LiveTelemetryDto {
@@ -555,6 +578,21 @@ export interface PredictionRecordDto {
 
 /* ─── System ─────────────────────────────────────────────────────────────── */
 
+export interface MqttStatusDto {
+  connected: boolean;
+  active_profile?: string;
+  protocol?: string;
+  broker?: string;
+  port?: number;
+  topic?: string;
+  qos?: number;
+  use_tls?: boolean;
+  validate_cert?: boolean;
+  messages_sec?: number;
+  last_msg_at?: string | null;
+  last_error?: string;
+}
+
 export interface SystemStatusDto {
   application: string;
   version: string;
@@ -564,9 +602,10 @@ export interface SystemStatusDto {
   database_connected: boolean;
   history_backfilled: boolean;
   platform: PlatformHealthDto;
-  scheduler: Record<string, unknown>;
+  scheduler?: { running?: boolean; source?: string } | Record<string, unknown>;
   anomaly_models: Record<string, unknown>;
   degradation_models: Record<string, unknown>;
+  mqtt?: MqttStatusDto;
   configuration: Record<string, unknown>;
   meta: ApiMeta;
 }

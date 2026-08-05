@@ -1,10 +1,10 @@
 import { Gauge, Zap, CheckCircle2, MonitorPlay, ShieldAlert, BrainCircuit } from 'lucide-react';
-import { useAssetList, useFleetKpis } from '@/engine/store';
+import { useAssetList, useFleetKpis, useSnapshot } from '@/engine/store';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { Card } from '@/components/ui/Card';
 import { RadialGauge } from '@/components/charts';
 import { Badge } from '@/components/ui/Badge';
-import { OEE_TARGET, OEE_WORLD_CLASS } from '@/engine/derive';
+import { OEE_TARGET } from '@/engine/derive';
 import { KpiCard } from '@/components/common';
 import { motion } from 'framer-motion';
 

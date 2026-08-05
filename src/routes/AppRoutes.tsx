@@ -49,8 +49,9 @@ import {
 import { OeePage } from '@/pages/OeePage';
 import { HistoricalReportsPage } from '@/pages/HistoricalReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { AlertsPage } from '@/pages/AlertsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { WelcomeScreen } from '@/pages/WelcomeScreen';
+
 
 // OEE Module Pages
 import { FleetAnalyticsPage } from '@/pages/oee/FleetAnalyticsPage';
@@ -67,8 +68,8 @@ export const AppRoutes = () => (
 
     <Route element={<ProtectedRoute />}>
       <Route path="/app" element={<AppShell />}>
-        {/* The workspace opens empty. A module is chosen, not assumed. */}
-        <Route index element={<WelcomeScreen />} />
+        {/* Redirect root workspace path directly to the Cockpit */}
+        <Route index element={<Navigate to={PATHS.cockpit} replace />} />
 
         <Route path="cockpit" element={<CockpitPage />} />
         {/* Legacy path from the pre-cockpit build. */}
@@ -205,7 +206,7 @@ export const AppRoutes = () => (
         <Route path="oee/reports" element={<OeeReportsPage />} />
 
         <Route path="historical-reports" element={<HistoricalReportsPage />} />
-
+        <Route path="alerts" element={<AlertsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Route>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { AreaTrend, LineTrend } from '@/components/charts';
-import { KpiCard } from '@/components/common/KpiCard';
+import { KpiCard } from '@/components/common';
 import { BatteryCharging, PlugZap, XOctagon } from 'lucide-react';
 import { useFleetKpis } from '@/engine/store';
 

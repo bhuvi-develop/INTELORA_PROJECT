@@ -19,7 +19,7 @@ export interface TabsProps<T extends string = string> {
 }
 
 export const Tabs = <T extends string>({ items, value, onChange, className, layoutId = 'tabs' }: TabsProps<T>) => (
-  <div role="tablist" className={cn('scroll-thin flex gap-1 overflow-x-auto border-b border-overlay/[0.07]', className)}>
+  <div role="tablist" className={cn('no-scrollbar flex gap-1 overflow-x-auto overflow-y-hidden border-b border-overlay/[0.07]', className)}>
     {items.map((item) => {
       const active = item.value === value;
       const Icon = item.icon;

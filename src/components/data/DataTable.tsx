@@ -102,32 +102,32 @@ export const DataTable = <T,>({
                         key={header.id}
                         scope="col"
                         style={meta?.width ? { width: meta.width } : undefined}
+                        onClick={sortable ? header.column.getToggleSortingHandler() : undefined}
                         className={cn(
-                          'sticky top-0 z-10 whitespace-nowrap bg-ink-850/90 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-fg-dim backdrop-blur',
+                          'sticky top-0 z-10 whitespace-nowrap bg-ink-850/90 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-fg-dim backdrop-blur transition-colors',
+                          sortable && 'cursor-pointer select-none hover:bg-ink-800 hover:text-fg',
                           headerPadding,
                           alignClass(meta),
                         )}
                         aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none'}
                       >
                         {sortable ? (
-                          <button
-                            type="button"
-                            onClick={header.column.getToggleSortingHandler()}
+                          <div
                             className={cn(
-                              'inline-flex items-center gap-1.5 transition-colors hover:text-fg-soft',
+                              'inline-flex items-center gap-1.5 transition-colors',
                               meta?.align === 'right' || meta?.numeric ? 'flex-row-reverse' : '',
-                              sorted && 'text-fg-soft',
+                              sorted ? 'text-brand-400 font-bold' : '',
                             )}
                           >
                             {flexRender(header.column.columnDef.header, header.getContext())}
                             {sorted === 'asc' ? (
-                              <ArrowUp size={11} aria-hidden />
+                              <ArrowUp size={12} className="text-brand-400 shrink-0" aria-hidden />
                             ) : sorted === 'desc' ? (
-                              <ArrowDown size={11} aria-hidden />
+                              <ArrowDown size={12} className="text-brand-400 shrink-0" aria-hidden />
                             ) : (
-                              <ArrowUpDown size={11} className="opacity-45" aria-hidden />
+                              <ArrowUpDown size={12} className="opacity-45 shrink-0" aria-hidden />
                             )}
-                          </button>
+                          </div>
                         ) : (
                           flexRender(header.column.columnDef.header, header.getContext())
                         )}

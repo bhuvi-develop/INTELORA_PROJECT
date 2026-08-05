@@ -32,6 +32,7 @@ from app.services.derive import (
     anomaly_severity,
 )
 from app.services.simulator import AssetState, Reading
+from app.services.taxonomy import telemetry_snapshot
 
 logger = get_logger(__name__)
 
@@ -75,6 +76,12 @@ class AnomalyEvent:
     #: Ground-truth mechanism when the reading was distorted by an injected
     #: fault. Recorded so root-cause analysis can be evaluated honestly.
     mechanism: str | None = None
+    #: The 1 Hz sample this event was raised from, captured at the raise.
+    #:
+    #: Held on the event because raw telemetry is pruned on a retention window
+    #: while the journal outlives it — without this, the evidence behind an older
+    #: event would be gone. Recorded, never judged: no rule reads it.
+    telemetry_snapshot: dict = field(default_factory=dict)
     #: Written to PostgreSQL at least once.
     persisted: bool = False
     #: Changed since it was last written — the persistence pass only touches
@@ -168,6 +175,8 @@ class AnomalyDetector:
         # Judging its zeroed electrical channels would raise a voltage-low event
         # on every drop-out, which is noise dressed up as detection.
         if offline:
+            if reading.source and "Live MQTT" in reading.source:
+                return []
             return [("communication-lost", True, 0.0, 0.0)]
 
         checks: list[tuple[str, bool, float, float]] = [
@@ -267,7 +276,10 @@ class AnomalyDetector:
                 observed if tracker.open_uid is None else max(tracker.peak_observed, abs(observed))
             )
 
-            if tracker.open_uid is None and tracker.breaching_seconds >= definition.confirm_seconds:
+            is_live_mqtt = reading.source and "Live MQTT" in reading.source
+            confirm_needed = 0.0 if is_live_mqtt else definition.confirm_seconds
+
+            if tracker.open_uid is None and tracker.breaching_seconds >= confirm_needed:
                 return self._raise(state, reading, anomaly_type, observed, limit, score)
             return None
 
@@ -348,6 +360,7 @@ class AnomalyDetector:
             detected_at=reading.ts,
             response_target_minutes=RESPONSE_TARGET_MINUTES.get(severity, 60),
             mechanism=state.active_mechanism,
+            telemetry_snapshot=telemetry_snapshot(reading),
         )
 
         self.journal.append(event)

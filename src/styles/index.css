@@ -22,16 +22,16 @@
   :root[data-theme='dark'] {
     color-scheme: dark;
 
-    /* Planes: deep navy page, dark slate cards. */
-    --ink-950: 5 7 12;
-    --ink-900: 8 11 19;
-    --ink-850: 11 15 26;
-    --ink-800: 14 20 33;
-    --ink-750: 19 26 42;
-    --ink-700: 26 35 51;
-    --ink-650: 35 46 66;
-    --ink-600: 42 53 71;
-    --ink-500: 58 70 92;
+    /* Planes: Graphite and Slate for Enterprise look. */
+    --ink-950: 10 12 16;
+    --ink-900: 15 18 24;
+    --ink-850: 20 24 32;
+    --ink-800: 25 30 40;
+    --ink-750: 32 38 50;
+    --ink-700: 40 48 64;
+    --ink-650: 50 60 80;
+    --ink-600: 60 72 96;
+    --ink-500: 75 90 120;
 
     /* Ink: white primary, grey secondary. */
     --fg-default: 232 238 249;
@@ -49,21 +49,50 @@
     --gridline: rgba(255, 255, 255, 0.06);
     --brand-wash: rgba(61, 142, 240, 0.16);
 
-    /* Brand accent, stepped for a dark surface. */
-    --brand-200: 183 211 246;
-    --brand-300: 134 182 239;
-    --brand-400: 92 159 255;
-    --brand-500: 61 142 240;
-    --brand-600: 42 120 214;
-    --brand-700: 28 92 171;
-    --brand-800: 24 79 149;
-    --brand-900: 13 54 107;
+    /* Enterprise Blue accent, vibrant for dark surface. */
+    --brand-200: 180 215 255;
+    --brand-300: 130 185 255;
+    --brand-400: 80 150 255;
+    --brand-500: 0 110 230;
+    --brand-600: 0 90 200;
+    --brand-700: 0 70 160;
+    --brand-800: 0 50 120;
+    --brand-900: 0 35 85;
 
-    /* Elevation by shadow depth. */
-    --shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 16px 40px -24px rgba(0, 0, 0, 0.85);
-    --shadow-raised: 0 24px 60px -28px rgba(0, 0, 0, 0.9), 0 1px 0 0 rgba(255, 255, 255, 0.05) inset;
-    --shadow-glow: 0 0 0 1px rgba(61, 142, 240, 0.35), 0 12px 40px -12px rgba(61, 142, 240, 0.35);
-    --shadow-glow-sm: 0 0 20px -6px rgba(61, 142, 240, 0.45);
+    /* Elevation by soft 3D shadow depth. */
+    --shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset, 0 1px 2px 0 rgba(0, 0, 0, 0.6),
+      0 16px 40px -16px rgba(0, 0, 0, 0.95);
+    --shadow-raised: 0 1px 0 0 rgba(255, 255, 255, 0.15) inset, 0 4px 12px -2px rgba(0, 0, 0, 0.7),
+      0 30px 60px -20px rgba(0, 0, 0, 0.95);
+
+    /* Elevation ladder. Each level adds a contact shadow and widens the ambient
+     * one, so height is legible without any element changing colour. */
+    --elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.08) inset, 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+    --elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.1) inset, 0 4px 8px -1px rgba(0, 0, 0, 0.6),
+      0 12px 24px -16px rgba(0, 0, 0, 0.85);
+    --elev-3: 0 1px 0 0 rgba(255, 255, 255, 0.12) inset, 0 8px 16px -2px rgba(0, 0, 0, 0.65),
+      0 24px 48px -20px rgba(0, 0, 0, 0.95);
+    --elev-4: 0 1px 0 0 rgba(255, 255, 255, 0.15) inset, 0 12px 24px -4px rgba(0, 0, 0, 0.7),
+      0 40px 80px -24px rgba(0, 0, 0, 0.95);
+    --elev-inset: 0 2px 4px 0 rgba(0, 0, 0, 0.6) inset, 0 -1px 0 0 rgba(255, 255, 255, 0.05) inset;
+
+    /* Surface gradients — a plane with a lit top and a shaded foot. */
+    --surface-1: linear-gradient(180deg, rgba(255, 255, 255, 0.028) 0%, rgba(255, 255, 255, 0) 42%);
+    --surface-2: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.012) 34%,
+      rgba(0, 0, 0, 0.06) 100%
+    );
+    --surface-raised: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.018) 30%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
+    --bevel-top: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16) 22%, rgba(255, 255, 255, 0.16) 78%, transparent);
+    --shadow-glow: 0 0 0 1px rgba(0, 110, 230, 0.45), 0 12px 40px -12px rgba(0, 110, 230, 0.45);
+    --shadow-glow-sm: 0 0 24px -4px rgba(0, 110, 230, 0.55);
 
     --panel-sheen: linear-gradient(
       160deg,
@@ -89,41 +118,34 @@
   :root[data-theme='light'] {
     color-scheme: light;
 
-    /* Planes: white page, light-grey cards, recessed insets a step darker so a
-     * nested panel still reads as inset rather than floating. */
-    --ink-950: 255 255 255;
-    --ink-900: 255 255 255;
-    --ink-800: 246 248 252;
-    --ink-850: 233 238 246;
+    /* Slightly cooler, deeper neutral background so pure white cards pop beautifully */
+    --ink-950: 232 238 248;
+    --ink-900: 238 244 252;
+    --ink-800: 255 255 255;
+    --ink-850: 248 251 254;
     --ink-750: 255 255 255;
-    --ink-700: 223 230 240;
-    --ink-650: 207 217 231;
-    --ink-600: 185 197 215;
-    --ink-500: 155 169 190;
+    --ink-700: 220 228 240;
+    --ink-650: 200 212 228;
+    --ink-600: 175 190 210;
+    --ink-500: 140 155 178;
 
-    /* Ink: dark grey primary, medium grey secondary. Steps are chosen for
-     * contrast against the card surface, not by inverting the dark ramp. */
-    --fg-default: 15 23 36;
-    --fg-soft: 36 49 63;
-    --fg-muted: 74 90 110;
-    --fg-dim: 100 115 134;
-    --fg-faint: 130 143 160;
+    /* Ink: Darker, crisper text for maximum legibility */
+    --fg-default: 12 18 30;
+    --fg-soft: 45 58 75;
+    --fg-muted: 85 102 125;
+    --fg-dim: 110 128 150;
+    --fg-faint: 145 160 180;
 
-    /* Washes recess into a light plane, so the overlay is near-black. Alphas are
-     * reused unchanged from dark mode and land correctly because the colour
-     * flipped rather than the opacity. */
-    --overlay: 15 23 36;
-    --line: 22 33 52;
-    /* Slate rather than black: a pure-black scrim on a light interface reads as
-     * a rendering fault, a desaturated navy reads as depth. */
-    --scrim: 30 41 59;
-    --line-solid: rgba(22, 33, 52, 0.12);
-    --grid-line: rgba(22, 33, 52, 0.045);
-    --gridline: rgba(22, 33, 52, 0.085);
-    --brand-wash: rgba(42, 120, 214, 0.1);
+    /* Washes & Overlays */
+    --overlay: 12 18 30;
+    --line: 25 38 60;
+    --scrim: 20 30 45;
+    --line-solid: rgba(25, 38, 60, 0.15);
+    --grid-line: rgba(25, 38, 60, 0.05);
+    --gridline: rgba(25, 38, 60, 0.08);
+    --brand-wash: rgba(42, 120, 214, 0.12);
 
-    /* Brand accent re-stepped darker: the same hue needs more depth to hold
-     * contrast against white than it does against navy. */
+    /* Brand accent */
     --brand-200: 28 92 171;
     --brand-300: 32 105 190;
     --brand-400: 37 112 202;
@@ -133,27 +155,43 @@
     --brand-800: 21 68 128;
     --brand-900: 15 50 96;
 
-    /* Elevation by soft diffusion plus a hairline — deep shadow on white reads
-     * as dirt, so the language changes rather than the values. */
-    --shadow-panel: 0 1px 2px 0 rgba(16, 30, 54, 0.05), 0 1px 3px -1px rgba(16, 30, 54, 0.06);
-    --shadow-raised: 0 10px 30px -12px rgba(16, 30, 54, 0.18), 0 2px 6px -2px rgba(16, 30, 54, 0.08);
-    --shadow-glow: 0 0 0 1px rgba(42, 120, 214, 0.3), 0 10px 28px -14px rgba(42, 120, 214, 0.32);
-    --shadow-glow-sm: 0 2px 10px -3px rgba(42, 120, 214, 0.32);
+    /* Deeper, more luxurious shadows for light mode cards */
+    --shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 2px 8px -2px rgba(20, 35, 60, 0.08),
+      0 12px 24px -8px rgba(20, 35, 60, 0.12);
+    --shadow-raised: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 6px 14px -4px rgba(20, 35, 60, 0.12),
+      0 24px 48px -12px rgba(20, 35, 60, 0.25);
 
-    /* A downward sheen would look like a smudge on white; light mode gets a
-     * near-invisible top highlight instead. */
+    /* Elevation */
+    --elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.85) inset, 0 1px 3px 0 rgba(20, 35, 60, 0.08);
+    --elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.9) inset, 0 3px 6px -1px rgba(20, 35, 60, 0.09),
+      0 10px 20px -8px rgba(20, 35, 60, 0.14);
+    --elev-3: 0 1px 0 0 rgba(255, 255, 255, 0.95) inset, 0 6px 12px -2px rgba(20, 35, 60, 0.11),
+      0 20px 40px -12px rgba(20, 35, 60, 0.18);
+    --elev-4: 0 1px 0 0 rgba(255, 255, 255, 1) inset, 0 12px 24px -4px rgba(20, 35, 60, 0.14),
+      0 35px 70px -18px rgba(20, 35, 60, 0.25);
+    --elev-inset: 0 1px 3px 0 rgba(20, 35, 60, 0.15) inset;
+
+    /* Brighter surface gradients */
+    --surface-1: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.5) 100%);
+    --surface-2: linear-gradient(180deg, #ffffff 0%, #ffffff 40%, #f7fafc 100%);
+    --surface-raised: linear-gradient(180deg, #ffffff 0%, #ffffff 50%, #f3f6f9 100%);
+    --bevel-top: linear-gradient(90deg, transparent, rgba(20, 35, 60, 0.08) 22%, rgba(20, 35, 60, 0.08) 78%, transparent);
+    
+    --shadow-glow: 0 0 0 1px rgba(42, 120, 214, 0.35), 0 10px 28px -14px rgba(42, 120, 214, 0.4);
+    --shadow-glow-sm: 0 2px 10px -3px rgba(42, 120, 214, 0.35);
+
     --panel-sheen: linear-gradient(160deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 55%);
 
-    --scrollbar-thumb: rgba(22, 33, 52, 0.2);
-    --scrollbar-thumb-hover: rgba(22, 33, 52, 0.32);
-    --selection: rgba(42, 120, 214, 0.2);
-    --selection-ink: #0f1724;
+    --scrollbar-thumb: rgba(25, 38, 60, 0.2);
+    --scrollbar-thumb-hover: rgba(25, 38, 60, 0.35);
+    --selection: rgba(42, 120, 214, 0.25);
+    --selection-ink: #0c121e;
 
-    --chart-surface: #f6f8fc;
-    --text-primary: #0f1724;
-    --text-secondary: #4a5a6e;
-    --text-muted: #64738a;
-    --baseline: #cfd9e7;
+    --chart-surface: #f4f7fa;
+    --text-primary: #0c121e;
+    --text-secondary: #425265;
+    --text-muted: #5e6d82;
+    --baseline: #c0cbe0;
   }
 
   * {
@@ -170,6 +208,48 @@
     @apply bg-ink-950 font-sans text-fg antialiased;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Optical sizing lets a variable face pick its Text cut at body sizes and
+     * its Display cut at heading sizes, which is the difference between type
+     * that was set and type that was merely scaled. `cv08` disambiguates the
+     * one/l/I trio — non-negotiable on a screen full of asset identifiers. */
+    font-optical-sizing: auto;
+    font-feature-settings:
+      'cv08' 1,
+      'ss01' 1,
+      'calt' 1;
+    letter-spacing: -0.006em;
+  }
+
+  /* Headings take the display cut and tighten as they grow, the way a type
+   * specimen would set them. */
+  h1,
+  h2,
+  h3 {
+    font-family: theme('fontFamily.display');
+    font-optical-sizing: auto;
+  }
+
+  h1 {
+    letter-spacing: -0.022em;
+  }
+
+  h2 {
+    letter-spacing: -0.016em;
+  }
+
+  h3 {
+    letter-spacing: -0.011em;
+  }
+
+  /* Figures line up in columns and never reflow as they tick. */
+  .metric-xl,
+  .metric-lg,
+  .metric-md,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings:
+      'tnum' 1,
+      'cv08' 1;
   }
 
   /* Theme switch: retint in place, no flash and no reload. Transitions are
@@ -219,23 +299,69 @@
 
 @layer components {
   /* ─── Surfaces ───────────────────────────────────────────────────────── */
+  /*
+   * A panel is a physical plane, not a coloured rectangle.
+   *
+   * Four things build that impression and all four are needed: a shallow
+   * vertical gradient so the surface has a lit top and a shaded foot; an inset
+   * highlight on the top edge where it catches the key light; a contact shadow
+   * directly beneath it; and a wider ambient shadow. Remove any one and the
+   * card flattens into a fill.
+   *
+   * The bevel is a separate hairline drawn across the top edge only, which is
+   * what a machined panel actually looks like — the light does not wrap around
+   * the sides.
+   */
   .panel {
-    @apply relative rounded-2xl border border-line/[0.07] bg-ink-800/70 shadow-panel backdrop-blur-xl;
+    @apply relative rounded-3xl border border-line/[0.15] bg-ink-800/40 backdrop-blur-3xl;
+    box-shadow: var(--shadow-panel);
+    background-image: var(--surface-2);
   }
 
-  /* On white, a 70% card over a white page is invisible — light mode gets a
-     solid card and leans on the border and shadow to separate planes. */
+  .panel::after {
+    content: '';
+    @apply pointer-events-none absolute inset-x-4 top-0 h-px rounded-full opacity-70;
+    background-image: var(--bevel-top);
+  }
+
+  /* On paper, a 70% card over a white page is invisible — light mode gets a
+     solid card and leans on the bevel, border and shadow to separate planes. */
   :root[data-theme='light'] .panel {
-    @apply border-line/[0.1] bg-ink-800 backdrop-blur-none;
+    @apply border-line/[0.11] bg-ink-800 backdrop-blur-none;
+    background-image: var(--surface-2);
+  }
+
+  :root[data-theme='light'] .panel::after {
+    @apply opacity-100;
+  }
+
+  /* Interactive panels rise toward the light rather than merely brightening. */
+  .panel-interactive {
+    @apply transition-all duration-150;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .panel-interactive:hover {
+    transform: translateY(-0.375rem);
+    border-color: rgb(var(--brand-400) / 0.5);
+    box-shadow: var(--elev-4);
   }
 
   .panel-flat {
-    @apply relative rounded-2xl border border-line/[0.06] bg-ink-850/60;
+    @apply relative rounded-3xl border border-line/[0.1] bg-ink-850/50 backdrop-blur-2xl;
+    background-image: var(--surface-1);
+  }
+
+  /* A recessed well — readouts, inputs and anything that should look cut into
+     the panel rather than sitting on it. */
+  .inset-well {
+    @apply rounded-xl border border-line/[0.08] bg-ink-900/60;
+    box-shadow: var(--elev-inset);
   }
 
   .panel-sheen::before {
     content: '';
-    @apply pointer-events-none absolute inset-0 rounded-2xl bg-panel-sheen opacity-70;
+    @apply pointer-events-none absolute inset-0 rounded-3xl opacity-70;
+    background-image: var(--panel-sheen);
   }
 
   :root[data-theme='light'] .panel-sheen::before {
@@ -243,7 +369,8 @@
   }
 
   .glass {
-    @apply border border-line/10 bg-overlay/[0.045] backdrop-blur-2xl;
+    @apply border border-line/15 bg-overlay/[0.05] backdrop-blur-3xl;
+    box-shadow: var(--shadow-panel);
   }
 
   :root[data-theme='light'] .glass {
@@ -292,6 +419,15 @@
   .scroll-thin::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover);
     background-clip: content-box;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
   /* ─── Wide content must scroll inside its own container ───────────────── */
@@ -362,6 +498,16 @@
     paint-order: stroke;
     stroke: var(--chart-surface);
     stroke-width: 2px;
+  }
+
+  @keyframes ripple {
+    to {
+      transform: scale(25);
+      opacity: 0;
+    }
+  }
+  .animate-ripple {
+    animation: ripple 600ms cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
   }
 }
 

@@ -50,6 +50,7 @@ class Telemetry(Base):
     # ── Derived at capture time ─────────────────────────────────────────
     health_score: Mapped[float] = mapped_column(Float, nullable=False, default=100.0)
     load_state: Mapped[str] = mapped_column(String(24), nullable=False, default="Idle")
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="Simulator", index=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

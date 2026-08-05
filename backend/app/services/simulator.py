@@ -85,6 +85,9 @@ class Reading:
     health_score: float
     load_state: str
     resolution: str = "second"
+    source: str = "Simulator"
+    present_parameters: list[str] = field(default_factory=list)
+    sender_uid: str | None = None
 
     def as_row(self) -> dict:
         """Mapping for a bulk insert into `telemetry`."""
@@ -108,6 +111,8 @@ class Reading:
             "device_status": self.device_status,
             "health_score": self.health_score,
             "load_state": self.load_state,
+            "source": self.source,
+            "present_parameters": self.present_parameters,
         }
 
 
@@ -203,6 +208,11 @@ class MikosSimulator:
         self.states: dict[str, AssetState] = {}
         for seed in ASSET_SEEDS:
             self.states[seed.asset_id] = self._build_state(seed, self.started_at)
+
+    def add_asset(self, seed: AssetSeed) -> AssetState:
+        state = self._build_state(seed, datetime.now(timezone.utc))
+        self.states[seed.asset_id] = state
+        return state
 
     # ── Construction ────────────────────────────────────────────────────
 

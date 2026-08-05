@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, BellDot, ChevronRight, LogOut, Menu, Moon, Search, Settings, ShieldCheck, Sun } from 'lucide-react';
+import { Bell, BellDot, Check, ChevronDown, ChevronRight, Cpu, LogOut, Menu, Moon, Radio, Search, Settings, ShieldCheck, Sun } from 'lucide-react';
 import { NAV_ITEMS, navItemByPath } from '@/config/navigation';
 import { PATHS, deviceDetailPath } from '@/routes/paths';
 import { useAnomalyJournal } from '@/engine/store';
@@ -16,6 +16,8 @@ import { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from '@/comp
 import { LiveIndicator } from '@/components/common/LiveIndicator';
 import { SeverityBadge } from '@/components/common/StatusBadge';
 import { Logo } from '@/components/common/Logo';
+import { systemService } from '@/services/platform.service';
+import { getPlatformStore } from '@/services/platformStore';
 
 const Breadcrumbs = () => {
   const { pathname } = useLocation();
@@ -51,10 +53,19 @@ const Breadcrumbs = () => {
   );
 };
 
-/**
- * Notifications are a projection of the live anomaly journal rather than a
- * separate feed, so the badge count and the anomaly module can never disagree.
- */
+const stripBrandName = (text: string): string => {
+  const knownBrands = [
+    'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
+    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej', 'ThinkPad'
+  ];
+  let cleaned = text;
+  for (const b of knownBrands) {
+    const reg = new RegExp(`\\b${b}\\b\\s*`, 'gi');
+    cleaned = cleaned.replace(reg, '');
+  }
+  return cleaned.trim();
+};
+
 const NotificationsMenu = () => {
   const journal = useAnomalyJournal();
 
@@ -63,7 +74,7 @@ const NotificationsMenu = () => {
       journal.slice(0, 10).map((record) => ({
         id: record.id,
         title: `${record.assetId} · ${record.title}`,
-        body: record.detail,
+        body: stripBrandName(record.detail),
         severity: record.severity,
         at: record.timestamp,
         read: record.status !== 'Active',
@@ -77,7 +88,7 @@ const NotificationsMenu = () => {
 
   return (
     <Dropdown
-      width="w-[23rem]"
+      width="w-[25rem]"
       trigger={({ open, toggle }) => (
         <button
           type="button"
@@ -99,9 +110,9 @@ const NotificationsMenu = () => {
       )}
     >
       {({ close }) => (
-        <>
-          <div className="flex items-center justify-between gap-3 border-b border-overlay/[0.07] px-3.5 py-3">
-            <p className="text-[12.5px] font-semibold text-fg">Notifications</p>
+        <div className="bg-[#0f172a] bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3 bg-slate-900/90">
+            <p className="text-[13px] font-semibold text-slate-100">Notifications</p>
             {unread > 0 ? (
               <Badge tone="critical" size="xs">
                 {unread} active
@@ -109,24 +120,24 @@ const NotificationsMenu = () => {
             ) : null}
           </div>
 
-          <ul className="scroll-thin max-h-[24rem] divide-y divide-overlay/[0.05] overflow-y-auto">
+          <ul className="scroll-thin max-h-[24rem] divide-y divide-slate-800/60 overflow-y-auto bg-[#0f172a]">
             {items.map((item) => (
               <li key={item.id}>
                 <Link
                   to={item.href}
                   onClick={close}
                   className={cn(
-                    'block px-3.5 py-3 transition-colors hover:bg-overlay/[0.04]',
-                    item.read ? '' : 'bg-brand-500/[0.045]',
+                    'block px-4 py-3.5 transition-colors hover:bg-slate-800/50',
+                    item.read ? 'bg-[#0f172a]' : 'bg-slate-800/30',
                   )}
                 >
                   <div className="flex items-start justify-between gap-2.5">
-                    <p className="min-w-0 text-[12px] font-medium leading-snug text-fg">{item.title}</p>
+                    <p className="min-w-0 text-[12.5px] font-medium leading-snug text-slate-100">{item.title}</p>
                     <SeverityBadge severity={item.severity} size="xs" />
                   </div>
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-fg-muted">{item.body}</p>
-                  <p className="mt-1.5 flex items-center gap-2 text-[10.5px] text-fg-faint">
-                    <span className="rounded bg-overlay/[0.055] px-1.5 py-0.5 font-mono text-[9.5px] text-fg-muted">
+                  <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-slate-300">{item.body}</p>
+                  <p className="mt-2 flex items-center gap-2 text-[10.5px] text-slate-400">
+                    <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9.5px] text-slate-300 border border-slate-700/50">
                       {item.code}
                     </span>
                     {formatRelative(item.at)}
@@ -135,31 +146,27 @@ const NotificationsMenu = () => {
               </li>
             ))}
             {items.length === 0 ? (
-              <li className="px-3.5 py-8 text-center text-[11.5px] text-fg-dim">
+              <li className="px-4 py-8 text-center text-[11.5px] text-slate-400">
                 No anomalies raised yet in this session
               </li>
             ) : null}
           </ul>
 
-          <div className="border-t border-overlay/[0.07] px-3.5 py-2.5">
+          <div className="border-t border-slate-800 px-4 py-2.5 bg-slate-900/90">
             <Link
               to={PATHS.anomaly}
               onClick={close}
-              className="text-[11.5px] font-medium text-brand-300 transition-colors hover:text-brand-200"
+              className="text-[11.5px] font-medium text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Open anomaly detection
+              Open anomaly detection →
             </Link>
           </div>
-        </>
+        </div>
       )}
     </Dropdown>
   );
 };
 
-/**
- * Global theme toggle. The icon shows the theme you will get, not the one you
- * are in — a sun means "switch to light", which is what people reach for.
- */
 const ThemeToggle = () => {
   const { theme, toggle } = useTheme();
   const next = theme === 'dark' ? 'light' : 'dark';
@@ -255,8 +262,152 @@ const UserMenu = () => {
   );
 };
 
+const DataSourceSelector = () => {
+  const [source, setSource] = useState('Simulator');
+  const [mqttStatus, setMqttStatus] = useState<any>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchStatus = async () => {
+      try {
+        const res = await systemService.status();
+        if (!mounted) return;
+        const schedObj = res.scheduler as { source?: string } | undefined;
+        if (schedObj?.source) {
+          setSource(schedObj.source);
+        }
+        if (res.mqtt) {
+          setMqttStatus(res.mqtt);
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 1000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const isMqtt = source === 'Live MQTT';
+
+  return (
+    <>
+      <Dropdown
+        width="w-80"
+        trigger={({ open, toggle }) => (
+          <button
+            type="button"
+            onClick={toggle}
+            aria-expanded={open}
+            className={cn(
+              'flex items-center gap-2 rounded-xl px-3 py-1.5 text-[12px] font-semibold transition-all duration-200 border',
+              isMqtt
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                : 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20',
+            )}
+          >
+            <span className="flex items-center gap-1.5">
+              {isMqtt ? <Radio size={14} className="animate-pulse" /> : <Cpu size={14} />}
+              <span>{isMqtt ? 'Sensor Data (MQTT)' : 'Simulator Data'}</span>
+            </span>
+
+            <span className="flex items-center gap-1">
+              <span
+                className={cn(
+                  'h-2 w-2 rounded-full',
+                  isMqtt
+                    ? mqttStatus?.connected
+                      ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
+                      : 'bg-rose-500'
+                    : 'bg-blue-400 shadow-[0_0_8px_#60a5fa]',
+                )}
+              />
+              <ChevronDown size={13} className={cn('transition-transform duration-200', open && 'rotate-180')} />
+            </span>
+          </button>
+        )}
+      >
+        {({ close }) => (
+          <div className="py-1">
+            <DropdownLabel>Telemetry Data Source</DropdownLabel>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSource('Simulator');
+                void systemService.setSource('Simulator').then(() => {
+                  getPlatformStore().notifySourceChanged();
+                });
+                close();
+              }}
+              className={cn(
+                'flex w-full items-start gap-3 px-3.5 py-2.5 text-left transition-colors',
+                source === 'Simulator' ? 'bg-blue-500/10 text-blue-400' : 'hover:bg-slate-800/60 text-slate-300',
+              )}
+            >
+              <Cpu size={16} className="mt-0.5 shrink-0 text-blue-400" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12.5px] font-semibold">Simulator Data</span>
+                  {source === 'Simulator' && <Check size={14} className="text-blue-400" />}
+                </div>
+                <p className="mt-0.5 text-[11px] text-slate-400">Physical telemetry engine simulation</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSource('Live MQTT');
+                void systemService.setSource('Live MQTT').then(() => {
+                  getPlatformStore().notifySourceChanged();
+                });
+                close();
+              }}
+              className={cn(
+                'flex w-full items-start gap-3 px-3.5 py-2.5 text-left transition-colors',
+                source === 'Live MQTT' ? 'bg-emerald-500/10 text-emerald-400' : 'hover:bg-slate-800/60 text-slate-300',
+              )}
+            >
+              <Radio size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12.5px] font-semibold">Sensor Data (MQTT)</span>
+                  {source === 'Live MQTT' && <Check size={14} className="text-emerald-400" />}
+                </div>
+                <p className="mt-0.5 text-[11px] text-slate-400">Live IoT broker stream (172.176.255.143)</p>
+              </div>
+            </button>
+
+            {isMqtt && mqttStatus && (
+              <div className="mt-1 flex items-center justify-between border-t border-slate-800 bg-slate-900/90 px-3.5 py-2 text-[11px] text-slate-400">
+                <span className="flex items-center gap-1.5 font-mono text-[10.5px]">
+                  <span
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      mqttStatus.connected ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-rose-500',
+                    )}
+                  />
+                  {mqttStatus.active_profile || 'HYD VM'} ({mqttStatus.broker})
+                </span>
+                <span className="rounded border border-slate-700/60 bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+                  {mqttStatus.messages_sec || 0} msg/s
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </Dropdown>
+    </>
+  );
+};
+
 export const Topbar = () => {
-  const { setMobileNavOpen, setCommandOpen } = useUI();
+  const { setMobileNavOpen, setCommandOpen, toggleSidebar } = useUI();
   const { pathname } = useLocation();
   const active = navItemByPath(pathname) ?? NAV_ITEMS[0];
 
@@ -270,6 +421,14 @@ export const Topbar = () => {
           className="lg:hidden"
           onClick={() => setMobileNavOpen(true)}
         />
+        
+        <IconButton
+          icon={Menu}
+          label="Toggle navigation"
+          size="sm"
+          className="hidden lg:flex"
+          onClick={toggleSidebar}
+        />
 
         <Logo size="sm" className="lg:hidden" />
 
@@ -279,6 +438,10 @@ export const Topbar = () => {
         </div>
 
         <div className="flex-1 lg:hidden" />
+
+        <div className="hidden lg:flex items-center gap-2">
+          <DataSourceSelector />
+        </div>
 
         <button
           type="button"

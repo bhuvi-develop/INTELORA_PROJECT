@@ -1,65 +1,134 @@
 import { cn } from '@/lib/cn';
 import { APP } from '@/config/env';
 
+/* ───────────────────────────────────────────────────────────────────────────
+ * INTELORA identity.
+ *
+ * The mark is an isometric prism with a lit aperture through its top face —
+ * three planes of a solid object, correctly shaded for a single light source,
+ * with the platform's intelligence reading out through the opening.
+ *
+ * Isometric rather than flat because the product monitors physical hardware:
+ * the mark should look like an object, not a pictogram. The geometry is exact —
+ * every vertex is a face centre plus one of four offsets — so the solid reads
+ * as a real form at 22px in the sidebar and at 200px on the opening screen.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
 export interface LogoMarkProps {
   size?: number;
   className?: string;
-  /** Adds the animated telemetry pulse used on the splash screen. */
+  /** Lights the aperture with a slow breathing pulse. */
   animated?: boolean;
+  /** Distinguishes the gradient ids when several marks share a document. */
+  idSuffix?: string;
 }
 
-/** INTELORA mark: an energy vertex over a sensing arc. */
-export const LogoMark = ({ size = 32, className, animated = false }: LogoMarkProps) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 48 48"
-    fill="none"
-    className={cn('shrink-0', className)}
-    role="img"
-    aria-label={`${APP.name} mark`}
+export const LogoMark = ({ size = 32, className, animated = false, idSuffix = '' }: LogoMarkProps) => {
+  const id = (name: string) => `intelora-${name}${idSuffix}`;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      className={cn('shrink-0', className)}
+      role="img"
+      aria-label={`${APP.name} mark`}
+    >
+      <defs>
+        {/* Top plane catches the light. */}
+        <linearGradient id={id('top')} x1="9" y1="6" x2="39" y2="23" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#8FC0FF" />
+          <stop offset="0.5" stopColor="#5C9FFF" />
+          <stop offset="1" stopColor="#3D8EF0" />
+        </linearGradient>
+        {/* Left plane turns away from it. */}
+        <linearGradient id={id('left')} x1="9" y1="14.5" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#3D8EF0" />
+          <stop offset="1" stopColor="#1C5CAB" />
+        </linearGradient>
+        {/* Right plane is furthest from it. */}
+        <linearGradient id={id('right')} x1="39" y1="14.5" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#245C9E" />
+          <stop offset="1" stopColor="#12325B" />
+        </linearGradient>
+        <radialGradient id={id('core')} cx="24" cy="14.5" r="7" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#EAF3FF" />
+          <stop offset="0.55" stopColor="#9CC8FF" />
+          <stop offset="1" stopColor="#5C9FFF" stopOpacity="0.35" />
+        </radialGradient>
+      </defs>
+
+      {/* Three planes of one solid: top, left, right. */}
+      <path d="M24 6 39 14.5 24 23 9 14.5Z" fill={`url(#${id('top')})`} />
+      <path d="M9 14.5 24 23v17L9 31.5Z" fill={`url(#${id('left')})`} />
+      <path d="M39 14.5 24 23v17l15-8.5Z" fill={`url(#${id('right')})`} />
+
+      {/* Lit aperture — the intelligence reading out of the solid. */}
+      <path d="M24 11.1 30 14.5 24 17.9 18 14.5Z" fill={`url(#${id('core')})`}>
+        {animated ? (
+          <animate attributeName="opacity" values="0.72;1;0.72" dur="3.2s" repeatCount="indefinite" />
+        ) : null}
+      </path>
+
+      {/* Upper edges take the specular highlight. */}
+      <path
+        d="M24 6 39 14.5M24 6 9 14.5"
+        stroke="#BEDCFF"
+        strokeOpacity="0.55"
+        strokeWidth="0.9"
+        strokeLinecap="round"
+      />
+      {/* The vertical seam where the two side planes meet. */}
+      <path d="M24 23v17" stroke="#0B0F1A" strokeOpacity="0.4" strokeWidth="0.9" />
+    </svg>
+  );
+};
+
+/* ─── Dimensional variant, for the opening sequence ──────────────────────── */
+
+export interface LogoMark3DProps {
+  size?: number;
+  className?: string;
+  /** Depth layers behind the face plate. More layers read as more extrusion. */
+  depth?: number;
+}
+
+/**
+ * The same solid, given real depth.
+ *
+ * Stacked copies of the mark are pushed back along the Z axis inside a
+ * perspective container, so the form has genuine parallax rather than a painted
+ * shadow — it separates as the scene rotates. Kept to the opening screen: at
+ * sidebar scale the flat mark is sharper and cheaper.
+ */
+export const LogoMark3D = ({ size = 168, className, depth = 7 }: LogoMark3DProps) => (
+  <div
+    className={cn('relative', className)}
+    style={{ width: size, height: size, transformStyle: 'preserve-3d' }}
+    aria-hidden
   >
-    <defs>
-      <linearGradient id="intelora-mark-fill" x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#7FB4FF" />
-        <stop offset="0.55" stopColor="#3D8EF0" />
-        <stop offset="1" stopColor="#1C5CAB" />
-      </linearGradient>
-      <linearGradient id="intelora-mark-arc" x1="6" y1="24" x2="42" y2="24" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#3D8EF0" stopOpacity="0.15" />
-        <stop offset="0.5" stopColor="#5C9FFF" stopOpacity="0.85" />
-        <stop offset="1" stopColor="#3D8EF0" stopOpacity="0.15" />
-      </linearGradient>
-    </defs>
-
-    <rect x="1.5" y="1.5" width="45" height="45" rx="12" fill="#0B0F1A" stroke="rgba(255,255,255,0.09)" />
-
-    {/* Sensing arcs — the MIKOS acquisition envelope */}
-    <path
-      d="M12 30c0-6.6 5.4-12 12-12s12 5.4 12 12"
-      stroke="url(#intelora-mark-arc)"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      className={animated ? 'animate-pulse' : undefined}
-    />
-    <path
-      d="M7 33c0-9.4 7.6-17 17-17s17 7.6 17 17"
-      stroke="url(#intelora-mark-arc)"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-      opacity="0.5"
-    />
-
-    {/* Energy vertex */}
-    <path
-      d="M24 9.5 32.5 24 24 20.2 15.5 24 24 9.5Z"
-      fill="url(#intelora-mark-fill)"
-    />
-    <path d="M24 22.6 31 38.5H17L24 22.6Z" fill="url(#intelora-mark-fill)" fillOpacity="0.72" />
-    <circle cx="24" cy="24" r="2.4" fill="#0B0F1A" />
-    <circle cx="24" cy="24" r="1.3" fill="#7FB4FF" />
-  </svg>
+    {Array.from({ length: depth }, (_, index) => {
+      const layer = depth - index - 1;
+      return (
+        <div
+          key={layer}
+          className="absolute inset-0"
+          style={{
+            transform: `translateZ(${-layer * (size * 0.035)}px) scale(${1 - layer * 0.012})`,
+            opacity: layer === 0 ? 1 : 0.5 - layer * 0.055,
+            filter: layer === 0 ? 'none' : `blur(${layer * 0.6}px)`,
+          }}
+        >
+          <LogoMark size={size} animated={layer === 0} idSuffix={`-d${layer}`} />
+        </div>
+      );
+    })}
+  </div>
 );
+
+/* ─── Wordmark ───────────────────────────────────────────────────────────── */
 
 export interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -68,11 +137,11 @@ export interface LogoProps {
   animated?: boolean;
 }
 
-const MARK_SIZE = { sm: 26, md: 32, lg: 44 } as const;
+const MARK_SIZE = { sm: 24, md: 30, lg: 42 } as const;
 const WORD_SIZE = {
-  sm: 'text-[15px] tracking-[0.2em]',
-  md: 'text-[18px] tracking-[0.22em]',
-  lg: 'text-[26px] tracking-[0.26em]',
+  sm: 'text-[14px] tracking-[0.24em]',
+  md: 'text-[17px] tracking-[0.26em]',
+  lg: 'text-[25px] tracking-[0.3em]',
 } as const;
 
 export const Logo = ({ size = 'md', showTagline = false, className, animated = false }: LogoProps) => (
@@ -83,8 +152,8 @@ export const Logo = ({ size = 'md', showTagline = false, className, animated = f
       {showTagline ? (
         <p
           className={cn(
-            'mt-1.5 font-medium uppercase leading-none text-fg-dim',
-            size === 'lg' ? 'text-[10.5px] tracking-[0.3em]' : 'text-[9px] tracking-[0.24em]',
+            'mt-1.5 font-medium uppercase leading-none text-fg-faint',
+            size === 'lg' ? 'text-[10px] tracking-[0.32em]' : 'text-[8.5px] tracking-[0.26em]',
           )}
         >
           {APP.tagline}
@@ -93,3 +162,34 @@ export const Logo = ({ size = 'md', showTagline = false, className, animated = f
     </div>
   </div>
 );
+
+export const SidebarLogo = ({ collapsed = false }: { collapsed?: boolean }) => {
+  if (collapsed) {
+    return (
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/10 border border-brand-500/20 shadow-[0_0_15px_rgba(0,110,230,0.3)]">
+        <span 
+          className="text-lg font-black bg-gradient-to-b from-white via-brand-300 to-brand-600 bg-clip-text text-transparent"
+          style={{
+            textShadow: '0 1px 1px rgba(0,0,0,0.5), 0px 2px 4px rgba(0,110,230,0.4)'
+          }}
+        >
+          I
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center px-5 py-2.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-md shadow-panel">
+      <span
+        className="text-lg font-black tracking-[0.22em] bg-gradient-to-b from-white via-[#cde3ff] to-[#005ac8] bg-clip-text text-transparent uppercase"
+        style={{
+          textShadow: '0px 1px 1px rgba(255,255,255,0.6), 0px 2px 0px #004499, 0px 3px 0px #002255, 0px 8px 16px rgba(0,110,230,0.5)',
+          paddingLeft: '0.22em'
+        }}
+      >
+        INTELORA
+      </span>
+    </div>
+  );
+};

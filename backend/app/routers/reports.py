@@ -66,8 +66,13 @@ def read_daily(
         .order_by(day.desc(), Telemetry.asset_id)
     )
 
+    active_ids = engine.get_active_asset_ids()
     if asset_id:
         query = query.where(Telemetry.asset_id == asset_id)
+    elif active_ids:
+        query = query.where(Telemetry.asset_id.in_(active_ids))
+    else:
+        query = query.where(Telemetry.asset_id == "__none__")
 
     rows = session.execute(query).all()
 
@@ -156,8 +161,13 @@ def read_prediction_history(
         .order_by(day.desc(), PredictiveMaintenance.asset_id)
     )
 
+    active_ids = engine.get_active_asset_ids()
     if asset_id:
         query = query.where(PredictiveMaintenance.asset_id == asset_id)
+    elif active_ids:
+        query = query.where(PredictiveMaintenance.asset_id.in_(active_ids))
+    else:
+        query = query.where(PredictiveMaintenance.asset_id == "__none__")
     if component:
         query = query.where(PredictiveMaintenance.component == component)
 
@@ -204,6 +214,6 @@ def read_summary(
         "coverage_days": round(((newest - oldest).total_seconds() / 86_400.0), 2)
         if oldest and newest
         else 0.0,
-        "assets": len(engine.simulator.states),
+        "assets": len(engine.get_active_asset_ids()),
         "meta": build_meta(engine),
     }

@@ -57,16 +57,31 @@ export const ChartTooltip = ({
       ) : null}
       <ul className="space-y-1.5">
         {rows.map((item, index) => {
-          const def = series?.find((entry) => entry.key === String(item.dataKey));
+          const itemKey = String(item.dataKey ?? item.payload?.key ?? '');
+          const itemName = String(item.name ?? item.payload?.name ?? '');
+          const def = series?.find(
+            (entry) =>
+              (itemKey && entry.key === itemKey) ||
+              (itemName && entry.name === itemName) ||
+              (itemName && entry.key === itemName),
+          );
+          const color =
+            (item.payload?.color as string | undefined) ??
+            (item.payload?.fill as string | undefined) ??
+            def?.color ??
+            item.color ??
+            SERIES[0];
+          const displayName = def?.name ?? (itemName || String(item.dataKey ?? ''));
+
           return (
-            <li key={`${String(item.dataKey)}-${index}`} className="flex items-center justify-between gap-4">
+            <li key={`${itemKey}-${itemName}-${index}`} className="flex items-center justify-between gap-4">
               <span className="flex min-w-0 items-center gap-1.5">
                 <span
                   className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{ backgroundColor: def?.color ?? item.color ?? SERIES[0] }}
+                  style={{ backgroundColor: color }}
                   aria-hidden
                 />
-                <span className="truncate text-[11.5px] text-fg-muted">{def?.name ?? String(item.name ?? '')}</span>
+                <span className="truncate text-[11.5px] text-fg-muted">{displayName}</span>
               </span>
               <span className="shrink-0 text-[12px] font-semibold tabular-nums text-fg">
                 {formatValue(item.value, def)}

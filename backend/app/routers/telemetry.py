@@ -42,18 +42,10 @@ def read_live(
     category: str | None = Query(default=None, description="Restrict to one device class"),
     engine: InteloraEngine = Depends(get_engine),
 ) -> LiveTelemetry:
-    if asset_id:
-        state = engine.simulator.states.get(asset_id)
-        if state is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
-        readings = [state.history[-1]] if state.history else []
-    else:
-        readings = [
-            state.history[-1]
-            for state in engine.simulator.states.values()
-            if state.history and (category is None or state.seed.category == category)
-        ]
+    if asset_id and asset_id not in engine.simulator.states:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
 
+    readings = engine.get_live_readings(asset_id=asset_id, category=category)
     return LiveTelemetry(readings=readings, meta=build_meta(engine))
 
 
@@ -63,15 +55,10 @@ def read_window(
     samples: int = Query(default=300, ge=1, le=settings.live_window_samples),
     engine: InteloraEngine = Depends(get_engine),
 ) -> dict:
-    """The rolling window the detector and the models are reading.
-
-    Served from memory, so a chart of the last few minutes costs nothing and
-    shows exactly the samples the platform judged.
-    """
     if asset_id not in engine.simulator.states:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
 
-    window = engine.simulator.window(asset_id, samples)
+    window = engine.get_window(asset_id, samples)
     return {
         "asset_id": asset_id,
         "count": len(window),
@@ -109,6 +96,7 @@ def read_history(
     end: datetime | None = Query(default=None, description="Exclusive upper bound, UTC"),
     hours: int | None = Query(default=None, ge=1, le=24 * 90, description="Shorthand for the last N hours"),
     resolution: str | None = Query(default=None, description="second, minute, quarter or hour"),
+    source: str | None = Query(default=None, description="Filter by telemetry source: Simulator or Live MQTT"),
     limit: int = Query(default=1500, ge=1, le=MAX_POINTS),
     session: Session = Depends(get_db),
     engine: InteloraEngine = Depends(get_engine),
@@ -166,6 +154,9 @@ def read_history(
         .limit(limit)
     )
 
+    active_source = source or engine.telemetry_source
+    if active_source:
+        query = query.where(Telemetry.source.ilike(f"%{active_source}%"))
     if asset_id:
         query = query.where(Telemetry.asset_id == asset_id)
     elif carriers is not None:

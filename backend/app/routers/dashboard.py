@@ -49,21 +49,22 @@ def read_dashboard(
     database_ok, latency = database_latency_ms(session)
 
     tiles = []
-    for asset_id, state in engine.simulator.states.items():
+    for asset_id in engine.get_active_asset_ids():
+        state = engine.simulator.states[asset_id]
         performance = analytics.performance.get(asset_id)
-        reading = state.history[-1] if state.history else None
+        reading = engine.get_live_reading(asset_id)
         tiles.append(
             {
                 "asset_id": asset_id,
                 "asset_name": state.seed.asset_name,
                 "category": state.seed.category,
-                "status": state.device_status,
-                "health_score": state.health,
+                "status": reading.device_status if reading else state.device_status,
+                "health_score": reading.health_score if reading else state.health,
                 "health_band": state.band,
                 "risk_tier": performance.risk_tier if performance else "healthy",
                 "active_power": reading.active_power if reading else 0.0,
                 "temperature": reading.temperature if reading else 0.0,
-                "load_state": state.load_state,
+                "load_state": reading.load_state if reading else state.load_state,
                 "open_anomalies": len(engine.detector.active_by_asset(asset_id)),
             }
         )

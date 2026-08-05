@@ -247,25 +247,35 @@ def risk_tier_of(band: str, probability: float, active_critical: int, offline: b
 # ── Performance and effectiveness ────────────────────────────────────────
 
 
-def performance_from_health(health: float, temperature_ratio: float) -> float:
+def performance_from_health(health: float, temperature_ratio: float, category: str = "Laptop") -> float:
     """Throughput against nominal capability.
 
     A degraded or thermally throttled asset does less work per unit of time.
     Throttling begins once the device passes about 85% of its thermal ceiling.
     """
+    if category == "Mobile Charger":
+        # A charger's performance is strictly tied to its thermal throttling and efficiency.
+        # It doesn't have mechanical condition degradation like manufacturing OEE.
+        throttle = 1.0 - (temperature_ratio - 0.85) * 1.1 if temperature_ratio > 0.85 else 1.0
+        return round(clamp(clamp(throttle, 0.62, 1.0) * 100.0, 60.0, 100.0), 1)
+        
     condition = 0.6 + 0.4 * (health / 100.0)
     throttle = 1.0 - (temperature_ratio - 0.85) * 1.1 if temperature_ratio > 0.85 else 1.0
     return round(clamp(condition * clamp(throttle, 0.62, 1.0) * 100.0, 30.0, 100.0), 1)
 
 
-def quality_from_health(health: float, anomalies_24h: int) -> float:
+def quality_from_health(health: float, anomalies_24h: int, category: str = "Laptop") -> float:
     """First-pass success, degraded by condition and by recent anomaly load."""
+    if category == "Mobile Charger":
+        # Chargers do not produce "defective" watts. Quality is always 100%.
+        return 100.0
+
     condition = 0.955 + 0.045 * (health / 100.0)
     penalty = clamp(anomalies_24h * 0.006, 0.0, 0.09)
     return round(clamp((condition - penalty) * 100.0, 80.0, 100.0), 1)
 
 
-def availability_from_uptime(uptime_ratio: float) -> float:
+def availability_from_uptime(uptime_ratio: float, category: str = "Laptop") -> float:
     """Availability is measured uptime, not a function of health."""
     return round(clamp(uptime_ratio * 100.0, 0.0, 100.0), 1)
 

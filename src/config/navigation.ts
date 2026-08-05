@@ -1,15 +1,16 @@
 import {
   Activity,
-  Archive,
-  CalendarCheck,
-  ClipboardList,
+  Brain,
   Cog,
+  Factory,
   Gauge,
   LayoutDashboard,
+  Bell,
+  FileText,
   MonitorSmartphone,
   Radio,
-  ShieldAlert,
-  Waypoints,
+  CalendarCheck,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 import { PATHS } from '@/routes/paths';
@@ -25,143 +26,135 @@ export interface NavItem {
   badgeKey?: 'anomalies' | 'critical' | 'tasks';
 }
 
-export interface NavSection {
-  key: string;
-  label: string;
-  items: NavItem[];
-}
-
-export const NAV_SECTIONS: NavSection[] = [
+export const NAV_ITEMS: NavItem[] = [
   {
-    key: 'monitor',
-    label: 'Monitoring',
-    items: [
-      {
-        key: 'cockpit',
-        label: 'Enterprise Cockpit',
-        short: 'Cockpit',
-        description: 'Executive command centre: health, risk, energy and AI intelligence',
-        to: PATHS.cockpit,
-        icon: LayoutDashboard,
-      },
-      {
-        key: 'devices',
-        label: 'Devices',
-        short: 'Devices',
-        description: 'Asset register across every connected device',
-        to: PATHS.devices,
-        icon: MonitorSmartphone,
-      },
-      {
-        key: 'telemetry',
-        label: 'Live Telemetry',
-        short: 'Telemetry',
-        description: 'Streaming voltage, current, power, energy and temperature',
-        to: PATHS.telemetry,
-        icon: Radio,
-      },
-    ],
+    key: 'cockpit',
+    label: 'Enterprise Cockpit',
+    short: 'Cockpit',
+    description: 'Executive command centre: health, risk, energy and AI intelligence',
+    to: PATHS.cockpit,
+    icon: LayoutDashboard,
   },
   {
-    key: 'intelligence',
-    label: 'Intelligence',
-    items: [
-      {
-        key: 'anomaly',
-        label: 'Anomaly Detection',
-        short: 'Anomalies',
-        description: 'Threshold breaches raised from the live stream',
-        to: PATHS.anomaly,
-        icon: ShieldAlert,
-        badgeKey: 'anomalies',
-      },
-      {
-        key: 'predictive',
-        label: 'Predictive Maintenance',
-        short: 'Predictive',
-        description: 'Failure probability, remaining useful life and confidence',
-        to: PATHS.predictive,
-        icon: Waypoints,
-        badgeKey: 'critical',
-      },
-    ],
+    key: 'anomaly',
+    label: 'AI Anomaly Detection',
+    short: 'Anomalies',
+    description: 'Threshold breaches raised from the live stream',
+    to: PATHS.anomaly,
+    icon: Activity,
+    badgeKey: 'anomalies',
   },
   {
-    key: 'maintenance',
-    label: 'Maintenance',
-    items: [
-      {
-        key: 'preventive',
-        label: 'Preventive Maintenance',
-        short: 'Preventive',
-        description: 'Scheduled task calendar with priority and completion',
-        to: PATHS.preventive,
-        icon: CalendarCheck,
-        badgeKey: 'tasks',
-      },
-      {
-        key: 'prescriptive',
-        label: 'Prescriptive Maintenance',
-        short: 'Prescriptive',
-        description: 'Recommended business action per device condition',
-        to: PATHS.prescriptive,
-        icon: ClipboardList,
-      },
-    ],
+    key: 'predictive',
+    label: 'Predictive Maintenance',
+    short: 'Predictive',
+    description: 'Failure probability, remaining useful life and confidence',
+    to: PATHS.predictive,
+    icon: Brain,
+    badgeKey: 'critical',
   },
   {
-    key: 'performance',
-    label: 'Performance',
-    items: [
-      {
-        key: 'apm',
-        label: 'Asset Performance',
-        short: 'APM',
-        description: 'Fleet health ranking, availability and performance score',
-        to: PATHS.apm,
-        icon: Activity,
-      },
-      {
-        key: 'oee',
-        label: 'Equipment Effectiveness',
-        short: 'OEE',
-        description: 'Availability × performance × quality with trend',
-        to: PATHS.oee,
-        icon: Gauge,
-      },
-    ],
+    key: 'oee',
+    label: 'Overall Equipment Efficiency',
+    short: 'OEE',
+    description: 'Availability × performance × quality with trend',
+    to: PATHS.oee,
+    icon: Gauge,
   },
   {
-    key: 'records',
-    label: 'Records',
-    items: [
-      {
-        key: 'reports',
-        label: 'Historical Reports',
-        short: 'Reports',
-        description: 'Archived telemetry, anomalies, predictions and tasks',
-        to: PATHS.reports,
-        icon: Archive,
-      },
-    ],
+    key: 'apm',
+    label: 'Asset Performance Management',
+    short: 'APM',
+    description: 'Fleet health ranking, availability and performance score',
+    to: PATHS.apm,
+    icon: Factory,
   },
   {
-    key: 'platform',
-    label: 'Platform',
-    items: [
-      {
-        key: 'settings',
-        label: 'Settings',
-        short: 'Settings',
-        description: 'Workspace, simulation and integration configuration',
-        to: PATHS.settings,
-        icon: Cog,
-      },
-    ],
+    key: 'alerts',
+    label: 'Alerts',
+    short: 'Alerts',
+    description: 'Platform alerts and notifications',
+    to: PATHS.alerts,
+    icon: Bell,
   },
+  {
+    key: 'reports',
+    label: 'Historical Reports',
+    short: 'Reports',
+    description: 'Archived records and historical telemetry',
+    to: PATHS.reports,
+    icon: FileText,
+  },
+  {
+    key: 'settings',
+    label: 'Settings',
+    short: 'Settings',
+    description: 'Workspace, simulation and integration configuration',
+    to: PATHS.settings,
+    icon: Cog,
+  },
+  // Hidden routes (still registered in NAV_ITEMS for internal resolution but not in PRIMARY_NAV)
+  {
+    key: 'devices',
+    label: 'Devices',
+    short: 'Devices',
+    description: 'Asset register across every connected device',
+    to: PATHS.devices,
+    icon: MonitorSmartphone,
+  },
+  {
+    key: 'telemetry',
+    label: 'Live Telemetry',
+    short: 'Telemetry',
+    description: 'Streaming electrical and thermal channels',
+    to: PATHS.telemetry,
+    icon: Radio,
+  },
+  {
+    key: 'preventive',
+    label: 'Preventive Maintenance',
+    short: 'Preventive',
+    description: 'Scheduled task calendar with priority and completion',
+    to: PATHS.preventive,
+    icon: CalendarCheck,
+    badgeKey: 'tasks',
+  },
+  {
+    key: 'prescriptive',
+    label: 'Prescriptive Maintenance',
+    short: 'Prescriptive',
+    description: 'Recommended business action per device condition',
+    to: PATHS.prescriptive,
+    icon: ClipboardList,
+  }
 ];
 
-export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((section) => section.items);
+/**
+ * The sidebar.
+ *
+ * A flat list of modules with no category headings above them. Grouping seven
+ * destinations under five labels adds a row of chrome for every two rows of
+ * navigation, and an operator who works here daily learns the list, not the
+ * taxonomy.
+ *
+ * Devices, Live Telemetry, Preventive and Prescriptive Maintenance are not
+ * listed. Their routes are unchanged and they remain reachable from the command
+ * palette and from the modules that link to them.
+ */
+export const PRIMARY_NAV_KEYS = [
+  'cockpit',
+  'anomaly',
+  'predictive',
+  'oee',
+  'apm',
+  'alerts',
+  'reports',
+  'settings',
+] as const;
+
+export const PRIMARY_NAV: NavItem[] = PRIMARY_NAV_KEYS.map(
+  (key) => NAV_ITEMS.find((item) => item.key === key)!,
+).filter(Boolean);
 
 export const navItemByPath = (pathname: string): NavItem | undefined => {
   // Longest match wins so /app/devices/LAP-001 resolves to Devices, not Overview.

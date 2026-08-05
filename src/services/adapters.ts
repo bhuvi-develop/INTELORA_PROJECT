@@ -72,6 +72,34 @@ const clock = new Intl.DateTimeFormat('en-GB', {
 
 const ms = (iso: string | null | undefined): number => (iso ? new Date(iso).getTime() : 0);
 
+/* ─── Name Sanitization ──────────────────────────────────────────────────── */
+
+const genericNames = new Map<string, string>();
+let lapCounter = 1;
+let chrCounter = 1;
+let assetCounter = 1;
+
+export function sanitizeDeviceName(assetId: string, originalName: string, category: string = ''): string {
+  if (genericNames.has(assetId)) {
+    return genericNames.get(assetId)!;
+  }
+  
+  const lowerName = originalName.toLowerCase();
+  const lowerCategory = category.toLowerCase();
+  let genericName = '';
+  
+  if (lowerName.includes('charger') || lowerName.includes('adapter') || lowerName.includes('power') || lowerName.includes('gan') || lowerCategory.includes('charger')) {
+    genericName = `CHR-${String(chrCounter++).padStart(3, '0')}`;
+  } else if (lowerName.includes('precision') || lowerName.includes('thinkpad') || lowerName.includes('travelmate') || lowerName.includes('vivobook') || lowerName.includes('macbook') || lowerName.includes('laptop') || lowerCategory.includes('laptop')) {
+    genericName = `LAP-${String(lapCounter++).padStart(3, '0')}`;
+  } else {
+    genericName = `Asset-${String(assetCounter++).padStart(3, '0')}`;
+  }
+  
+  genericNames.set(assetId, genericName);
+  return genericName;
+}
+
 /* ─── Telemetry ──────────────────────────────────────────────────────────── */
 
 export const toSample = (dto: TelemetryReadingDto): TelemetrySample => {
@@ -94,6 +122,8 @@ export const toSample = (dto: TelemetryReadingDto): TelemetrySample => {
     relayOperations: dto.relay_operations,
     status: dto.device_status,
     loadState: dto.load_state,
+    source: dto.source,
+    present_parameters: dto.present_parameters,
   };
 };
 
@@ -163,10 +193,10 @@ export const toPerformance = (dto: PerformanceDto | null): AssetPerformance => (
 
 const toDevice = (dto: AssetSummaryDto): Device => ({
   assetId: dto.asset_id,
-  assetName: dto.asset_name,
+  assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
   category: dto.category as DeviceCategory,
-  brand: dto.brand,
-  model: dto.model,
+  brand: 'Enterprise',
+  model: 'Standard Edition',
   status: dto.status,
 });
 
@@ -197,7 +227,7 @@ export const toAssetRuntime = (
 
   const prediction: AssetPrediction = {
     assetId: dto.asset_id,
-    assetName: dto.asset_name,
+    assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
     category: dto.category as DeviceCategory,
     primary,
     components: [primary],
@@ -247,7 +277,7 @@ export const toAssetRuntime = (
     prescriptive: {
       id: `PRE-${dto.asset_id}`,
       assetId: dto.asset_id,
-      assetName: dto.asset_name,
+      assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
       category: dto.category as DeviceCategory,
       band: dto.health_band as HealthBand,
       urgency: 'Monitor',
@@ -270,10 +300,10 @@ export const mergeAssetDetail = (base: AssetRuntime, dto: AssetDetailDto): Asset
     ...base,
     device: {
       assetId: dto.asset.asset_id,
-      assetName: dto.asset.asset_name,
+      assetName: sanitizeDeviceName(dto.asset.asset_id, dto.asset.asset_name, dto.asset.category),
       category: dto.asset.category as DeviceCategory,
-      brand: dto.asset.brand,
-      model: dto.asset.model,
+      brand: 'Enterprise',
+      model: 'Standard Edition',
       status: dto.asset.status,
     },
     health: dto.health_score,
@@ -283,7 +313,7 @@ export const mergeAssetDetail = (base: AssetRuntime, dto: AssetDetailDto): Asset
     live: dto.latest ? toSample(dto.latest) : base.live,
     prediction: {
       assetId: dto.asset.asset_id,
-      assetName: dto.asset.asset_name,
+      assetName: sanitizeDeviceName(dto.asset.asset_id, dto.asset.asset_name, dto.asset.category),
       category: dto.asset.category as DeviceCategory,
       primary,
       components: components.length > 0 ? components : [primary],
@@ -293,7 +323,7 @@ export const mergeAssetDetail = (base: AssetRuntime, dto: AssetDetailDto): Asset
     prescriptive: {
       id: `PRE-${dto.asset.asset_id}`,
       assetId: dto.asset.asset_id,
-      assetName: dto.asset.asset_name,
+      assetName: sanitizeDeviceName(dto.asset.asset_id, dto.asset.asset_name, dto.asset.category),
       category: dto.asset.category as DeviceCategory,
       band: dto.health_band as HealthBand,
       urgency: dto.prescriptive.urgency as PrescriptiveAction['urgency'],
@@ -315,7 +345,7 @@ export const toAnomaly = (dto: AnomalyDto): AnomalyRecord => ({
   severity: dto.severity as Severity,
   status: dto.status,
   assetId: dto.asset_id,
-  assetName: dto.asset_name,
+  assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
   category: dto.category as DeviceCategory,
   timestamp: ms(dto.detected_at),
   resolvedAt: dto.resolved_at ? ms(dto.resolved_at) : null,
@@ -335,7 +365,7 @@ export const toAnomaly = (dto: AnomalyDto): AnomalyRecord => ({
 export const toPreventiveTask = (dto: PreventiveTaskDto): PreventiveTask => ({
   id: dto.task_id,
   assetId: dto.asset_id,
-  assetName: dto.asset_name,
+  assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
   category: dto.category as DeviceCategory,
   taskName: dto.task_name,
   dueDate: ms(dto.due_date),
@@ -349,7 +379,7 @@ export const toPreventiveTask = (dto: PreventiveTaskDto): PreventiveTask => ({
 export const toPrescriptiveAction = (dto: PrescriptiveActionDto): PrescriptiveAction => ({
   id: `PRE-${dto.asset_id}`,
   assetId: dto.asset_id,
-  assetName: dto.asset_name,
+  assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
   category: dto.category as DeviceCategory,
   band: dto.health_band as HealthBand,
   urgency: dto.urgency as PrescriptiveAction['urgency'],
@@ -427,14 +457,14 @@ export const toEnergy = (dto: EnergyIntelligenceDto): EnergyIntelligence => ({
   highestConsumer: dto.highest_consumer
     ? {
         assetId: dto.highest_consumer.asset_id,
-        assetName: dto.highest_consumer.asset_name,
+        assetName: sanitizeDeviceName(dto.highest_consumer.asset_id, dto.highest_consumer.asset_name),
         kwh: dto.highest_consumer.kwh,
       }
     : null,
   lowestConsumer: dto.lowest_consumer
     ? {
         assetId: dto.lowest_consumer.asset_id,
-        assetName: dto.lowest_consumer.asset_name,
+        assetName: sanitizeDeviceName(dto.lowest_consumer.asset_id, dto.lowest_consumer.asset_name),
         kwh: dto.lowest_consumer.kwh,
       }
     : null,
@@ -511,7 +541,7 @@ export const toFleetTrail = (dto: DashboardDto['fleet_trail']) =>
 
 export const toDailyRecord = (dto: DailyRecordDto): DailyTelemetryRecord => ({
   assetId: dto.asset_id,
-  assetName: dto.asset_name,
+  assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name, dto.category),
   category: dto.category as DeviceCategory,
   date: ms(dto.date),
   avgVoltage: dto.avg_voltage,
@@ -529,7 +559,7 @@ export const toDailyRecord = (dto: DailyRecordDto): DailyTelemetryRecord => ({
 
 export const toPredictionRecord = (dto: PredictionRecordDto): PredictionHistoryRecord => ({
   assetId: dto.asset_id,
-  assetName: dto.asset_name,
+  assetName: sanitizeDeviceName(dto.asset_id, dto.asset_name),
   date: ms(dto.date),
   component: dto.component,
   failureProbability: dto.failure_probability,

@@ -5,6 +5,8 @@ import { KpiCard } from '@/components/common/KpiCard';
 import { BatteryCharging, PlugZap, XOctagon } from 'lucide-react';
 import { useFleetKpis } from '@/engine/store';
 
+import { Info } from 'lucide-react';
+
 export const SessionIntelligencePanel = () => {
   const kpis = useFleetKpis();
   const baseSessions = Math.round(kpis.totalAssets * 4.2);
@@ -30,6 +32,22 @@ export const SessionIntelligencePanel = () => {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-xl border border-brand-500/20 bg-brand-500/5 p-4 flex gap-3">
+        <div className="mt-0.5 shrink-0">
+          <Info className="h-5 w-5 text-brand-400" />
+        </div>
+        <div className="text-sm text-brand-100/90 leading-relaxed">
+          <p className="font-semibold text-brand-300 mb-1">How these metrics are calculated (Simulation Mode)</p>
+          <p>
+            Currently, session data is simulated mathematically based on the active device registry:
+          </p>
+          <ul className="mt-2 space-y-1 ml-4 list-disc text-brand-100/70">
+            <li><strong>Today's Sessions:</strong> Total Fleet Assets ({kpis.totalAssets}) × 4.2 estimated sessions per day = {baseSessions}.</li>
+            <li><strong>Successful Sessions:</strong> Uses a hardcoded {successRate}% success rate benchmark ({successful} sessions).</li>
+            <li><strong>Failed Sessions:</strong> The remaining difference between Total and Successful sessions ({failed} sessions).</li>
+          </ul>
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard
           title="Today's Sessions"

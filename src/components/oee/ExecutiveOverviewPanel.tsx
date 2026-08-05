@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 export const ExecutiveOverviewPanel = () => {
   const assets = useAssetList();
   const kpis = useFleetKpis();
+  const { oee } = useSnapshot();
 
   // Derived metrics
   const chargingDevices = assets.filter(a => a.live.power > 0).length;
@@ -59,10 +60,10 @@ export const ExecutiveOverviewPanel = () => {
       {/* OEE Factors (Interactive & Dynamic) */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: 'Fleet OEE', value: kpis.averageOee, target: OEE_TARGET, color: kpis.averageOee >= OEE_TARGET ? 'rgb(16 185 129)' : 'rgb(245 158 11)', desc: 'Overall equipment effectiveness across the fleet.' },
-          { label: 'Availability', value: kpis.averageAvailability || 82.4, target: 90, color: 'rgb(59 130 246)', desc: 'Uptime vs Planned Production Time.' },
-          { label: 'Performance', value: 87.5, target: 95, color: 'rgb(99 102 241)', desc: 'Actual vs Maximum Possible Speed.' },
-          { label: 'Quality', value: 96.2, target: 99, color: 'rgb(168 85 247)', desc: 'Good parts vs Total parts produced.' },
+          { label: 'Fleet OEE', value: oee.oee, target: oee.target, color: oee.oee >= oee.target ? 'rgb(16 185 129)' : 'rgb(245 158 11)', desc: 'Overall equipment effectiveness across the fleet.' },
+          { label: 'Availability', value: oee.availability, target: 90, color: 'rgb(59 130 246)', desc: 'Uptime vs Planned Production Time.' },
+          { label: 'Performance', value: oee.performance, target: 95, color: 'rgb(99 102 241)', desc: 'Actual vs Maximum Possible Speed.' },
+          { label: 'Quality', value: oee.quality, target: 99, color: 'rgb(168 85 247)', desc: 'Good parts vs Total parts produced.' },
         ].map((metric) => (
           <motion.div
             key={metric.label}
@@ -83,8 +84,8 @@ export const ExecutiveOverviewPanel = () => {
                 
                 {metric.label === 'Fleet OEE' && (
                   <div className="mt-2 flex w-full justify-center">
-                    <Badge tone={metric.value >= OEE_WORLD_CLASS ? "brand" : "neutral"} className="shadow-sm">
-                      World Class: {OEE_WORLD_CLASS}%
+                    <Badge tone={metric.value >= oee.worldClass ? "brand" : "neutral"} className="shadow-sm">
+                      World Class: {oee.worldClass}%
                     </Badge>
                   </div>
                 )}

@@ -5,8 +5,6 @@ import { KpiCard } from '@/components/common';
 import { BatteryCharging, PlugZap, XOctagon, Info } from 'lucide-react';
 import { useFleetKpis } from '@/engine/store';
 
-import { Info } from 'lucide-react';
-
 export const SessionIntelligencePanel = () => {
   const kpis = useFleetKpis();
   const baseSessions = Math.round(kpis.totalAssets * 4.2);

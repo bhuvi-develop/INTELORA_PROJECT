@@ -3,17 +3,19 @@ import { ArrowLeft } from 'lucide-react';
 import { SectionHeader } from '@/components/common';
 import { EnterpriseHeatmap } from '../EnterpriseHeatmap';
 
-export const FleetHealthWorkspace = ({ onBack }: { onBack: () => void }) => {
+export const FleetHealthWorkspace = ({ onBack }: { onBack?: () => void }) => {
   const { kpis } = useSnapshot();
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-2xl font-semibold text-fg tracking-tight">Fleet Health Workspace</h1>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-2xl font-semibold text-fg tracking-tight">Fleet Health Workspace</h1>
+        </div>
+      )}
       
       <SectionHeader title="Health Summary" subtitle="Executive overview of organizational health" />
       

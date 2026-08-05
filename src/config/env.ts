@@ -38,10 +38,8 @@ export const env = {
     storageKey: 'intelora.session',
     preferencesKey: 'intelora.preferences',
   },
-  /** Live telemetry poll interval, used when the websocket is unavailable. */
-  livePollMs: int(import.meta.env.VITE_LIVE_POLL_MS, 1_000),
-  /** Cadence for the derived views — effectiveness and predictions move slowly. */
-  analyticsPollMs: int(import.meta.env.VITE_ANALYTICS_POLL_MS, 15_000),
+  /** Unified stream interval for all live and analytics telemetry (user adjustable) */
+  streamIntervalMs: int(import.meta.env.VITE_STREAM_INTERVAL_MS, 1_000),
 } as const;
 
 /** True when Grafana embedding is configured; drives the offline fallback panel. */

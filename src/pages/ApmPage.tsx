@@ -35,7 +35,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Select } from '@/components/ui/Select';
 import { AssetStatusMatrix, BarTrend, LineTrend, RiskDistributionBar } from '@/components/charts';
 import type { SeriesDef } from '@/components/charts';
-import { AiPanel } from '@/components/ai';
+
 import {
   HealthBandBadge,
   HealthMeter,
@@ -378,7 +378,7 @@ export const ApmPage = () => {
             />
           </div>
 
-          <AiPanel module="apm" />
+
 
           <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
             <LineTrend
@@ -550,14 +550,15 @@ export const ApmPage = () => {
 
       {/* Tab 2: Asset Registry & Hierarchy */}
       {activeTab === 'registry' && (
-        <div className="space-y-6">
-          <ApmHierarchyTree
-            root={hierarchyQuery.data?.root}
-            loading={hierarchyQuery.isLoading}
-            onSelectAsset={(id) => setSelectedAssetId(id)}
-          />
-          <ApmAssetsPage />
-        </div>
+        <ApmAssetsPage 
+          hierarchyContent={
+            <ApmHierarchyTree
+              root={hierarchyQuery.data?.root}
+              loading={hierarchyQuery.isLoading}
+              onSelectAsset={(id) => setSelectedAssetId(id)}
+            />
+          }
+        />
       )}
 
       {/* Tab 3: Composite Health & Criticality Engine */}

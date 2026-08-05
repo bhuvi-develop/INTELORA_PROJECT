@@ -2,12 +2,10 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Radar, ShieldAlert, ShieldCheck, X, FileText } from 'lucide-react';
 import { MODULE_TITLES } from '@/config/navigation';
-import { env } from '@/config/env';
 import { useAnomalyJournal, useSnapshot } from '@/engine/store';
 import { formatNumber } from '@/utils/format';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { GrafanaPanel } from '@/components/grafana';
 import {
   MetaStat,
   PageHeader,
@@ -202,16 +200,6 @@ export const AnomalyDetectionPage = () => {
 
       {/* ─── Streams ──────────────────────────────────────────────────── */}
       <StreamNavGrid />
-
-      <GrafanaPanel
-        dashboard={env.grafana.dashboards.anomaly}
-        panelId={2}
-        title="Detection engine analysis"
-        subtitle="Residual distribution and score thresholds served from Grafana"
-        height={320}
-        refresh="30s"
-        variables={{ severity: state.selectedSeverity, class: state.selectedCategory }}
-      />
 
       {/* ─── Reference and detail ───────────────────────────────────────── */}
       <TaxonomyReference

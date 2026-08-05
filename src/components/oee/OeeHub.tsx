@@ -96,7 +96,6 @@ export const OeeHub = ({ onOpen }: { onOpen: (id: string) => void }) => {
                 (workspace.id as string) === 'analytics' ? formatPercent(oee.availability, 1) :
                 String(kpis.totalAssets)
               }
-
               metricUnit={workspace.id === 'analytics' ? 'avail' : 'active'}
               supportingMetrics={[]}
               status="TRACKING"

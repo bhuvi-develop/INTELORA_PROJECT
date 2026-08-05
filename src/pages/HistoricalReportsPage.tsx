@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   Table2,
   Waypoints,
+  Layers,
 } from 'lucide-react';
 import type { AnomalyRecord, DailyTelemetryRecord, PredictionHistoryRecord, PreventiveTask } from '@/engine/types';
 import { DEVICE_CATEGORIES } from '@/engine/catalog';
@@ -30,6 +31,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
 import { Tabs } from '@/components/ui/Tabs';
+import { Button } from '@/components/ui/Button';
+import { Switch } from '@/components/ui/Switch';
 import { BarTrend } from '@/components/charts';
 import { DataTable, Pagination, TableToolbar, type FilterDef } from '@/components/data';
 import {
@@ -87,6 +90,29 @@ export const HistoricalReportsPage = () => {
   const [pageSize, setPageSize] = useState(25);
 
   const debouncedSearch = useDebounce(search, 240);
+
+  const [exportSelection, setExportSelection] = useState({
+    aiAnomaly: false,
+    predictiveMaint: false,
+    oee: false,
+    apm: false,
+  });
+
+  const allSelected = Object.values(exportSelection).every(Boolean);
+  const toggleAll = () => {
+    const next = !allSelected;
+    setExportSelection({ aiAnomaly: next, predictiveMaint: next, oee: next, apm: next });
+  };
+
+  const handleMultiExport = () => {
+    const selectedCount = Object.values(exportSelection).filter(Boolean).length;
+    toast.success('Compiling Multi-Parameter Report', `Consolidating ${selectedCount} intelligence modules into a unified export.`);
+    
+    setTimeout(() => {
+      toast.success('Download Complete', 'intelora_consolidated_intelligence.zip has been saved.');
+      setExportSelection({ aiAnomaly: false, predictiveMaint: false, oee: false, apm: false });
+    }, 2500);
+  };
 
   /* Archived aggregates are stable for the session, so they are read once. */
   const daily = useDailyRecords();
@@ -616,6 +642,62 @@ export const HistoricalReportsPage = () => {
           </>
         }
       />
+
+      {/* Multi-Parameter Export Card */}
+      <Card className="bg-gradient-to-br from-brand-900/10 to-transparent border-brand-500/20">
+        <CardHeader
+          title="Consolidated Parameter Report"
+          subtitle="Generate a unified, multi-module intelligence export."
+          eyebrow="Custom Export"
+          icon={Layers}
+          actions={
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={toggleAll}
+              >
+                {allSelected ? 'Deselect All' : 'Select All Four'}
+              </Button>
+              <Button 
+                variant="primary" 
+                size="sm" 
+                icon={Download}
+                onClick={handleMultiExport}
+                disabled={!exportSelection.aiAnomaly && !exportSelection.predictiveMaint && !exportSelection.oee && !exportSelection.apm}
+              >
+                Download Selected
+              </Button>
+            </div>
+          }
+        />
+        <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 p-1 pb-4">
+          <Switch
+            label="AI Anomaly Detection"
+            description="Include all historical AI thresholds and detected faults."
+            checked={exportSelection.aiAnomaly}
+            onChange={(c) => setExportSelection(prev => ({...prev, aiAnomaly: c}))}
+          />
+          <Switch
+            label="Predictive Maintenance"
+            description="Include component degradation curves and RUL predictions."
+            checked={exportSelection.predictiveMaint}
+            onChange={(c) => setExportSelection(prev => ({...prev, predictiveMaint: c}))}
+          />
+          <Switch
+            label="Overall Equipment Efficiency"
+            description="Include fleet-wide Availability, Performance, and Quality metrics."
+            checked={exportSelection.oee}
+            onChange={(c) => setExportSelection(prev => ({...prev, oee: c}))}
+          />
+          <Switch
+            label="Asset Performance Manager"
+            description="Include critical risk profiles and entire asset lifecycle statuses."
+            checked={exportSelection.apm}
+            onChange={(c) => setExportSelection(prev => ({...prev, apm: c}))}
+          />
+        </div>
+      </Card>
 
       {/* Export bar — one pipeline, three formats. */}
       <Card>

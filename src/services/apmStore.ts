@@ -101,7 +101,8 @@ class ApmStore {
   private begin(): void {
     if (this.timer !== null) return;
     void this.load();
-    this.timer = window.setInterval(() => void this.load(), env.analyticsPollMs);
+    this.timer = window.setInterval(() => void this.load(), env.streamIntervalMs);
+
   }
 
   private end(): void {

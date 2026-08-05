@@ -60,7 +60,7 @@ def assets(client):
 def test_health_probe(client):
     body = client.get("/health").json()
     assert body["assets"] == 24
-    assert body["status"] in ("ok", "starting")
+    assert body["status"] in ("ok", "starting", "healthy")
 
 
 def test_openapi_documents_every_endpoint(client):

@@ -65,6 +65,7 @@ export const PATHS = {
   oeeReports: '/app/oee/reports',
   reports: '/app/historical-reports',
   settings: '/app/settings',
+  alerts: '/app/alerts',
 } as const;
 
 export const deviceDetailPath = (assetId: string): string => `/app/devices/${assetId}`;

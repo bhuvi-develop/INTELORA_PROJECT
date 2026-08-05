@@ -74,7 +74,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Alerts',
     short: 'Alerts',
     description: 'Platform alerts and notifications',
-    to: PATHS.anomaly, // Maps to anomaly route
+    to: PATHS.alerts,
     icon: Bell,
   },
   {

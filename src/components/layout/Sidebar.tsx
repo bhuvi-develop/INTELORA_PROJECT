@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, PanelLeftClose, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { PRIMARY_NAV, type NavItem } from '@/config/navigation';
 import { PATHS } from '@/routes/paths';
 import { useFleetKpis } from '@/engine/store';
@@ -9,6 +9,7 @@ import { cn } from '@/lib/cn';
 import { useUI } from '@/hooks/useUI';
 import { IconButton } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
+
 import { SidebarLogo } from '@/components/common/Logo';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -156,7 +157,8 @@ const SidebarContent = ({ collapsed, onNavigate }: { collapsed: boolean; onNavig
 
 /** Permanent rail on large viewports; off-canvas drawer below. */
 export const Sidebar = () => {
-  const { sidebarCollapsed, toggleSidebar, mobileNavOpen, setMobileNavOpen } = useUI();
+  const { sidebarCollapsed, mobileNavOpen, setMobileNavOpen } = useUI();
+
 
   return (
     <>
@@ -183,9 +185,6 @@ export const Sidebar = () => {
           >
             <SidebarLogo collapsed={sidebarCollapsed} />
           </NavLink>
-          {sidebarCollapsed ? null : (
-            <IconButton icon={PanelLeftClose} label="Collapse navigation" size="sm" onClick={toggleSidebar} />
-          )}
         </div>
 
         {/* Hairline rather than a border: the plane continues, the section changes. */}
@@ -214,17 +213,6 @@ export const Sidebar = () => {
           )}
         </div>
 
-        {sidebarCollapsed ? (
-          <div className="shrink-0 p-3">
-            <IconButton
-              icon={ChevronLeft}
-              label="Expand navigation"
-              size="sm"
-              className="mx-auto rotate-180"
-              onClick={toggleSidebar}
-            />
-          </div>
-        ) : null}
       </aside>
 
       <AnimatePresence>

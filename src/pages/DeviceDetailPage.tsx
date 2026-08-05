@@ -20,6 +20,7 @@ import { env } from '@/config/env';
 import { useAnomalyJournal, useAssetRuntime, useEngineControl, usePreventiveTasks } from '@/engine/store';
 import { formatDate, formatNumber, formatPercent } from '@/utils/format';
 import { useToast } from '@/hooks';
+import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -216,6 +217,11 @@ export const DeviceDetailPage = () => {
             {CHANNELS.map((meta) => {
               const value = asset.live[meta.key];
               const active = channel === meta.key;
+              const isMqtt = asset.live.source?.includes('MQTT');
+              const presentList = (asset.live as any).present_parameters ?? [];
+              const mappedKey = meta.key === 'power' ? 'active_power' : meta.key;
+              const isPresentInPayload = !isMqtt || presentList.length === 0 || presentList.includes(mappedKey);
+
               return (
                 <button
                   key={meta.key}
@@ -223,16 +229,31 @@ export const DeviceDetailPage = () => {
                   onClick={() => setChannel(meta.key)}
                   aria-pressed={active}
                   className={[
-                    'rounded-xl border p-3 text-left transition-colors',
+                    'rounded-xl border p-3 text-left transition-colors relative overflow-hidden',
                     active
                       ? 'border-brand-400/30 bg-brand-500/[0.08]'
                       : 'border-overlay/[0.06] bg-ink-850/50 hover:border-overlay/[0.12]',
                   ].join(' ')}
                 >
-                  <span className="flex items-center gap-1.5" style={{ color: CHANNEL_COLOR[meta.key] }}>
-                    <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em]">{meta.label}</span>
-                  </span>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="flex items-center gap-1.5" style={{ color: CHANNEL_COLOR[meta.key] }}>
+                      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.12em]">{meta.label}</span>
+                    </span>
+                    {isMqtt ? (
+                      <span
+                        className={cn(
+                          'text-[9px] font-mono font-medium px-1.5 py-0.2 rounded border',
+                          isPresentInPayload
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                        )}
+                        title={isPresentInPayload ? 'Live Sensor Parameter' : 'Derived / Not in Payload'}
+                      >
+                        {isPresentInPayload ? 'Live' : 'Derived'}
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-2 flex items-baseline gap-1">
                     <span className="text-[1.0625rem] font-semibold leading-none tabular-nums text-fg">
                       {formatNumber(value, meta.decimals)}

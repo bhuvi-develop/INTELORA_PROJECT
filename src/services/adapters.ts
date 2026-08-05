@@ -122,6 +122,8 @@ export const toSample = (dto: TelemetryReadingDto): TelemetrySample => {
     relayOperations: dto.relay_operations,
     status: dto.device_status,
     loadState: dto.load_state,
+    source: dto.source,
+    present_parameters: dto.present_parameters,
   };
 };
 

@@ -16,7 +16,6 @@ export const OEE_WORKSPACES: WorkspaceDef[] = [
   { id: 'analytics' as any, label: 'OEE Analytics', discipline: 'Deep Dive', icon: BarChart3, question: 'What are the core metrics?', summary: 'Availability, Performance, Quality' },
   { id: 'devices' as any, label: 'Device Intelligence', discipline: 'Individual Assets', icon: MonitorPlay, question: 'How are devices operating?', summary: 'Per-device OEE' },
   { id: 'sessions' as any, label: 'Session Intelligence', discipline: 'Time Series', icon: History, question: 'What happened during sessions?', summary: 'Session logs' },
-  { id: 'fleetHealth' as any, label: 'Fleet Health', discipline: 'Fleet Condition', icon: TrendingUp, question: 'Is the fleet healthy?', summary: 'Fleet Health Workspace' },
 ];
 
 export const OeeHub = ({ onOpen }: { onOpen: (id: string) => void }) => {

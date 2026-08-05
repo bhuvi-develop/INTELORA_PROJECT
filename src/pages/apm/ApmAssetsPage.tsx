@@ -18,7 +18,7 @@ import { bandColor, countBy, orDash, riskColor } from './apmSelectors';
  * find it".
  * ─────────────────────────────────────────────────────────────────────────── */
 
-export const ApmAssetsPage = () => {
+export const ApmAssetsPage = ({ hierarchyContent }: { hierarchyContent?: React.ReactNode } = {}) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const scope = useApmScope();
   const { assets, all } = scope;
@@ -87,6 +87,8 @@ export const ApmAssetsPage = () => {
       filters={<ApmFilterControls scope={scope} />}
       filterNote="Filters narrow the distributions and the register together. The export always writes the full APM column set, not the visible columns, so files from different pages join on asset id."
     >
+      {hierarchyContent && <div className="mb-6">{hierarchyContent}</div>}
+      
       <ApmKpiGrid items={kpis} />
 
       <SectionHeader

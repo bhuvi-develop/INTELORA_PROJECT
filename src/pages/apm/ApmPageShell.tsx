@@ -121,17 +121,7 @@ export const ApmPageShell = ({
         }
       />
 
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={ArrowLeft}
-          className="-ml-1"
-          onClick={() => navigate(`${PATHS.apm}?tab=overview`)}
-        >
-          Back to Asset Performance
-        </Button>
-      </div>
+
 
       {filters ? (
         <div>

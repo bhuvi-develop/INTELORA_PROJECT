@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Activity, PauseCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { formatClock } from '@/utils/format';
@@ -18,7 +19,14 @@ export interface LiveIndicatorProps {
  * claim the stream is live while the tick is stopped.
  */
 export const LiveIndicator = ({ showClock = true, showTick = false, className }: LiveIndicatorProps) => {
-  const { running, toggle, at, tick } = useEngineControl();
+  const { running, toggle, tick } = useEngineControl();
+  const [realTime, setRealTime] = useState(Date.now());
+
+  useEffect(() => {
+    if (!showClock) return;
+    const interval = setInterval(() => setRealTime(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [showClock]);
 
   return (
     <button
@@ -51,7 +59,7 @@ export const LiveIndicator = ({ showClock = true, showTick = false, className }:
         <>
           <span className="h-3 w-px bg-overlay/10" aria-hidden />
           <Activity size={11} className="shrink-0 text-fg-faint" aria-hidden />
-          <span className="text-[11px] tabular-nums text-fg-muted">{formatClock(at)}</span>
+          <span className="text-[11px] tabular-nums text-fg-muted">{formatClock(realTime)}</span>
         </>
       ) : null}
 

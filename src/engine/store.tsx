@@ -170,6 +170,8 @@ export interface EngineControl {
   acknowledgeAll: () => number;
   completeTask: (id: string) => void;
   reopenTask: (id: string) => void;
+  streamIntervalMs: number;
+  setStreamIntervalMs: (ms: number) => void;
 }
 
 /**
@@ -183,6 +185,7 @@ export const useEngineControl = (): EngineControl => {
   const running = useEngineSelector((snapshot) => snapshot.running);
   const tick = useEngineSelector((snapshot) => snapshot.tick);
   const at = useEngineSelector((snapshot) => snapshot.at);
+  const streamIntervalMs = useSyncExternalStore(store.subscribeConnection, () => store.getStreamIntervalMs(), () => store.getStreamIntervalMs());
 
   return {
     running,
@@ -196,6 +199,11 @@ export const useEngineControl = (): EngineControl => {
     acknowledgeAll: useCallback(() => store.acknowledgeAll(), []),
     completeTask: useCallback((id: string) => store.completeTask(id), []),
     reopenTask: useCallback((id: string) => store.reopenTask(id), []),
+    streamIntervalMs,
+    setStreamIntervalMs: useCallback((ms: number) => {
+      store.setStreamIntervalMs(ms);
+      store.refreshNow(); 
+    }, []),
   };
 };
 

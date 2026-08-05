@@ -206,6 +206,8 @@ class PlatformStore {
   private hydrated = false;
   private inFlight: AbortController | null = null;
   private readonly watched = new Map<string, number>();
+  
+  private streamIntervalMs: number = env.streamIntervalMs;
 
   /* ── Subscription ─────────────────────────────────────────────────── */
 
@@ -245,7 +247,7 @@ class PlatformStore {
     void this.refreshAnalytics();
     void this.refreshLive();
 
-    this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), env.analyticsPollMs);
+    this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), this.streamIntervalMs);
 
     if (env.useWebsocket) {
       this.openSocket();
@@ -283,6 +285,24 @@ class PlatformStore {
     void this.refreshLive();
   }
 
+  setStreamIntervalMs(ms: number): void {
+    this.streamIntervalMs = ms;
+    if (this.running) {
+      if (this.analyticsTimer !== null) {
+        window.clearInterval(this.analyticsTimer);
+        this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), this.streamIntervalMs);
+      }
+      if (this.liveTimer !== null) {
+        window.clearInterval(this.liveTimer);
+        this.liveTimer = window.setInterval(() => void this.refreshLive(), this.streamIntervalMs);
+      }
+    }
+  }
+
+  getStreamIntervalMs(): number {
+    return this.streamIntervalMs;
+  }
+
   private setRunning(running: boolean): void {
     if (this.snapshot.running === running) return;
     this.snapshot = { ...this.snapshot, running };
@@ -294,7 +314,7 @@ class PlatformStore {
   private startPolling(): void {
     if (this.liveTimer !== null) return;
     this.publishConnection({ transport: 'polling' });
-    this.liveTimer = window.setInterval(() => void this.refreshLive(), env.livePollMs);
+    this.liveTimer = window.setInterval(() => void this.refreshLive(), this.streamIntervalMs);
   }
 
   private stopPolling(): void {

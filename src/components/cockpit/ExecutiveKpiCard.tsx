@@ -121,7 +121,7 @@ export const ExecutiveKpiCard = ({
       </div>
 
       {/* Yesterday comparison and trend indicator. */}
-      <div className="mt-2.5 flex items-center gap-1.5">
+      <div className="mt-2.5 flex items-center gap-1.5 flex-grow">
         <span
           className={cn(
             'inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold ring-1 ring-inset',
@@ -143,24 +143,24 @@ export const ExecutiveKpiCard = ({
       </div>
 
       {trail && trail.length > 1 ? (
-        <div className="-mx-0.5 mt-2.5 h-8">
+        <div className="-mx-0.5 mt-auto pt-2.5 h-[42px]">
           <Sparkline data={trail} color={accent} height={32} endDot={false} />
         </div>
       ) : (
-        <div className="mt-2.5 h-8" aria-hidden />
+        <div className="mt-auto h-[42px]" aria-hidden />
       )}
     </>
   );
 
   const shell = cn(
-    'relative w-full overflow-hidden p-4 text-left transition-all duration-300 ease-out rounded-2xl',
+    'relative w-full h-full flex flex-col overflow-hidden p-4 text-left transition-all duration-300 ease-out rounded-2xl',
     'bg-ink-900/60 backdrop-blur-xl border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.3)]',
     onClick && 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)] hover:border-brand-400/40 active:scale-[0.98]',
     className,
   );
 
   return (
-    <Tooltip content={<span className="block leading-relaxed">{tooltip}</span>}>
+    <Tooltip content={<span className="block leading-relaxed">{tooltip}</span>} wrapperClassName="w-full h-full flex">
       {onClick ? (
         <button type="button" onClick={onClick} className={shell}>
           {body}

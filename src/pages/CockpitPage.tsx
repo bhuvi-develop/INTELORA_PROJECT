@@ -29,6 +29,7 @@ import type { KpiStatus } from '@/components/cockpit';
 
 export const CockpitPage = () => {
   const [activeWorkspace, setActiveWorkspace] = useState<string>('landing');
+  const [isAssetsExpanded, setIsAssetsExpanded] = useState(false);
   const snapshot = useSnapshot();
   const { kpis, oee, assets, energy, operationalHealth, yesterday, fleetTrail } = snapshot;
 
@@ -84,69 +85,75 @@ export const CockpitPage = () => {
           current={kpis.totalAssets}
           yesterday={kpis.totalAssets}
           decimals={0}
-          tooltip="Every device registered on the platform, across all categories."
-          onClick={() => setActiveWorkspace('TotalAssets')}
+          tooltip={isAssetsExpanded ? "Click to collapse asset distribution" : "Every device registered on the platform. Click to view distribution."}
+          onClick={() => setIsAssetsExpanded(!isAssetsExpanded)}
+          className={isAssetsExpanded ? "border-brand-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]" : ""}
         />
-        <ExecutiveKpiCard
-          label="Healthy Assets"
-          value={formatNumber(kpis.healthyAssets)}
-          icon={ShieldCheck}
-          status="good"
-          current={kpis.healthyAssets}
-          yesterday={yesterday.healthyAssets}
-          goodDirection="up"
-          decimals={0}
-          tooltip="Devices scoring 95 or above."
-          onClick={() => setActiveWorkspace('HealthyAssets')}
-        />
-        <ExecutiveKpiCard
-          label="Good Assets"
-          value={formatNumber(kpis.goodAssets)}
-          icon={ShieldCheck}
-          status="good"
-          current={kpis.goodAssets}
-          yesterday={kpis.goodAssets}
-          goodDirection="up"
-          decimals={0}
-          tooltip="Devices scoring between 80 and 94."
-          onClick={() => setActiveWorkspace('HealthyAssets')} // Fallback since GoodAssets workspace may not exist
-        />
-        <ExecutiveKpiCard
-          label="Warning Assets"
-          value={formatNumber(kpis.warningAssets)}
-          icon={AlertTriangle}
-          status={kpis.warningAssets > 0 ? 'warning' : 'good'}
-          current={kpis.warningAssets}
-          yesterday={yesterday.warningAssets}
-          goodDirection="down"
-          decimals={0}
-          tooltip="Devices scoring between 65 and 79."
-          onClick={() => setActiveWorkspace('WarningAssets')}
-        />
-        <ExecutiveKpiCard
-          label="Critical Assets"
-          value={formatNumber(kpis.criticalAssets)}
-          icon={ShieldAlert}
-          status={kpis.criticalAssets > 0 ? 'critical' : 'good'}
-          current={kpis.criticalAssets}
-          yesterday={yesterday.criticalAssets}
-          goodDirection="down"
-          decimals={0}
-          tooltip="Devices scoring below 65."
-          onClick={() => setActiveWorkspace('CriticalAssets')}
-        />
-        <ExecutiveKpiCard
-          label="Offline Assets"
-          value={formatNumber(kpis.offlineAssets)}
-          icon={WifiOff}
-          status={kpis.offlineAssets > 0 ? 'warning' : 'good'}
-          current={kpis.offlineAssets}
-          yesterday={yesterday.offlineAssets}
-          goodDirection="down"
-          decimals={0}
-          tooltip="Devices not delivering telemetry."
-          onClick={() => setActiveWorkspace('OfflineAssets')}
-        />
+
+        {isAssetsExpanded && (
+          <>
+            <ExecutiveKpiCard
+              label="Healthy Assets"
+              value={formatNumber(kpis.healthyAssets)}
+              icon={ShieldCheck}
+              status="good"
+              current={kpis.healthyAssets}
+              yesterday={yesterday.healthyAssets}
+              goodDirection="up"
+              decimals={0}
+              tooltip="Devices scoring 95 or above."
+              onClick={() => setActiveWorkspace('HealthyAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Good Assets"
+              value={formatNumber(kpis.goodAssets)}
+              icon={ShieldCheck}
+              status="good"
+              current={kpis.goodAssets}
+              yesterday={kpis.goodAssets}
+              goodDirection="up"
+              decimals={0}
+              tooltip="Devices scoring between 80 and 94."
+              onClick={() => setActiveWorkspace('HealthyAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Warning Assets"
+              value={formatNumber(kpis.warningAssets)}
+              icon={AlertTriangle}
+              status={kpis.warningAssets > 0 ? 'warning' : 'good'}
+              current={kpis.warningAssets}
+              yesterday={yesterday.warningAssets}
+              goodDirection="down"
+              decimals={0}
+              tooltip="Devices scoring between 65 and 79."
+              onClick={() => setActiveWorkspace('WarningAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Critical Assets"
+              value={formatNumber(kpis.criticalAssets)}
+              icon={ShieldAlert}
+              status={kpis.criticalAssets > 0 ? 'critical' : 'good'}
+              current={kpis.criticalAssets}
+              yesterday={yesterday.criticalAssets}
+              goodDirection="down"
+              decimals={0}
+              tooltip="Devices scoring below 65."
+              onClick={() => setActiveWorkspace('CriticalAssets')}
+            />
+            <ExecutiveKpiCard
+              label="Offline Assets"
+              value={formatNumber(kpis.offlineAssets)}
+              icon={WifiOff}
+              status={kpis.offlineAssets > 0 ? 'warning' : 'good'}
+              current={kpis.offlineAssets}
+              yesterday={yesterday.offlineAssets}
+              goodDirection="down"
+              decimals={0}
+              tooltip="Devices not delivering telemetry."
+              onClick={() => setActiveWorkspace('OfflineAssets')}
+            />
+          </>
+        )}
         <ExecutiveKpiCard
           label="Average Remaining Life"
           value={formatNumber(meanRulDays, 0)}

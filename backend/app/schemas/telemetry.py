@@ -36,6 +36,8 @@ class TelemetryReading(ApiModel):
     health_score: float
     load_state: str
     resolution: Resolution = "second"
+    source: str = "Simulator"
+    present_parameters: list[str] = Field(default_factory=list)
 
 
 class LiveTelemetry(ApiModel):
@@ -60,6 +62,7 @@ class HistoryPoint(ApiModel):
     device_status: str
     health_score: float
     resolution: Resolution
+    source: str = "Simulator"
 
 
 class HistoryResponse(ApiModel):

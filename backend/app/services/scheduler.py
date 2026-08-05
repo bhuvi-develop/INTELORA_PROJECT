@@ -29,6 +29,7 @@ from app.database.base import session_scope
 from app.logging_config import get_logger
 from app.services.engine import InteloraEngine
 from app.services.insight_service import build_all
+from app.services.mqtt_listener import mqtt_listener
 from app.services.persistence import (
     persist_anomalies,
     prune_analytics,
@@ -96,6 +97,7 @@ class BackgroundScheduler:
         self.last_flush_at: datetime | None = None
         self.last_analytics_at: datetime | None = None
         self._stopping = asyncio.Event()
+        self.telemetry_source = "Simulator"
 
     # ── Lifecycle ───────────────────────────────────────────────────────
 
@@ -104,6 +106,7 @@ class BackgroundScheduler:
             return
         self._stopping.clear()
         self.engine.running = True
+        mqtt_listener.start()
         self._tasks = [
             asyncio.create_task(self._tick_loop(), name="intelora-tick"),
             asyncio.create_task(self._analytics_loop(), name="intelora-analytics"),
@@ -119,6 +122,7 @@ class BackgroundScheduler:
     async def stop(self) -> None:
         self._stopping.set()
         self.engine.running = False
+        mqtt_listener.stop()
 
         for task in self._tasks:
             task.cancel()
@@ -160,7 +164,16 @@ class BackgroundScheduler:
             await asyncio.sleep(max(0.0, delay))
 
     async def _tick(self) -> None:
-        result = self.engine.step()
+        if self.engine.telemetry_source == "Live MQTT":
+            readings = mqtt_listener.pop_all()
+            if readings:
+                result = self.engine.process_external(readings)
+            else:
+                live_r = self.engine.get_live_readings()
+                self.engine.tick += 1
+                result = StepResult(readings=live_r, events=[], tick=self.engine.tick, at=datetime.now(timezone.utc))
+        else:
+            result = self.engine.step()
 
         self._buffer.extend(result.readings)
         self._ticks_since_flush += 1
@@ -295,6 +308,7 @@ class BackgroundScheduler:
     def status(self) -> dict:
         return {
             "running": self.engine.running,
+            "source": self.telemetry_source,
             "ticks": self.engine.tick,
             "tick_interval_seconds": settings.tick_interval_seconds,
             "rows_written": self.rows_written,

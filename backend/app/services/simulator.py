@@ -85,6 +85,8 @@ class Reading:
     health_score: float
     load_state: str
     resolution: str = "second"
+    source: str = "Simulator"
+    present_parameters: list[str] = field(default_factory=list)
 
     def as_row(self) -> dict:
         """Mapping for a bulk insert into `telemetry`."""
@@ -108,6 +110,8 @@ class Reading:
             "device_status": self.device_status,
             "health_score": self.health_score,
             "load_state": self.load_state,
+            "source": self.source,
+            "present_parameters": self.present_parameters,
         }
 
 

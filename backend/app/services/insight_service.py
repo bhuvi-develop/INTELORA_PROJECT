@@ -152,7 +152,7 @@ def anomaly_insight(engine: InteloraEngine) -> dict:
         recommendation = "Nothing requires escalation. The detector will raise a confirmed breach automatically."
 
     business_impact = (
-        f"Open exceptions currently affect {len(affected)} of {len(engine.simulator.states)} devices. "
+        f"Open exceptions currently affect {len(affected)} of {len(engine.get_active_asset_ids())} devices. "
         "Each unresolved critical event reduces the estate's operational health score directly and "
         "degrades the quality factor feeding effectiveness."
     )

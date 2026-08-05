@@ -102,5 +102,13 @@ export const post = async <T>(
   return response.data;
 };
 
+export const del = async <T>(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<T> => {
+  const response = await http.delete<T>(url, config);
+  return response.data;
+};
+
 /** Base origin of the backend, without the API prefix — used by the websocket. */
 export const backendOrigin = (): string => env.apiBaseUrl.replace(/\/api\/?$/, '');

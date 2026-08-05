@@ -85,6 +85,8 @@ export interface TelemetrySample {
   status: DeviceStatus;
   /** Operating mode the device was in when the sample was taken. */
   loadState: string;
+  source?: string;
+  present_parameters?: string[];
 }
 
 export const TELEMETRY_CHANNELS = [

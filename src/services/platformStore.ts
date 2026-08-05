@@ -599,6 +599,14 @@ class PlatformStore {
       .catch(() => undefined);
   }
 
+  notifySourceChanged(): void {
+    this.history.clear();
+    this.hydrated = false;
+    this.details.clear();
+    this.reportsLoaded = false;
+    void this.refreshAnalytics();
+  }
+
   /*
    * Bound properties, not prototype methods.
    *

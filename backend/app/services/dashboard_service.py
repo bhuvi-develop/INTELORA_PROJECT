@@ -119,7 +119,7 @@ def energy_intelligence(session: Session, engine: InteloraEngine, now: datetime 
         "weekly_kwh": round(sum(weekly.values()), 4),
         "monthly_kwh": monthly_total,
         "peak_hour": int(hourly.hour.hour) if hourly else None,
-        "peak_kw": round(float(hourly.watts or 0.0) / 1000.0 * len(engine.simulator.states), 4)
+        "peak_kw": round(float(hourly.watts or 0.0) / 1000.0 * len(engine.get_active_asset_ids()), 4)
         if hourly
         else 0.0,
         "highest_consumer": highest,
@@ -291,8 +291,9 @@ def activity_feed(engine: InteloraEngine, limit: int = 25) -> list[dict]:
                 }
             )
 
-    for state in engine.simulator.states.values():
-        if state.device_status == "Offline" and state.history:
+    for aid in engine.get_active_asset_ids():
+        state = engine.simulator.states.get(aid)
+        if state and state.device_status == "Offline" and state.history:
             entries.append(
                 {
                     "id": f"{state.asset_id}-offline-{int(state.elapsed_seconds)}",

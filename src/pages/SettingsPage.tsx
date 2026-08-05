@@ -245,6 +245,41 @@ export const SettingsPage = () => {
           </div>
         </Card>
 
+        {/* ─── Platform services ───────────────────────────────────────── */}
+        <Card className="xl:col-span-2">
+          <CardHeader
+            title="Platform services"
+            subtitle="Live state of the services backing the platform"
+            eyebrow="Infrastructure"
+            icon={Server}
+          />
+
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {platform.services.map((service) => (
+              <div key={service.key} className="rounded-xl border border-overlay/[0.06] bg-ink-850/50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[11.5px] font-medium text-fg-soft">{service.name}</span>
+                  <span
+                    className={
+                      service.state === 'Operational'
+                        ? 'text-[10px] font-medium text-emerald-300'
+                        : 'text-[10px] font-medium text-amber-300'
+                    }
+                  >
+                    {service.state}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-[13px] font-semibold tabular-nums text-fg">
+                  {service.latencyMs !== null ? `${service.latencyMs} ms` : '—'}
+                </p>
+                <p className="mt-0.5 text-[9.5px] tabular-nums text-fg-faint">
+                  {formatPercent(service.uptimePct, 3)} uptime
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
       </div>
 
       <div className="flex items-center gap-2 rounded-xl border border-overlay/[0.07] bg-ink-850/40 px-4 py-3">

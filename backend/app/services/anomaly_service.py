@@ -175,6 +175,8 @@ class AnomalyDetector:
         # Judging its zeroed electrical channels would raise a voltage-low event
         # on every drop-out, which is noise dressed up as detection.
         if offline:
+            if reading.source and "Live MQTT" in reading.source:
+                return []
             return [("communication-lost", True, 0.0, 0.0)]
 
         checks: list[tuple[str, bool, float, float]] = [
@@ -274,7 +276,10 @@ class AnomalyDetector:
                 observed if tracker.open_uid is None else max(tracker.peak_observed, abs(observed))
             )
 
-            if tracker.open_uid is None and tracker.breaching_seconds >= definition.confirm_seconds:
+            is_live_mqtt = reading.source and "Live MQTT" in reading.source
+            confirm_needed = 0.0 if is_live_mqtt else definition.confirm_seconds
+
+            if tracker.open_uid is None and tracker.breaching_seconds >= confirm_needed:
                 return self._raise(state, reading, anomaly_type, observed, limit, score)
             return None
 

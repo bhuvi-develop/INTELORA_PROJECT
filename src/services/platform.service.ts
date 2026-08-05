@@ -15,8 +15,10 @@ import type {
   PreventiveResponseDto,
   SystemStatusDto,
   TelemetryWindowDto,
+  MqttProfileDto,
+  MqttProfilesResponseDto,
 } from '@/types/api';
-import { get, post } from './http';
+import { get, post, del } from './http';
 
 /* ───────────────────────────────────────────────────────────────────────────
  * Platform services.
@@ -286,4 +288,10 @@ export const reportService = {
 export const systemService = {
   status: (options: Signal = {}) => get<SystemStatusDto>('/system/status', undefined, options),
   refresh: () => post<Record<string, unknown>>('/system/refresh'),
+  setSource: (source: string) => post<Record<string, unknown>>('/system/source', { source }),
+  getMqttProfiles: () => get<MqttProfilesResponseDto>('/mqtt/profiles'),
+  saveMqttProfile: (profile: MqttProfileDto) => post<{ status: string; profile: MqttProfileDto }>('/mqtt/profiles', profile),
+  deleteMqttProfile: (name: string) => del<{ status: string; name: string }>(`/mqtt/profiles/${encodeURIComponent(name)}`),
+  connectMqttProfile: (name: string) => post<{ status: string; active_profile: string; connected: boolean }>('/mqtt/connect', { name }),
+  testMqttConnection: (host: string, port: number) => post<{ ok: boolean; message: string }>('/mqtt/test', { host, port }),
 };

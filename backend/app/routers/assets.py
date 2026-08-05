@@ -101,7 +101,8 @@ def list_assets(
     analytics = engine.analytics
     rows = []
 
-    for asset_id, state in engine.simulator.states.items():
+    for asset_id in engine.get_active_asset_ids():
+        state = engine.simulator.states[asset_id]
         if category and state.seed.category != category:
             continue
         if status_filter and state.device_status != status_filter:

@@ -63,7 +63,8 @@ export const ExecutiveOverviewPanel = () => {
           { label: 'Availability', value: kpis.averageAvailability || 82.4, target: 90, color: 'rgb(59 130 246)', desc: 'Uptime vs Planned Production Time.' },
           { label: 'Performance', value: 87.5, target: 95, color: 'rgb(99 102 241)', desc: 'Actual vs Maximum Possible Speed.' },
           { label: 'Quality', value: 96.2, target: 99, color: 'rgb(168 85 247)', desc: 'Good parts vs Total parts produced.' },
-        ].map((metric, idx) => (
+        ].map((metric) => (
+
           <motion.div
             key={metric.label}
             whileHover={{ y: -8, scale: 1.02 }}

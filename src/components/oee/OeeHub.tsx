@@ -92,10 +92,11 @@ export const OeeHub = ({ onOpen }: { onOpen: (id: string) => void }) => {
             <HubCard
               workspace={workspace}
               metric={
-                workspace.id === 'fleetHealth' ? formatPercent(kpis.averageHealth, 1) :
-                workspace.id === 'analytics' ? formatPercent(oee.availability, 1) :
+                (workspace.id as string) === 'fleetHealth' ? formatPercent(kpis.averageHealth, 1) :
+                (workspace.id as string) === 'analytics' ? formatPercent(oee.availability, 1) :
                 String(kpis.totalAssets)
               }
+
               metricUnit={workspace.id === 'analytics' ? 'avail' : 'active'}
               supportingMetrics={[]}
               status="TRACKING"

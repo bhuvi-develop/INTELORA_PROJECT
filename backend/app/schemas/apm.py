@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -46,8 +48,6 @@ guaranteed.
 Request models are the opposite: strictly bounded, because they are the only
 place in the module where a value arrives from outside it.
 """
-
-from __future__ import annotations
 
 from datetime import datetime
 from typing import Literal

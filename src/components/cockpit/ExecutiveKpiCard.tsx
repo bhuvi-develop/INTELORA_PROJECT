@@ -153,14 +153,9 @@ export const ExecutiveKpiCard = ({
   );
 
   const shell = cn(
-<<<<<<< Updated upstream
-    'panel relative w-full overflow-hidden p-4 text-left transition-all duration-200 ease-enterprise',
-    onClick && 'cursor-pointer hover:-translate-y-0.5 hover:border-overlay/[0.14] hover:shadow-raised',
-=======
     'relative w-full h-full flex flex-col overflow-hidden p-4 text-left transition-all duration-300 ease-out rounded-2xl',
     'bg-ink-900/60 backdrop-blur-xl border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.3)]',
     onClick && 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)] hover:border-brand-400/40 active:scale-[0.98]',
->>>>>>> Stashed changes
     className,
   );
 

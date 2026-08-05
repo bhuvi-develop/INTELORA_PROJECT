@@ -38,15 +38,8 @@ export const env = {
     storageKey: 'intelora.session',
     preferencesKey: 'intelora.preferences',
   },
-<<<<<<< Updated upstream
-  /** Live telemetry poll interval, used when the websocket is unavailable. */
-  livePollMs: int(import.meta.env.VITE_LIVE_POLL_MS, 1_000),
-  /** Cadence for the derived views — effectiveness and predictions move slowly. */
-  analyticsPollMs: int(import.meta.env.VITE_ANALYTICS_POLL_MS, 15_000),
-=======
   /** Unified stream interval for all live and analytics telemetry (user adjustable) */
   streamIntervalMs: int(import.meta.env.VITE_STREAM_INTERVAL_MS, 1_000),
->>>>>>> Stashed changes
 } as const;
 
 /** True when Grafana embedding is configured; drives the offline fallback panel. */
@@ -54,7 +47,9 @@ export const grafanaEnabled = env.grafana.baseUrl.trim().length > 0;
 
 export const APP = {
   name: 'INTELORA',
-  tagline: 'Enterprise AIoT Intelligence',
+  tagline: 'Enterprise AIoT Intelligence Platform',
+  /** Operating organisation, shown in the workspace header. */
+  organisation: str(import.meta.env.VITE_ORGANISATION, 'ABC Manufacturing Pvt Ltd'),
   device: 'MIKOS Smart Energy Sensor',
   vendor: 'Intelora Industrial Systems',
   version: '1.0.0',

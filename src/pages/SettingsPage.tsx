@@ -1,4 +1,5 @@
-import { Contrast, Cog, Database, Gauge, KeyRound, LayoutGrid, Radio, Server, ShieldCheck, ClipboardList, BookOpen, Activity } from 'lucide-react';
+import { Contrast, Cog, Gauge, LayoutGrid, Radio, Server, ShieldCheck, ClipboardList, BookOpen, Activity } from 'lucide-react';
+
 import type { LiveWindow } from '@/types';
 import { APP } from '@/config/env';
 import { MODULE_TITLES } from '@/config/navigation';

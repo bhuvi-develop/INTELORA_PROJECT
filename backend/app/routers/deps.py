@@ -21,5 +21,5 @@ def build_meta(engine: InteloraEngine) -> Meta:
         generated_at=datetime.now(timezone.utc),
         tick=engine.tick,
         analytics_tick=engine.analytics.tick,
-        source="mikos-simulator",
+        source=engine.telemetry_source,
     )

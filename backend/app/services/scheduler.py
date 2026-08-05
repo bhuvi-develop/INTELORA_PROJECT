@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 from app.config import settings
 from app.database.base import session_scope
 from app.logging_config import get_logger
-from app.services.engine import InteloraEngine
+from app.services.engine import InteloraEngine, StepResult
 from app.services.insight_service import build_all
 from app.services.mqtt_listener import mqtt_listener
 from app.services.persistence import (

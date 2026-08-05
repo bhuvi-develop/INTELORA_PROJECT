@@ -87,6 +87,7 @@ class Reading:
     resolution: str = "second"
     source: str = "Simulator"
     present_parameters: list[str] = field(default_factory=list)
+    sender_uid: str | None = None
 
     def as_row(self) -> dict:
         """Mapping for a bulk insert into `telemetry`."""

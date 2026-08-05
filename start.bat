@@ -176,12 +176,26 @@ if not exist "%BACKEND%\.env" (
 )
 
 pushd "%BACKEND%"
-"%PYTHON%" -c "from app.database.init_db import ensure_database; ensure_database()" >nul 2>&1
+REM  Verify that packages are correctly installed first
+"%PYTHON%" -c "import pydantic, sqlalchemy, alembic, psycopg" >nul 2>&1
+if errorlevel 1 (
+    popd
+    call :fail "Python packages are missing or corrupted." "Run start.bat again or reinstall backend dependencies."
+    goto :abort
+)
+
+REM  Verify PostgreSQL connectivity, capturing any traceback on failure
+"%PYTHON%" -c "from app.database.init_db import ensure_database; ensure_database()" > "%ROOT%db_check_error.log" 2>&1
 if errorlevel 1 (
     popd
     call :fail "PostgreSQL is not reachable." "Check the credentials in backend\.env - user, password, host and port."
+    echo.
+    echo   Detailed connection error:
+    type "%ROOT%db_check_error.log"
+    del "%ROOT%db_check_error.log" >nul 2>&1
     goto :abort
 )
+del "%ROOT%db_check_error.log" >nul 2>&1
 call :ok "PostgreSQL connected"
 
 "%PYTHON%" -m alembic upgrade head >nul 2>&1

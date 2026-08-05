@@ -154,8 +154,9 @@ def read_history(
         .limit(limit)
     )
 
-    if source:
-        query = query.where(Telemetry.source.ilike(f"%{source}%"))
+    active_source = source or engine.telemetry_source
+    if active_source:
+        query = query.where(Telemetry.source.ilike(f"%{active_source}%"))
     if asset_id:
         query = query.where(Telemetry.asset_id == asset_id)
     elif carriers is not None:

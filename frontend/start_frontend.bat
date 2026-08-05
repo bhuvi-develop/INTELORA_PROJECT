@@ -39,7 +39,7 @@ if errorlevel 1 (
 )
 
 if not exist "package.json" (
-    echo   X  package.json was not found in %APP%.
+    echo   X  package.json was not found in "%APP%".
     echo      The clone looks incomplete.
     exit /b 1
 )

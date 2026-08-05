@@ -1,22 +1,62 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Gauge, Server, Clock, Database, BarChart3, TrendingUp, MonitorPlay, History, Bell } from 'lucide-react';
-import { HubCard } from '@/components/predictive/HubCard';
+import { Activity, Gauge, Server, Clock, Database, BarChart3, MonitorPlay, History, Bell, type LucideIcon } from 'lucide-react';
 import { ExecutiveOverviewPanel } from '@/components/oee/ExecutiveOverviewPanel';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { IconButton, Button } from '@/components/ui/Button';
-import type { WorkspaceDef } from '@/components/predictive/navigation';
 import { useSnapshot } from '@/engine/store';
 import { formatPercent } from '@/utils/format';
 import { useToast } from '@/hooks';
 
+export interface WorkspaceDef {
+  id: string;
+  label: string;
+  discipline: string;
+  icon: LucideIcon;
+  question: string;
+  summary: string;
+}
+
+const HubCard = ({
+  workspace,
+  metric,
+  metricUnit,
+  onOpen
+}: {
+  workspace: WorkspaceDef;
+  metric: string;
+  metricUnit: string;
+  supportingMetrics: any[];
+  status: string;
+  statusKind: string;
+  onOpen: () => void;
+}) => {
+  const Icon = workspace.icon;
+  return (
+    <button onClick={onOpen} className="w-full text-left p-4 rounded-xl bg-card border border-line/40 hover:border-brand-500/50 transition-colors flex flex-col h-full shadow-sm hover:shadow-md">
+      <div className="flex justify-between items-start mb-2">
+        <div className="p-2 rounded-lg bg-brand-500/10 text-brand-400">
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      <h4 className="font-semibold text-fg text-sm">{workspace.label}</h4>
+      <p className="text-xs text-fg-muted mt-1 mb-4 flex-grow">{workspace.question}</p>
+      <div className="flex justify-between items-end mt-auto">
+        <div>
+           <span className="text-xl font-bold text-fg tabular-nums">{metric}</span>
+           <span className="text-[10px] text-fg-muted uppercase tracking-wider ml-1">{metricUnit}</span>
+        </div>
+      </div>
+    </button>
+  );
+};
+
 export const OEE_WORKSPACES: WorkspaceDef[] = [
-  { id: 'fleet' as any, label: 'Fleet Intelligence', discipline: 'Asset Health', icon: Activity, question: 'How is the fleet performing?', summary: 'Fleet health score' },
-  { id: 'analytics' as any, label: 'OEE Analytics', discipline: 'Deep Dive', icon: BarChart3, question: 'What are the core metrics?', summary: 'Availability, Performance, Quality' },
-  { id: 'devices' as any, label: 'Device Intelligence', discipline: 'Individual Assets', icon: MonitorPlay, question: 'How are devices operating?', summary: 'Per-device OEE' },
-  { id: 'sessions' as any, label: 'Session Intelligence', discipline: 'Time Series', icon: History, question: 'What happened during sessions?', summary: 'Session logs' },
-  { id: 'fleetHealth' as any, label: 'Fleet Health', discipline: 'Fleet Condition', icon: TrendingUp, question: 'Is the fleet healthy?', summary: 'Fleet Health Workspace' },
+  { id: 'fleet', label: 'Fleet Intelligence', discipline: 'Asset Health', icon: Activity, question: 'How is the fleet performing?', summary: 'Fleet health score' },
+  { id: 'analytics', label: 'OEE Analytics', discipline: 'Deep Dive', icon: BarChart3, question: 'What are the core metrics?', summary: 'Availability, Performance, Quality' },
+  { id: 'devices', label: 'Device Intelligence', discipline: 'Individual Assets', icon: MonitorPlay, question: 'How are devices operating?', summary: 'Per-device OEE' },
+  { id: 'sessions', label: 'Session Intelligence', discipline: 'Time Series', icon: History, question: 'What happened during sessions?', summary: 'Session logs' },
 ];
 
 export const OeeHub = ({ onOpen }: { onOpen: (id: string) => void }) => {
@@ -92,8 +132,8 @@ export const OeeHub = ({ onOpen }: { onOpen: (id: string) => void }) => {
             <HubCard
               workspace={workspace}
               metric={
-                (workspace.id as string) === 'fleetHealth' ? formatPercent(kpis.averageHealth, 1) :
-                (workspace.id as string) === 'analytics' ? formatPercent(oee.availability, 1) :
+                workspace.id === 'fleetHealth' ? formatPercent(kpis.averageHealth, 1) :
+                workspace.id === 'analytics' ? formatPercent(oee.availability, 1) :
                 String(kpis.totalAssets)
               }
               metricUnit={workspace.id === 'analytics' ? 'avail' : 'active'}

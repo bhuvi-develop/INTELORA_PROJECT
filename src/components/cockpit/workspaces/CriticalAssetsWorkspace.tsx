@@ -4,7 +4,7 @@ import { SectionHeader } from '@/components/common';
 
 export const CriticalAssetsWorkspace = ({ onBack }: { onBack: () => void }) => {
   const { assets } = useSnapshot();
-  const criticalAssets = assets.filter(a => a.health < 65);
+  const criticalAssets = assets.filter((a: any) => a.health < 65);
 
   return (
     <div className="space-y-6">
@@ -29,12 +29,12 @@ export const CriticalAssetsWorkspace = ({ onBack }: { onBack: () => void }) => {
             </tr>
           </thead>
           <tbody>
-            {criticalAssets.map(a => (
-              <tr key={a.device.assetId} className="border-b border-white/5">
-                <td className="px-4 py-3 font-medium">{a.device.assetName}</td>
+            {criticalAssets.map((a: any) => (
+              <tr key={a.device?.assetId || Math.random()} className="border-b border-white/5">
+                <td className="px-4 py-3 font-medium">{a.device?.assetName || 'Unknown Asset'}</td>
                 <td className="px-4 py-3 text-rose-500 font-semibold">High</td>
                 <td className="px-4 py-3">Downtime Risk</td>
-                <td className="px-4 py-3">{a.prediction.primary.component}</td>
+                <td className="px-4 py-3">{a.prediction?.primary?.component || 'N/A'}</td>
                 <td className="px-4 py-3 text-rose-500">Critical</td>
               </tr>
             ))}

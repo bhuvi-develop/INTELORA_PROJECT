@@ -64,7 +64,6 @@ export const ExecutiveOverviewPanel = () => {
           { label: 'Performance', value: 87.5, target: 95, color: 'rgb(99 102 241)', desc: 'Actual vs Maximum Possible Speed.' },
           { label: 'Quality', value: 96.2, target: 99, color: 'rgb(168 85 247)', desc: 'Good parts vs Total parts produced.' },
         ].map((metric) => (
-
           <motion.div
             key={metric.label}
             whileHover={{ y: -8, scale: 1.02 }}

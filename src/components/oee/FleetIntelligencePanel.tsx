@@ -3,7 +3,7 @@ import { useAssetList, useFleetKpis, useSnapshot } from '@/engine/store';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { Card } from '@/components/ui/Card';
 import { DonutSplit, AreaTrend } from '@/components/charts';
-import { KpiCard } from '@/components/common';
+import { KpiCard } from '@/components/common/KpiCard';
 import { Activity, Clock3, PowerOff, Factory } from 'lucide-react';
 
 export const FleetIntelligencePanel = () => {

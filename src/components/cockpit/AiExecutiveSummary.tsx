@@ -1,12 +1,9 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Bot, Sparkles } from 'lucide-react';
-import { asRiskTier, bandDef } from '@/engine/derive';
+import { Bot, Sparkles } from 'lucide-react';
 import { useSnapshot } from '@/engine/store';
 import { cn } from '@/lib/cn';
-import { formatNumber, formatPercent } from '@/utils/format';
-import { PATHS, deviceDetailPath } from '@/routes/paths';
+import { formatPercent } from '@/utils/format';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
@@ -23,118 +20,50 @@ import { Progress } from '@/components/ui/Progress';
 
 const MODEL = { name: 'INTELORA Operations Copilot', version: 'v5.1.0' } as const;
 
-interface Callout {
-  assetId: string;
-  assetName: string;
-  reason: string;
-}
-
 export const AiExecutiveSummary = ({ className }: { className?: string }) => {
   const snapshot = useSnapshot();
 
   const briefing = useMemo(() => {
-    const { assets, kpis, anomalies, tasks, operationalHealth, energy } = snapshot;
+    const { assets, anomalies, operationalHealth, energy, oee } = snapshot;
 
-    const activeAnomalies = anomalies.filter((record) => record.status === 'Active');
-    const atRisk = assets.filter((asset) => {
-      const tier = asRiskTier(asset.riskTier);
-      return tier === 'critical' || tier === 'high';
-    });
+    const lines: string[] = [];
 
-    const soonest = [...assets].sort(
-      (a, b) => a.prediction.primary.rulDays - b.prediction.primary.rulDays,
-    )[0];
+    // Line 1: Health
+    if (operationalHealth >= 92) lines.push('Fleet is operating normally.');
+    else if (operationalHealth >= 80) lines.push('Fleet is operating with minor warnings.');
+    else lines.push('Fleet is experiencing critical issues.');
 
-    const meanRul =
-      assets.length === 0
-        ? 0
-        : assets.reduce((sum, asset) => sum + asset.prediction.primary.rulDays, 0) / assets.length;
-
-    const overdue = tasks.filter((task) => task.status === 'Overdue');
-    const offline = assets.filter((asset) => asset.device.status === 'Offline');
-
-    /* Named callouts — the specific devices behind the headline. */
-    const callouts: Callout[] = [];
-
-    for (const asset of [...atRisk].sort((a, b) => a.health - b.health).slice(0, 2)) {
-      const anomaly = activeAnomalies.find((record) => record.assetId === asset.device.assetId);
-      callouts.push({
-        assetId: asset.device.assetId,
-        assetName: asset.device.assetName,
-        reason: anomaly
-          ? `${anomaly.title.toLowerCase()} with health at ${formatNumber(asset.health, 1)}`
-          : `health at ${formatNumber(asset.health, 1)} with ${asset.prediction.primary.component.toLowerCase()} the limiting component`,
-      });
-    }
-
-    for (const asset of offline.slice(0, 1)) {
-      callouts.push({
-        assetId: asset.device.assetId,
-        assetName: asset.device.assetName,
-        reason: 'not reporting, so its condition cannot be assessed',
-      });
-    }
-
-    /* Sentence 1 — the headline state. */
-    const stateWord =
-      operationalHealth >= 92 ? 'strong' : operationalHealth >= 80 ? 'stable' : operationalHealth >= 65 ? 'strained' : 'poor';
-
-    const sentences: string[] = [
-      `Operational health is ${stateWord} at ${formatNumber(operationalHealth, 1)}%, with ${kpis.onlineAssets} of ${kpis.totalAssets} devices reporting and fleet condition averaging ${formatNumber(kpis.averageHealth, 1)}%.`,
-    ];
-
-    /* Sentence 2 — what needs attention, named. */
-    if (callouts.length > 0) {
-      sentences.push(
-        callouts
-          .map((callout, index) =>
-            index === 0
-              ? `${callout.assetName} is ${callout.reason}`
-              : `${callout.assetName} is ${callout.reason}`,
-          )
-          .join('; ') + '.',
-      );
-    } else {
-      sentences.push(
-        'No device is currently in the critical or high-risk band, and no alert is awaiting triage.',
-      );
-    }
-
-    /* Sentence 3 — the maintenance ask, with a timeframe. */
+    // Line 2: Maintenance
+    const soonest = [...assets].sort((a, b) => a.prediction.primary.rulDays - b.prediction.primary.rulDays)[0];
     if (soonest && soonest.prediction.primary.rulDays <= 30) {
-      const days = Math.max(1, Math.round(soonest.prediction.primary.rulDays));
-      const window = days <= 3 ? 'within three days' : days <= 7 ? 'within a week' : `within ${Math.ceil(days / 7)} weeks`;
-      sentences.push(
-        `Maintenance is recommended ${window}: ${soonest.device.assetName} has ${formatNumber(soonest.prediction.primary.rulDays, 0)} days of projected life on its ${soonest.prediction.primary.component.toLowerCase()} at ${formatPercent(soonest.prediction.primary.confidence * 100, 0)} confidence.`,
-      );
+      lines.push(`One ${soonest.device.assetName} requires preventive maintenance.`);
     } else {
-      sentences.push('No component falls inside the thirty-day intervention horizon, so the schedule can hold.');
+      lines.push('No immediate preventive maintenance required.');
     }
 
-    /* Sentence 4 — the standing figures an executive tracks. */
-    sentences.push(
-      `Average remaining useful life across the estate is ${formatNumber(meanRul, 0)} days, effectiveness sits at ${formatPercent(snapshot.oee.oee, 1)}, and today's consumption is ${formatNumber(energy.todayKwh, 2)} kWh${
-        Math.abs(energy.changePct) >= 0.5
-          ? `, ${formatPercent(Math.abs(energy.changePct), 1)} ${energy.changePct > 0 ? 'above' : 'below'} yesterday`
-          : ', level with yesterday'
-      }.`,
-    );
-
-    /* Sentence 5 — only when there is a backlog worth raising. */
-    if (overdue.length > 0) {
-      sentences.push(
-        `${overdue.length} preventive task${overdue.length === 1 ? ' is' : 's are'} past due; deferred planned work is the most common origin of unplanned downtime.`,
-      );
+    // Line 3: Anomalies / Energy
+    const activeAnomalies = anomalies.filter((record) => record.status === 'Active');
+    if (activeAnomalies.length > 0) {
+      const anomalyAsset = assets.find((a) => a.device.assetId === activeAnomalies[0].assetId);
+      if (anomalyAsset) {
+        lines.push(`One ${anomalyAsset.device.assetName} has an active alert: ${activeAnomalies[0].title}.`);
+      }
+    } else if (energy.changePct > 5) {
+      lines.push('Energy consumption is elevated compared to yesterday.');
+    } else {
+      lines.push('Energy consumption is within normal ranges.');
     }
+
+    // Line 4: OEE
+    if (oee.oee >= 85) lines.push('Overall Equipment Efficiency is optimal.');
+    else if (oee.oee >= 65) lines.push('Overall Equipment Efficiency remains stable.');
+    else lines.push('Overall Equipment Efficiency requires attention.');
 
     const confidence = Math.min(0.97, 0.8 + Math.min(0.13, snapshot.tick / 2_600));
 
     return {
-      text: sentences.join(' '),
-      callouts,
+      lines: lines.slice(0, 5),
       confidence,
-      atRiskCount: atRisk.length,
-      meanRul,
     };
   }, [snapshot]);
 
@@ -182,59 +111,20 @@ export const AiExecutiveSummary = ({ className }: { className?: string }) => {
         </div>
       </div>
 
-      <motion.p
+      <motion.div
         key={snapshot.tick}
         initial={{ opacity: 0.65 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative mt-4 max-w-5xl text-[13.5px] leading-[1.75] text-fg-soft"
+        className="relative mt-4 max-w-5xl text-[14px] leading-relaxed text-fg-soft space-y-1.5"
       >
-        {briefing.text}
-      </motion.p>
-
-      {briefing.callouts.length > 0 ? (
-        <div className="relative mt-4 flex flex-wrap items-center gap-2 border-t border-overlay/[0.07] pt-3.5">
-          <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-fg-faint">Named devices</span>
-          {briefing.callouts.map((callout) => (
-            <Link
-              key={callout.assetId}
-              to={deviceDetailPath(callout.assetId)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-overlay/[0.05] px-2 py-1 text-[11px] font-medium text-fg-soft ring-1 ring-inset ring-overlay/10 transition-colors hover:bg-overlay/[0.09] hover:text-fg"
-            >
-              <span className="font-mono text-[10px] text-fg-muted">{callout.assetId}</span>
-              {callout.assetName}
-              <ArrowRight size={10} aria-hidden />
-            </Link>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="relative mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-overlay/[0.07] pt-3.5">
-        <span className="flex items-baseline gap-1.5 text-[11px] text-fg-dim">
-          Devices at risk
-          <strong className="text-[13px] font-semibold tabular-nums text-fg">{briefing.atRiskCount}</strong>
-        </span>
-        <span className="flex items-baseline gap-1.5 text-[11px] text-fg-dim">
-          Average remaining life
-          <strong className="text-[13px] font-semibold tabular-nums text-fg">
-            {formatNumber(briefing.meanRul, 0)} d
-          </strong>
-        </span>
-        <span className="flex items-baseline gap-1.5 text-[11px] text-fg-dim">
-          Condition band
-          <strong className="text-[13px] font-semibold" style={{ color: bandDef(snapshot.kpis.averageHealth >= 95 ? 'healthy' : snapshot.kpis.averageHealth >= 80 ? 'good' : snapshot.kpis.averageHealth >= 65 ? 'warning' : 'critical').color }}>
-            {bandDef(snapshot.kpis.averageHealth >= 95 ? 'healthy' : snapshot.kpis.averageHealth >= 80 ? 'good' : snapshot.kpis.averageHealth >= 65 ? 'warning' : 'critical').label}
-          </strong>
-        </span>
-
-        <Link
-          to={PATHS.prescriptive}
-          className="ml-auto inline-flex items-center gap-1.5 text-[11.5px] font-medium text-brand-300 transition-colors hover:text-brand-200"
-        >
-          Review recommended actions
-          <ArrowRight size={12} aria-hidden />
-        </Link>
-      </div>
+        {briefing.lines.map((line, i) => (
+          <p key={i} className="flex items-start gap-2">
+            <span className="text-brand-400 mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden />
+            {line}
+          </p>
+        ))}
+      </motion.div>
     </Card>
   );
 };

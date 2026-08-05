@@ -33,3 +33,8 @@ export { RiskHeatMap } from './RiskHeatMap';
 export type { RiskHeatMapProps } from './RiskHeatMap';
 export { RiskDistributionBar } from './RiskDistributionBar';
 export type { RiskDistributionBarProps } from './RiskDistributionBar';
+
+/* Scored profile across several axes on one shared scale — the criticality
+ * model's natural form. Capped at two series by design. */
+export { RadarProfile } from './RadarProfile';
+export type { RadarAxis, RadarProfileProps } from './RadarProfile';

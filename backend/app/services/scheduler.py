@@ -250,11 +250,45 @@ class BackgroundScheduler:
             sync_component_wear(session, self.engine)
             persist_anomalies(session, self.engine.detector)
 
+        self._flush_apm()
+
+    def _flush_apm(self) -> None:
+        """Snapshot the Asset Performance Management composites for its trend.
+
+        Isolated in its own transaction and its own try, deliberately. APM is a
+        downstream consumer: it reads what the pass above produced and adds nothing
+        the platform depends on, so a failure inside it must not roll back the
+        telemetry, anomaly and effectiveness writes that had already succeeded, and
+        must not kill the analytics loop.
+        """
+        try:
+            from app.services.apm.apm_service import get_apm_service
+            from app.services.apm.repository import write_snapshots
+            from app.services.apm.work_orders import get_work_order_engine
+
+            snapshot = get_apm_service().refresh(self.engine)
+            write_snapshots(
+                [record.snapshot_row(snapshot.computed_at) for record in snapshot.ordered]
+            )
+            # Mirror anything a mid-outage transition left unwritten.
+            get_work_order_engine().flush()
+        except Exception as error:  # pragma: no cover - logged, never raised
+            logger.warning("APM analytics pass not persisted: %s", error)
+
     def _prune(self) -> None:
         with session_scope() as session:
             prune_raw_telemetry(session, settings.raw_retention_hours)
             prune_analytics(session)
         self.engine.detector.prune()
+
+        try:
+            # APM's snapshot table is a trend and is bounded on the same schedule.
+            # Its work orders are never pruned — they are the audit log.
+            from app.services.apm.repository import prune_snapshots
+
+            prune_snapshots()
+        except Exception as error:  # pragma: no cover
+            logger.warning("APM snapshots not pruned: %s", error)
 
     # ── Status ──────────────────────────────────────────────────────────
 

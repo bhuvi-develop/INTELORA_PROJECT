@@ -23,6 +23,18 @@ class AssetIdentity(ApiModel):
     status: DeviceStatus
 
 
+class AssetCreateRequest(ApiModel):
+    asset_id: str | None = None
+    asset_name: str
+    category: str
+    brand: str
+    model: str
+    criticality: Criticality = "Medium"
+    rated_power_w: float | None = None
+    nominal_voltage_v: float | None = None
+    duty_factor: float = 1.0
+
+
 class ComponentState(ApiModel):
     name: str
     wear: float

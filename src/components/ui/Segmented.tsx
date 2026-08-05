@@ -29,7 +29,7 @@ export const Segmented = <T extends string>({
     role="radiogroup"
     aria-label={ariaLabel}
     className={cn(
-      'inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-ink-850/80 p-0.5 ring-1 ring-inset ring-overlay/[0.08]',
+      'inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-ink-850/80 p-0.5 shadow-inset ring-1 ring-inset ring-line/[0.09]',
       className,
     )}
   >
@@ -51,7 +51,7 @@ export const Segmented = <T extends string>({
           {active ? (
             <motion.span
               layoutId={layoutId}
-              className="absolute inset-0 rounded-[0.625rem] bg-overlay/[0.09] ring-1 ring-inset ring-overlay/[0.09]"
+              className="absolute inset-0 rounded-[0.625rem] bg-ink-750 bg-surface-raised shadow-elev-1 ring-1 ring-inset ring-line/[0.1]"
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             />
           ) : null}

@@ -51,6 +51,19 @@ const Breadcrumbs = () => {
   );
 };
 
+const stripBrandName = (text: string): string => {
+  const knownBrands = [
+    'Baseus', 'Samsung', 'Ugreen', 'Anker', 'Belkin', 'Apple', 'Dell', 'HP', 'Lenovo',
+    'Daikin', 'Voltas', 'Blue Star', 'LG', 'Mitsubishi', 'Carrier', 'Hitachi', 'Panasonic', 'Lloyd', 'Godrej', 'ThinkPad'
+  ];
+  let cleaned = text;
+  for (const b of knownBrands) {
+    const reg = new RegExp(`\\b${b}\\b\\s*`, 'gi');
+    cleaned = cleaned.replace(reg, '');
+  }
+  return cleaned.trim();
+};
+
 /**
  * Notifications are a projection of the live anomaly journal rather than a
  * separate feed, so the badge count and the anomaly module can never disagree.
@@ -63,7 +76,7 @@ const NotificationsMenu = () => {
       journal.slice(0, 10).map((record) => ({
         id: record.id,
         title: `${record.assetId} · ${record.title}`,
-        body: record.detail,
+        body: stripBrandName(record.detail),
         severity: record.severity,
         at: record.timestamp,
         read: record.status !== 'Active',
@@ -77,7 +90,7 @@ const NotificationsMenu = () => {
 
   return (
     <Dropdown
-      width="w-[23rem]"
+      width="w-[25rem]"
       trigger={({ open, toggle }) => (
         <button
           type="button"
@@ -99,9 +112,9 @@ const NotificationsMenu = () => {
       )}
     >
       {({ close }) => (
-        <>
-          <div className="flex items-center justify-between gap-3 border-b border-overlay/[0.07] px-3.5 py-3">
-            <p className="text-[12.5px] font-semibold text-fg">Notifications</p>
+        <div className="bg-[#0f172a] bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3 bg-slate-900/90">
+            <p className="text-[13px] font-semibold text-slate-100">Notifications</p>
             {unread > 0 ? (
               <Badge tone="critical" size="xs">
                 {unread} active
@@ -109,24 +122,24 @@ const NotificationsMenu = () => {
             ) : null}
           </div>
 
-          <ul className="scroll-thin max-h-[24rem] divide-y divide-overlay/[0.05] overflow-y-auto">
+          <ul className="scroll-thin max-h-[24rem] divide-y divide-slate-800/60 overflow-y-auto bg-[#0f172a]">
             {items.map((item) => (
               <li key={item.id}>
                 <Link
                   to={item.href}
                   onClick={close}
                   className={cn(
-                    'block px-3.5 py-3 transition-colors hover:bg-overlay/[0.04]',
-                    item.read ? '' : 'bg-brand-500/[0.045]',
+                    'block px-4 py-3.5 transition-colors hover:bg-slate-800/50',
+                    item.read ? 'bg-[#0f172a]' : 'bg-slate-800/30',
                   )}
                 >
                   <div className="flex items-start justify-between gap-2.5">
-                    <p className="min-w-0 text-[12px] font-medium leading-snug text-fg">{item.title}</p>
+                    <p className="min-w-0 text-[12.5px] font-medium leading-snug text-slate-100">{item.title}</p>
                     <SeverityBadge severity={item.severity} size="xs" />
                   </div>
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-fg-muted">{item.body}</p>
-                  <p className="mt-1.5 flex items-center gap-2 text-[10.5px] text-fg-faint">
-                    <span className="rounded bg-overlay/[0.055] px-1.5 py-0.5 font-mono text-[9.5px] text-fg-muted">
+                  <p className="mt-1 line-clamp-2 text-[11.5px] leading-relaxed text-slate-300">{item.body}</p>
+                  <p className="mt-2 flex items-center gap-2 text-[10.5px] text-slate-400">
+                    <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9.5px] text-slate-300 border border-slate-700/50">
                       {item.code}
                     </span>
                     {formatRelative(item.at)}
@@ -135,22 +148,22 @@ const NotificationsMenu = () => {
               </li>
             ))}
             {items.length === 0 ? (
-              <li className="px-3.5 py-8 text-center text-[11.5px] text-fg-dim">
+              <li className="px-4 py-8 text-center text-[11.5px] text-slate-400">
                 No anomalies raised yet in this session
               </li>
             ) : null}
           </ul>
 
-          <div className="border-t border-overlay/[0.07] px-3.5 py-2.5">
+          <div className="border-t border-slate-800 px-4 py-2.5 bg-slate-900/90">
             <Link
               to={PATHS.anomaly}
               onClick={close}
-              className="text-[11.5px] font-medium text-brand-300 transition-colors hover:text-brand-200"
+              className="text-[11.5px] font-medium text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Open anomaly detection
+              Open anomaly detection →
             </Link>
           </div>
-        </>
+        </div>
       )}
     </Dropdown>
   );

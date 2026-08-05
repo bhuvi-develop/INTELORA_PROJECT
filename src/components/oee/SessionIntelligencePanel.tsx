@@ -5,6 +5,8 @@ import { KpiCard } from '@/components/common';
 import { BatteryCharging, PlugZap, XOctagon, Info } from 'lucide-react';
 import { useFleetKpis } from '@/engine/store';
 
+import { Info } from 'lucide-react';
+
 export const SessionIntelligencePanel = () => {
   const kpis = useFleetKpis();
   const baseSessions = Math.round(kpis.totalAssets * 4.2);
@@ -46,7 +48,6 @@ export const SessionIntelligencePanel = () => {
           </ul>
         </div>
       </div>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard
           title="Today's Sessions"

@@ -1,4 +1,4 @@
-import { Contrast, Cog, Gauge, LayoutGrid, Radio, Server, ShieldCheck, BookOpen, Activity } from 'lucide-react';
+import { Contrast, Cog, Database, Gauge, KeyRound, LayoutGrid, Radio, Server, ShieldCheck, ClipboardList, BookOpen, Activity } from 'lucide-react';
 import type { LiveWindow } from '@/types';
 import { APP } from '@/config/env';
 import { MODULE_TITLES } from '@/config/navigation';
@@ -242,6 +242,52 @@ export const SettingsPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </Card>
+
+        {/* ─── Release Notes ────────────────────────────────────────────── */}
+        <Card className="xl:col-span-2">
+          <CardHeader
+            title="Release Notes"
+            subtitle="Recent updates and improvements to the Intelora platform"
+            eyebrow="Changelog"
+            icon={ClipboardList}
+          />
+
+          <div className="mt-5 space-y-6">
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">1. UI Decluttering & Refinement</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Removed the AI Copilot Panel:</strong> Stripped out the bulky "Intelora Reliability Copilot" from the APM page to give the analytics dashboard a cleaner look.</li>
+                <li><strong className="text-fg-soft">Removed the Identity Card:</strong> Completely removed the "Account and access" identity card from the SettingsPage.</li>
+                <li><strong className="text-fg-soft">Removed "Fleet Health" Workspace:</strong> Removed the redundant Fleet Health card from the Explore Workspaces grid (OeeHub) so it strictly focuses on the core 4 analytical modules.</li>
+                <li><strong className="text-fg-soft">Cleaned up Navigation:</strong> Removed duplicate "Back to Asset Performance" buttons across the APM module to rely entirely on the cleaner breadcrumb and tab navigation.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">2. Architectural & Layout Fixes</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Fixed the Hierarchy Tree Layout:</strong> Re-architected ApmAssetsPage so that the ApmHierarchyTree mounts cleanly inside the established page header frame, rather than pushing the entire page layout downward.</li>
+                <li><strong className="text-fg-soft">Stabilized the Real-Time Clock:</strong> Refactored the LiveIndicator clock. It now runs on its own continuous interval, meaning the UI clock will no longer "freeze" when you pause the telemetry simulation engine.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">3. Data Transparency & OEE Integration</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Wired up True OEE Data:</strong> Updated the ExecutiveOverviewPanel to pull the actual Availability, Performance, and Quality data directly from the Python backend instead of relying on the old hardcoded placeholder values (87.5% and 96.2%).</li>
+                <li><strong className="text-fg-soft">Session Intelligence Transparency:</strong> Added a clear information banner to the SessionIntelligencePanel explaining exactly how the session metrics (Today's Sessions, Success Rate) are mathematically simulated based on the asset count.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">4. User-Adjustable Telemetry Stream</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Unified Polling Intervals:</strong> Replaced the separate, hardcoded livePollMs and analyticsPollMs in the environment config with a single streamIntervalMs.</li>
+                <li><strong className="text-fg-soft">Added UI Controls:</strong> Added a new control in the SettingsPage allowing you to dynamically adjust how fast the UI polls the backend (1s, 5s, 15s, or 30s) based on your network needs.</li>
+              </ul>
+            </div>
           </div>
         </Card>
 

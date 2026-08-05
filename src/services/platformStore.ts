@@ -247,7 +247,7 @@ class PlatformStore {
     void this.refreshAnalytics();
     void this.refreshLive();
 
-    this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), this.streamIntervalMs);
+    this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), 15_000);
 
     if (env.useWebsocket) {
       this.openSocket();
@@ -290,7 +290,7 @@ class PlatformStore {
     if (this.running) {
       if (this.analyticsTimer !== null) {
         window.clearInterval(this.analyticsTimer);
-        this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), this.streamIntervalMs);
+        this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), 15_000);
       }
       if (this.liveTimer !== null) {
         window.clearInterval(this.liveTimer);

@@ -80,20 +80,36 @@ class InteloraEngine:
 
         self.telemetry_source: str = "Simulator"
         self.mqtt_history: dict[str, deque[Reading]] = defaultdict(lambda: deque(maxlen=settings.live_window_samples))
+        self.mqtt_receive_times: dict[str, datetime] = {}
+        
+        # Session isolation for physical gateway connections
+        self.active_session_sender_uid: str | None = None
+        self.candidate_sessions: dict[str, set[str]] = defaultdict(set)
+        self.session_latch_time: datetime | None = None
+        
         self.mqtt_received_count: int = 0
 
         self._analytics: Analytics = Analytics(computed_at=self.started_at)
         self._lock = threading.RLock()
 
     def set_telemetry_source(self, source: str) -> None:
+        """Switch between Simulator and Live MQTT telemetry."""
         with self._lock:
+            if source not in ["Simulator", "Live MQTT"]:
+                raise ValueError(f"Invalid source: {source}")
             self.telemetry_source = source
-            if "MQTT" in source or source == "Live MQTT":
-                self.mqtt_history.clear()
-                self.mqtt_received_count = 0
-                self.detector.journal.clear()
-                self.detector._by_uid.clear()
-                self.detector._breaches.clear()
+            
+            # Reset session latching and history when switching modes
+            self.active_session_sender_uid = None
+            self.candidate_sessions.clear()
+            self.session_latch_time = None
+            self.mqtt_history.clear()
+            self.mqtt_receive_times.clear()
+            self.mqtt_received_count = 0
+            self.detector.journal.clear()
+            self.detector._by_uid.clear()
+            self.detector._breaches.clear()
+            self._analytics = Analytics(computed_at=datetime.now(timezone.utc))
             self.refresh_analytics()
 
     def register_asset(self, seed: AssetSeed) -> AssetState:
@@ -128,12 +144,47 @@ class InteloraEngine:
             self.tick += 1
             self.mqtt_received_count += len(readings)
 
-            events: list[AnomalyEvent] = []
+            # 1. Wait for physical gateway traffic
+            if self.active_session_sender_uid is None:
+                if self.session_latch_time is None:
+                    self.session_latch_time = datetime.now(timezone.utc)
+                
+                # Gather candidate sender_uids and their unique device counts for 3 seconds
+                for reading in readings:
+                    if reading.sender_uid:
+                        self.candidate_sessions[reading.sender_uid].add(reading.asset_id)
+                
+                if (datetime.now(timezone.utc) - self.session_latch_time).total_seconds() > 3.0:
+                    # After 3 seconds, evaluate the collected candidates
+                    valid_candidates = {uid: len(devices) for uid, devices in self.candidate_sessions.items() if len(devices) > 0}
+                    if valid_candidates:
+                        # Latch onto the gateway with the FEWEST unique devices (heuristic for user's physical connection)
+                        self.active_session_sender_uid = min(valid_candidates, key=valid_candidates.get)
+                        logger.info(f"Session latched to sender_uid: {self.active_session_sender_uid} with {valid_candidates[self.active_session_sender_uid]} devices")
+                        self.candidate_sessions.clear()
+                        self.session_latch_time = None
+                    else:
+                        # Reset if no valid candidates found yet
+                        self.session_latch_time = None
+                        
+                # Until the 3-second discovery phase successfully latches, drop all traffic
+                return StepResult(readings=[], events=[], tick=self.tick, at=now or datetime.now(timezone.utc))
+                
+            # 2. Drop cross-traffic from other gateways or developers
+            accepted_readings = []
             for reading in readings:
+                if reading.sender_uid == self.active_session_sender_uid:
+                    accepted_readings.append(reading)
+
+            if not accepted_readings:
+                return StepResult(readings=[], events=[], tick=self.tick, at=now or datetime.now(timezone.utc))
+
+            events: list[AnomalyEvent] = []
+            for reading in accepted_readings:
                 self.mqtt_history[reading.asset_id].append(reading)
 
                 if reading.asset_id not in self.simulator.states:
-                    ref_key = "CHG-001" if "CHG" in reading.asset_id else "LAP-001"
+                    ref_key = "CHR-001" if "CHR" in reading.asset_id else "LAP-001"
                     if ref_key in self.simulator.states:
                         ref = self.simulator.states[ref_key]
                         self.simulator.states[reading.asset_id] = AssetState(
@@ -188,6 +239,11 @@ class InteloraEngine:
                             last_ts = last_ts.replace(tzinfo=timezone.utc)
                         if (now - last_ts).total_seconds() <= 60.0:
                             active.append(aid)
+                            
+                # Release session latch if all connected assets go offline
+                if not active:
+                    self.active_session_sender_uid = None
+                    
                 return active
             return list(self.simulator.states.keys())
 

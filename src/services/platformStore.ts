@@ -225,6 +225,10 @@ class PlatformStore {
     return () => this.connectionListeners.delete(listener);
   };
 
+  notifySourceChanged = (): void => {
+    for (const listener of this.listeners) listener();
+  };
+
   getSnapshot = (): EngineSnapshot => this.snapshot;
 
   getConnection = (): ConnectionSnapshot => this.connection;

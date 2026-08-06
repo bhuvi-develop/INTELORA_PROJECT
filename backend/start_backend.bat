@@ -79,6 +79,12 @@ if not exist ".env" (
 
 REM --- PostgreSQL -----------------------------------------------------
 echo [4/6] Verifying PostgreSQL...
+"%PYTHON%" -c "import pydantic, sqlalchemy, alembic, psycopg" >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo ERROR: Python packages are missing or corrupted.
+    exit /b 1
+)
 "%PYTHON%" -c "from app.database.init_db import ensure_database; ensure_database()"
 if errorlevel 1 (
     echo.

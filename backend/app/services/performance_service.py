@@ -98,9 +98,10 @@ class PerformanceService:
         resolved_durations_minutes: list[float],
         failure_probability: float,
     ) -> PerformanceResult:
-        availability = availability_from_uptime(state.uptime_ratio)
-        performance = performance_from_health(state.health, state.temperature_ratio)
-        quality = quality_from_health(state.health, anomalies_24h)
+        category = state.seed.category
+        availability = availability_from_uptime(state.uptime_ratio, category)
+        performance = performance_from_health(state.health, state.temperature_ratio, category)
+        quality = quality_from_health(state.health, anomalies_24h, category)
         effectiveness = oee_of(availability, performance, quality)
 
         # Mean time between failures over the observed run, and mean time to

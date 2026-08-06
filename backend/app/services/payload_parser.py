@@ -9,7 +9,7 @@ from app.services.simulator import Reading
 logger = get_logger(__name__)
 
 # Valid estate asset IDs for mapping safety
-ESTATE_ASSET_IDS = [f"LAP-{i:03d}" for i in range(1, 15)] + [f"CHG-{i:03d}" for i in range(1, 11)]
+ESTATE_ASSET_IDS = [f"LAP-{i:03d}" for i in range(1, 15)] + [f"CHR-{i:03d}" for i in range(1, 11)]
 
 def _extract_val(data: dict, keys: list, default=None):
     """Utility to check multiple key aliases in dictionary."""
@@ -28,12 +28,12 @@ def extract_asset_id(topic: str, data: dict) -> str:
         pid = str(payload_id).strip()
         if pid in ESTATE_ASSET_IDS:
             return pid
-        match = re.search(r"(LAP-\d{3}|CHG-\d{3})", pid, re.IGNORECASE)
+        match = re.search(r"(LAP-\d{3}|CHR-\d{3})", pid, re.IGNORECASE)
         if match:
             return match.group(1).upper()
 
     # 2. Try topic extraction
-    topic_match = re.search(r"(LAP-\d{3}|CHG-\d{3})", topic, re.IGNORECASE)
+    topic_match = re.search(r"(LAP-\d{3}|CHR-\d{3})", topic, re.IGNORECASE)
     if topic_match:
         return topic_match.group(1).upper()
 
@@ -42,13 +42,24 @@ def extract_asset_id(topic: str, data: dict) -> str:
         if p.upper() in ESTATE_ASSET_IDS:
             return p.upper()
 
-    # 3. Deterministically map device_uid (e.g. "0302110000000001") to a unique stable asset ID
+    # 3. Deterministically map device_uid (e.g. "0104120000000001") to a unique stable asset ID
     device_uid = str(_extract_val(data, ["device_uid", "sender_uid", "uid", "mac", "serial"], default=""))
     if device_uid:
         h_val = int(hashlib.md5(device_uid.encode('utf-8')).hexdigest(), 16)
+        
+        # Determine category based on device_uid structure if possible
+        # e.g. "0104..." -> Mobile Charger (04), "0102..." -> Laptop (02)
+        if len(device_uid) >= 4 and device_uid[2:4] == "04":
+            idx = (h_val % 10) + 1
+            return f"CHR-{idx:03d}"
+        elif len(device_uid) >= 4 and device_uid[2:4] == "02":
+            idx = (h_val % 14) + 1
+            return f"LAP-{idx:03d}"
+            
+        # Fallback if structure is unknown
         if "voltage" in data or "current" in data or "power" in data or "active_power" in data:
             idx = (h_val % 10) + 1
-            return f"CHG-{idx:03d}"
+            return f"CHR-{idx:03d}"
         else:
             idx = (h_val % 14) + 1
             return f"LAP-{idx:03d}"
@@ -129,6 +140,8 @@ def parse_mqtt_payload(topic: str, payload_str: str, source_tag: str = "Live MQT
 
             asset_id = extract_asset_id(topic, data)
             device_uid = str(_extract_val(data, ["device_uid", "sender_uid", "uid", "mac", "serial"], default=f"uid_{asset_id.lower()}"))
+            sender_uid_raw = data.get("sender_uid")
+            sender_uid = str(sender_uid_raw) if sender_uid_raw else None
 
             # Record present parameter keys from raw payload
             present_params = []
@@ -224,7 +237,8 @@ def parse_mqtt_payload(topic: str, payload_str: str, source_tag: str = "Live MQT
                     load_state=load_state,
                     resolution="second",
                     source=source_tag,
-                    present_parameters=present_params
+                    present_parameters=present_params,
+                    sender_uid=sender_uid
                 )
             )
 

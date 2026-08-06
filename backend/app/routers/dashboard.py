@@ -50,7 +50,7 @@ def read_dashboard(
 
     tiles = []
     for asset_id in engine.get_active_asset_ids():
-        state = engine.simulator.states[asset_id]
+        state = engine.active_states[asset_id]
         performance = analytics.performance.get(asset_id)
         reading = engine.get_live_reading(asset_id)
         tiles.append(

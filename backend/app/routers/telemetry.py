@@ -42,7 +42,7 @@ def read_live(
     category: str | None = Query(default=None, description="Restrict to one device class"),
     engine: InteloraEngine = Depends(get_engine),
 ) -> LiveTelemetry:
-    if asset_id and asset_id not in engine.simulator.states:
+    if asset_id and asset_id not in engine.active_states:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
 
     readings = engine.get_live_readings(asset_id=asset_id, category=category)
@@ -55,7 +55,7 @@ def read_window(
     samples: int = Query(default=300, ge=1, le=settings.live_window_samples),
     engine: InteloraEngine = Depends(get_engine),
 ) -> dict:
-    if asset_id not in engine.simulator.states:
+    if asset_id not in engine.active_states:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
 
     window = engine.get_window(asset_id, samples)
@@ -122,13 +122,13 @@ def read_history(
             detail=f"resolution must be one of {', '.join(RESOLUTION_STEPS)}",
         )
 
-    if asset_id and asset_id not in engine.simulator.states:
+    if asset_id and asset_id not in engine.active_states:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
 
     if component:
         carriers = {
             identifier
-            for identifier, state in engine.simulator.states.items()
+            for identifier, state in engine.active_states.items()
             if any(spec.name == component for spec in state.profile.components)
         }
         if not carriers:
@@ -154,8 +154,9 @@ def read_history(
         .limit(limit)
     )
 
-    if source:
-        query = query.where(Telemetry.source.ilike(f"%{source}%"))
+    active_source = source or engine.telemetry_source
+    if active_source:
+        query = query.where(Telemetry.source.ilike(f"%{active_source}%"))
     if asset_id:
         query = query.where(Telemetry.asset_id == asset_id)
     elif carriers is not None:

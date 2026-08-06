@@ -292,7 +292,7 @@ def activity_feed(engine: InteloraEngine, limit: int = 25) -> list[dict]:
             )
 
     for aid in engine.get_active_asset_ids():
-        state = engine.simulator.states.get(aid)
+        state = engine.active_states.get(aid)
         if state and state.device_status == "Offline" and state.history:
             entries.append(
                 {

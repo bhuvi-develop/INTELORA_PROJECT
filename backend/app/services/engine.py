@@ -66,9 +66,13 @@ from collections import defaultdict, deque
 class InteloraEngine:
     def __init__(self) -> None:
         self.simulator = MikosSimulator()
-        self.scorer = AnomalyScorer()
         self.degradation = DegradationModel()
-        self.detector = AnomalyDetector(self.scorer)
+        
+        self.scorer_sim = AnomalyScorer()
+        self.scorer_mqtt = AnomalyScorer()
+        self.detector_sim = AnomalyDetector(self.scorer_sim)
+        self.detector_mqtt = AnomalyDetector(self.scorer_mqtt)
+        
         self.predictive = PredictiveService(self.degradation)
         self.performance = PerformanceService()
 
@@ -79,6 +83,7 @@ class InteloraEngine:
         self.history_backfilled: bool = False
 
         self.telemetry_source: str = "Simulator"
+        self.mqtt_states: dict[str, AssetState] = {}
         self.mqtt_history: dict[str, deque[Reading]] = defaultdict(lambda: deque(maxlen=settings.live_window_samples))
         self.mqtt_receive_times: dict[str, datetime] = {}
         
@@ -89,8 +94,29 @@ class InteloraEngine:
         
         self.mqtt_received_count: int = 0
 
-        self._analytics: Analytics = Analytics(computed_at=self.started_at)
+        self._analytics_sim: Analytics = Analytics(computed_at=self.started_at)
+        self._analytics_mqtt: Analytics = Analytics(computed_at=self.started_at)
         self._lock = threading.RLock()
+
+    @property
+    def detector(self) -> AnomalyDetector:
+        return self.detector_mqtt if self.telemetry_source == "Live MQTT" else self.detector_sim
+
+    @property
+    def _analytics(self) -> Analytics:
+        return self._analytics_mqtt if self.telemetry_source == "Live MQTT" else self._analytics_sim
+
+    @_analytics.setter
+    def _analytics(self, val: Analytics) -> None:
+        if self.telemetry_source == "Live MQTT":
+            self._analytics_mqtt = val
+        else:
+            self._analytics_sim = val
+
+    @property
+    def active_states(self) -> dict[str, AssetState]:
+        """Returns the dictionary of asset states for the active telemetry source."""
+        return self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
 
     def set_telemetry_source(self, source: str) -> None:
         """Switch between Simulator and Live MQTT telemetry."""
@@ -99,17 +125,10 @@ class InteloraEngine:
                 raise ValueError(f"Invalid source: {source}")
             self.telemetry_source = source
             
-            # Reset session latching and history when switching modes
+            # Reset session latching only; journals and analytics persist to isolate modes
             self.active_session_sender_uid = None
             self.candidate_sessions.clear()
             self.session_latch_time = None
-            self.mqtt_history.clear()
-            self.mqtt_receive_times.clear()
-            self.mqtt_received_count = 0
-            self.detector.journal.clear()
-            self.detector._by_uid.clear()
-            self.detector._breaches.clear()
-            self._analytics = Analytics(computed_at=datetime.now(timezone.utc))
             self.refresh_analytics()
 
     def register_asset(self, seed: AssetSeed) -> AssetState:
@@ -183,11 +202,14 @@ class InteloraEngine:
             for reading in accepted_readings:
                 self.mqtt_history[reading.asset_id].append(reading)
 
-                if reading.asset_id not in self.simulator.states:
-                    ref_key = "CHR-001" if "CHR" in reading.asset_id else "LAP-001"
-                    if ref_key in self.simulator.states:
-                        ref = self.simulator.states[ref_key]
-                        self.simulator.states[reading.asset_id] = AssetState(
+                if reading.asset_id not in self.mqtt_states:
+                    from app.mock_data.catalog import CATALOG
+                    ref = CATALOG.get(reading.asset_id)
+                    if ref is None:
+                        ref_key = "CHR-001" if "CHR" in reading.asset_id else "LAP-001"
+                        ref = self.simulator.states[ref_key] if ref_key in self.simulator.states else CATALOG.get(ref_key)
+                    if ref:
+                        self.mqtt_states[reading.asset_id] = AssetState(
                             seed=ref.seed,
                             profile=ref.profile,
                             health=reading.health_score,
@@ -199,8 +221,8 @@ class InteloraEngine:
                             history=deque(maxlen=900)
                         )
 
-                if reading.asset_id in self.simulator.states:
-                    state = self.simulator.states[reading.asset_id]
+                if reading.asset_id in self.mqtt_states:
+                    state = self.mqtt_states[reading.asset_id]
                     if "voltage" in reading.present_parameters or reading.voltage > 0:
                         state.voltage = reading.voltage
                     if "current" in reading.present_parameters or reading.current > 0:
@@ -254,8 +276,8 @@ class InteloraEngine:
                     return self.mqtt_history[asset_id][-1]
                 
                 device_uid = f"uid_{asset_id.lower()}"
-                if asset_id in self.simulator.states:
-                    device_uid = self.simulator.states[asset_id].device_uid
+                if asset_id in self.mqtt_states:
+                    device_uid = self.mqtt_states[asset_id].device_uid
 
                 return Reading(
                     asset_id=asset_id,
@@ -319,8 +341,9 @@ class InteloraEngine:
                 return []
             
             readings = []
+            source_states = self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
             for id_str in active_ids:
-                state = self.simulator.states.get(id_str)
+                state = source_states.get(id_str)
                 if state and (category is None or state.seed.category == category):
                     readings.append(self.get_live_reading(id_str))
             return readings
@@ -340,9 +363,11 @@ class InteloraEngine:
         """Refit both models for every asset that has accumulated enough history."""
         fitted = 0
         with self._lock:
-            for asset_id, state in self.simulator.states.items():
+            active_states = self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
+            active_scorer = self.scorer_mqtt if self.telemetry_source == "Live MQTT" else self.scorer_sim
+            for asset_id, state in active_states.items():
                 window = list(state.history)
-                if self.scorer.maybe_fit(asset_id, window):
+                if active_scorer.maybe_fit(asset_id, window):
                     fitted += 1
                 self.predictive.refresh_fit(state)
         if fitted:
@@ -360,10 +385,11 @@ class InteloraEngine:
             performance: dict[str, PerformanceResult] = {}
             active_ids = self.get_active_asset_ids()
 
+            active_states = self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
             for asset_id in active_ids:
-                if asset_id not in self.simulator.states:
+                if asset_id not in active_states:
                     continue
-                state = self.simulator.states[asset_id]
+                state = active_states[asset_id]
                 if self.telemetry_source == "Live MQTT":
                     if asset_id in self.mqtt_history and self.mqtt_history[asset_id]:
                         prediction = self.predictive.predict(state, stamp)
@@ -515,7 +541,8 @@ class InteloraEngine:
         stamp: datetime,
     ) -> dict:
         active_ids = self.get_active_asset_ids()
-        states = [self.simulator.states[aid] for aid in active_ids if aid in self.simulator.states]
+        active_states = self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
+        states = [active_states[aid] for aid in active_ids if aid in active_states]
         total = len(active_ids)
         latest = [state.history[-1] for state in states if state.history]
 
@@ -569,7 +596,8 @@ class InteloraEngine:
 
     def asset_view(self, asset_id: str) -> dict | None:
         """Everything known about one device, assembled from a single snapshot."""
-        state = self.simulator.states.get(asset_id)
+        active_states = self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
+        state = active_states.get(asset_id)
         if state is None:
             return None
 
@@ -664,7 +692,8 @@ class InteloraEngine:
 
     def platform_health(self, database_ok: bool, database_latency_ms: float) -> dict:
         active_ids = self.get_active_asset_ids()
-        states = [self.simulator.states[aid] for aid in active_ids if aid in self.simulator.states]
+        active_states = self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
+        states = [active_states[aid] for aid in active_ids if aid in active_states]
         if "MQTT" in self.telemetry_source or self.telemetry_source == "Live MQTT":
             latest_mqtt = [self.mqtt_history[aid][-1] for aid in active_ids if aid in self.mqtt_history and self.mqtt_history[aid]]
             connected = sum(1 for r in latest_mqtt if r.device_status != "Offline")

@@ -247,7 +247,7 @@ class PlatformStore {
     void this.refreshAnalytics();
     void this.refreshLive();
 
-    this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), 15_000);
+    this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), this.streamIntervalMs);
 
     if (env.useWebsocket) {
       this.openSocket();
@@ -290,7 +290,7 @@ class PlatformStore {
     if (this.running) {
       if (this.analyticsTimer !== null) {
         window.clearInterval(this.analyticsTimer);
-        this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), 15_000);
+        this.analyticsTimer = window.setInterval(() => void this.refreshAnalytics(), this.streamIntervalMs);
       }
       if (this.liveTimer !== null) {
         window.clearInterval(this.liveTimer);
@@ -480,7 +480,7 @@ class PlatformStore {
       applyBandThresholds(dashboard.bands.map((band) => ({ band: band.band, min: band.min })));
       applyFleetFacets(
         Array.from(new Set(assets.assets.map((asset) => asset.category))),
-        ['Enterprise']
+        Array.from(new Set(assets.assets.map((asset) => asset.brand))).sort(),
       );
       applyEffectivenessTargets(dashboard.oee.target, dashboard.oee.world_class);
 
@@ -599,25 +599,13 @@ class PlatformStore {
       .catch(() => undefined);
   }
 
-  notifySourceChanged(): void {
-    this.history.clear();
-    this.hydrated = false;
-    this.details.clear();
-    this.reportsLoaded = false;
-    void this.refreshAnalytics();
+  getDailyRecords(): DailyTelemetryRecord[] {
+    return this.dailyRecords;
   }
 
-  /*
-   * Bound properties, not prototype methods.
-   *
-   * These are handed straight to useSyncExternalStore, which invokes them with
-   * no receiver. A prototype method loses `this` at that call site and throws
-   * on first read, so the binding is load-bearing — matching `subscribe` and
-   * `getSnapshot` above.
-   */
-  getDailyRecords = (): DailyTelemetryRecord[] => this.dailyRecords;
-
-  getPredictionRecords = (): PredictionHistoryRecord[] => this.predictionRecords;
+  getPredictionRecords(): PredictionHistoryRecord[] {
+    return this.predictionRecords;
+  }
 
   /* ── Connection bookkeeping ───────────────────────────────────────── */
 

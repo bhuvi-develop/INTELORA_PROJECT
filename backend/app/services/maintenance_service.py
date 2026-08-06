@@ -143,9 +143,9 @@ class MaintenanceService:
 
         active_ids = engine.get_active_asset_ids()
         for aid in active_ids:
-            if aid not in engine.simulator.states:
+            if aid not in engine.active_states:
                 continue
-            state = engine.simulator.states[aid]
+            state = engine.active_states[aid]
             band = band_of(state.health)
             templates = TASK_TEMPLATES.get(state.seed.category, ())
 
@@ -198,9 +198,9 @@ class MaintenanceService:
 
         active_ids = engine.get_active_asset_ids()
         for asset_id in active_ids:
-            if asset_id not in engine.simulator.states:
+            if asset_id not in engine.active_states:
                 continue
-            state = engine.simulator.states[asset_id]
+            state = engine.active_states[asset_id]
             prediction = analytics.predictions.get(asset_id)
             weakest = prediction.primary.component if prediction else "device"
             band = band_of(state.health)

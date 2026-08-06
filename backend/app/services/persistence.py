@@ -68,7 +68,7 @@ def sync_asset_state(session: Session, engine: InteloraEngine) -> None:
     """Push live connectivity and relay state back onto the register."""
     now = datetime.now(timezone.utc)
 
-    for asset_id, state in engine.simulator.states.items():
+    for asset_id, state in engine.active_states.items():
         session.execute(
             update(Asset).where(Asset.asset_id == asset_id).values(status=state.device_status)
         )
@@ -86,7 +86,7 @@ def sync_asset_state(session: Session, engine: InteloraEngine) -> None:
 
 def sync_component_wear(session: Session, engine: InteloraEngine) -> None:
     """Persist component wear so a restart resumes from the estate's real age."""
-    for asset_id, state in engine.simulator.states.items():
+    for asset_id, state in engine.active_states.items():
         for position, spec in enumerate(state.profile.components):
             if position >= len(state.wear):
                 continue
@@ -113,7 +113,7 @@ def restore_component_wear(session: Session, engine: InteloraEngine) -> int:
     for row in rows:
         by_asset.setdefault(row.asset_id, {})[row.name] = float(row.wear)
 
-    for asset_id, state in engine.simulator.states.items():
+    for asset_id, state in engine.active_states.items():
         stored = by_asset.get(asset_id)
         if not stored:
             continue
@@ -153,7 +153,7 @@ def restore_meter_readings(session: Session, engine: InteloraEngine) -> int:
 
     restored = 0
     for row in session.execute(newest).all():
-        state = engine.simulator.states.get(row.asset_id)
+        state = engine.active_states.get(row.asset_id)
         if state is None:
             continue
         state.energy_kwh = max(state.energy_kwh, float(row.energy_kwh))

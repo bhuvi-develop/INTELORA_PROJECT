@@ -113,6 +113,11 @@ class InteloraEngine:
         else:
             self._analytics_sim = val
 
+    @property
+    def active_states(self) -> dict[str, AssetState]:
+        """Returns the dictionary of asset states for the active telemetry source."""
+        return self.mqtt_states if self.telemetry_source == "Live MQTT" else self.simulator.states
+
     def set_telemetry_source(self, source: str) -> None:
         """Switch between Simulator and Live MQTT telemetry."""
         with self._lock:

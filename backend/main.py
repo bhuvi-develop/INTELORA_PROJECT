@@ -183,7 +183,7 @@ def health() -> dict:
         "service": settings.app_name,
         "version": settings.app_version,
         "tick": engine.tick,
-        "assets": len(engine.simulator.states),
+        "assets": len(engine.active_states),
         "at": datetime.now(timezone.utc),
     }
 

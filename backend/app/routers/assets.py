@@ -21,13 +21,13 @@ def create_asset(
 ) -> dict:
     cat_prefix = "CHR" if payload.category == "Mobile Charger" else ("AIR" if payload.category == "Air Conditioner" else "LAP")
     if not payload.asset_id:
-        existing_ids = [aid for aid in engine.simulator.states.keys() if aid.startswith(cat_prefix)]
+        existing_ids = [aid for aid in engine.active_states.keys() if aid.startswith(cat_prefix)]
         seq = len(existing_ids) + 1
         asset_id = f"{cat_prefix}-{seq:03d}"
     else:
         asset_id = payload.asset_id
 
-    if asset_id in engine.simulator.states:
+    if asset_id in engine.active_states:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Asset ID {asset_id} is already commissioned",
@@ -102,7 +102,7 @@ def list_assets(
     rows = []
 
     for asset_id in engine.get_active_asset_ids():
-        state = engine.simulator.states[asset_id]
+        state = engine.active_states[asset_id]
         if category and state.seed.category != category:
             continue
         if status_filter and state.device_status != status_filter:
@@ -198,7 +198,7 @@ def read_components(asset_id: str, engine: InteloraEngine = Depends(get_engine))
     how long left — are asked by the maintenance modules without needing the
     telemetry that comes with the full asset view.
     """
-    state = engine.simulator.states.get(asset_id)
+    state = engine.active_states.get(asset_id)
     if state is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No asset {asset_id}")
 

@@ -3,20 +3,18 @@ import {
   Cog,
   Database,
   Gauge,
-  KeyRound,
   LayoutGrid,
   Radio,
   Server,
   ShieldCheck,
   ClipboardList,
-  BookOpen,
-  Activity,
 } from 'lucide-react';
 
 import type { LiveWindow } from '@/types';
-import { APP } from '@/config/env';
+import { APP, env, grafanaEnabled } from '@/config/env';
 import { MODULE_TITLES } from '@/config/navigation';
 import { TICK_MS, WEAR_TIME_SCALE } from '@/engine/catalog';
+import { OEE_TARGET } from '@/engine/derive';
 import { useEngineControl, useSnapshot } from '@/engine/store';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { useAuth, useUI } from '@/hooks';
@@ -26,6 +24,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Segmented } from '@/components/ui/Segmented';
+import { Switch } from '@/components/ui/Switch';
 
 import { LiveIndicator, MetaStat, PageHeader } from '@/components/common';
 

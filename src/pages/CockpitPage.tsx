@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Activity,
   AlertTriangle,
   Clock3,
   Gauge,
@@ -25,13 +24,13 @@ import {
   AlertSummaryWorkspace,
   EfficiencyWorkspace,
 } from '@/components/cockpit';
-import type { KpiStatus } from '@/components/cockpit';
+
 
 export const CockpitPage = () => {
   const [activeWorkspace, setActiveWorkspace] = useState<string>('landing');
   const [isAssetsExpanded, setIsAssetsExpanded] = useState(false);
   const snapshot = useSnapshot();
-  const { kpis, oee, assets, energy, operationalHealth, yesterday, fleetTrail } = snapshot;
+  const { kpis, oee, assets, energy, yesterday, fleetTrail } = snapshot;
 
   const trails = useMemo(() => {
     const healthTrail = fleetTrail.map((point) => point.health);
@@ -51,8 +50,6 @@ export const CockpitPage = () => {
     [assets],
   );
 
-  const healthStatus = (value: number): KpiStatus =>
-    value >= 95 ? 'good' : value >= 80 ? 'neutral' : value >= 65 ? 'warning' : 'critical';
 
   const onBack = () => setActiveWorkspace('landing');
 

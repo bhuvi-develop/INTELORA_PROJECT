@@ -1,9 +1,39 @@
-import { Contrast, Cog, Database, Gauge, KeyRound, LayoutGrid, Radio, Server, ShieldCheck } from 'lucide-react';
+import {
+  Contrast,
+  Cog,
+  Database,
+  Gauge,
+  KeyRound,
+  LayoutGrid,
+  Radio,
+  Server,
+  ShieldCheck,
+  ClipboardList,
+  BookOpen,
+  Activity,
+} from 'lucide-react';
+import {
+  Contrast,
+  Cog,
+  Database,
+  Gauge,
+  KeyRound,
+  LayoutGrid,
+  Radio,
+  Server,
+  ShieldCheck,
+  ClipboardList,
+  BookOpen,
+  Activity,
+} from 'lucide-react';
+
 import type { LiveWindow } from '@/types';
-import { APP, env, grafanaEnabled } from '@/config/env';
+import { APP } from '@/config/env';
+import { MODULE_TITLES } from '@/config/navigation';
+import type { LiveWindow } from '@/types';
+import { APP } from '@/config/env';
 import { MODULE_TITLES } from '@/config/navigation';
 import { TICK_MS, WEAR_TIME_SCALE } from '@/engine/catalog';
-import { OEE_TARGET } from '@/engine/derive';
 import { useEngineControl, useSnapshot } from '@/engine/store';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { useAuth, useUI } from '@/hooks';
@@ -13,7 +43,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Segmented } from '@/components/ui/Segmented';
-import { Switch } from '@/components/ui/Switch';
+
 import { LiveIndicator, MetaStat, PageHeader } from '@/components/common';
 
 const Row = ({ label, value }: { label: string; value: string }) => (
@@ -162,19 +192,20 @@ export const SettingsPage = () => {
             <p className="mt-1 text-[11px] text-fg-dim">
               How frequently the interface pulls new data from the backend.
             </p>
-            <Segmented
-              ariaLabel="Stream interval"
-              layoutId="settings-stream-interval"
-              className="mt-2.5"
-              options={[
-                { value: 1000, label: '1s (Live)' },
-                { value: 5000, label: '5s' },
-                { value: 15000, label: '15s' },
-                { value: 30000, label: '30s' },
-              ]}
-              value={streamIntervalMs}
-              onChange={(val) => setStreamIntervalMs(Number(val))}
-            />
+              <Segmented
+                ariaLabel="Stream interval"
+                layoutId="settings-stream-interval"
+                className="mt-2.5"
+                options={[
+                  { value: '1000', label: '1s (Live)' },
+                  { value: '5000', label: '5s' },
+                  { value: '15000', label: '15s' },
+                  { value: '30000', label: '30s' },
+                ]}
+                value={String(streamIntervalMs)}
+                onChange={(val) => setStreamIntervalMs(Number(val))}
+              />
+
           </div>
 
           <p className="mt-4 rounded-xl border border-overlay/[0.07] bg-ink-850/50 p-3.5 text-[11px] leading-relaxed text-fg-dim">
@@ -227,6 +258,52 @@ export const SettingsPage = () => {
             <code className="rounded bg-overlay/[0.06] px-1 py-0.5 font-mono text-[10.5px]">VITE_GRAFANA_BASE_URL</code> at
             a Grafana instance to activate the embedded historical panels.
           </p>
+        </Card>
+
+        {/* ─── Release Notes ────────────────────────────────────────────── */}
+        <Card className="xl:col-span-2">
+          <CardHeader
+            title="Release Notes"
+            subtitle="Recent updates and improvements to the Intelora platform"
+            eyebrow="Changelog"
+            icon={ClipboardList}
+          />
+
+          <div className="mt-5 space-y-6">
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">1. UI Decluttering & Refinement</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Removed the AI Copilot Panel:</strong> Stripped out the bulky "Intelora Reliability Copilot" from the APM page to give the analytics dashboard a cleaner look.</li>
+                <li><strong className="text-fg-soft">Removed the Identity Card:</strong> Completely removed the "Account and access" identity card from the SettingsPage.</li>
+                <li><strong className="text-fg-soft">Removed "Fleet Health" Workspace:</strong> Removed the redundant Fleet Health card from the Explore Workspaces grid (OeeHub) so it strictly focuses on the core 4 analytical modules.</li>
+                <li><strong className="text-fg-soft">Cleaned up Navigation:</strong> Removed duplicate "Back to Asset Performance" buttons across the APM module to rely entirely on the cleaner breadcrumb and tab navigation.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">2. Architectural & Layout Fixes</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Fixed the Hierarchy Tree Layout:</strong> Re-architected ApmAssetsPage so that the ApmHierarchyTree mounts cleanly inside the established page header frame, rather than pushing the entire page layout downward.</li>
+                <li><strong className="text-fg-soft">Stabilized the Real-Time Clock:</strong> Refactored the LiveIndicator clock. It now runs on its own continuous interval, meaning the UI clock will no longer "freeze" when you pause the telemetry simulation engine.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">3. Data Transparency & OEE Integration</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Wired up True OEE Data:</strong> Updated the ExecutiveOverviewPanel to pull the actual Availability, Performance, and Quality data directly from the Python backend instead of relying on the old hardcoded placeholder values (87.5% and 96.2%).</li>
+                <li><strong className="text-fg-soft">Session Intelligence Transparency:</strong> Added a clear information banner to the SessionIntelligencePanel explaining exactly how the session metrics (Today's Sessions, Success Rate) are mathematically simulated based on the asset count.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[13px] font-semibold text-fg">4. User-Adjustable Telemetry Stream</h4>
+              <ul className="mt-2 space-y-1.5 text-[11.5px] text-fg-dim list-disc ml-4">
+                <li><strong className="text-fg-soft">Unified Polling Intervals:</strong> Replaced the separate, hardcoded livePollMs and analyticsPollMs in the environment config with a single streamIntervalMs.</li>
+                <li><strong className="text-fg-soft">Added UI Controls:</strong> Added a new control in the SettingsPage allowing you to dynamically adjust how fast the UI polls the backend (1s, 5s, 15s, or 30s) based on your network needs.</li>
+              </ul>
+            </div>
+          </div>
         </Card>
 
         {/* ─── Platform services ───────────────────────────────────────── */}

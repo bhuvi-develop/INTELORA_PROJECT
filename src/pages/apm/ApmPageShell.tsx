@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, ChevronRight, Download, ListFilter } from 'lucide-react';
+
+
+import { AlertTriangle, ChevronRight, Download, ListFilter } from 'lucide-react';
+
+
 import { PATHS } from '@/routes/paths';
 import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/Badge';
@@ -65,9 +69,10 @@ export const ApmPageShell = ({
   error = false,
   children,
 }: ApmPageShellProps) => {
-  const navigate = useNavigate();
-
   return (
+
+
+
     <div className="space-y-6">
       <nav aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1 text-[11.5px] text-fg-dim">

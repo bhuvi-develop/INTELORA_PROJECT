@@ -4,7 +4,7 @@ import { formatNumber, formatPercent } from '@/utils/format';
 import { Card } from '@/components/ui/Card';
 import { RadialGauge } from '@/components/charts';
 import { Badge } from '@/components/ui/Badge';
-import { OEE_TARGET, OEE_WORLD_CLASS } from '@/engine/derive';
+import { OEE_TARGET } from '@/engine/derive';
 import { KpiCard } from '@/components/common';
 import { motion } from 'framer-motion';
 
@@ -64,7 +64,7 @@ export const ExecutiveOverviewPanel = () => {
           { label: 'Availability', value: oee.availability, target: 90, color: 'rgb(59 130 246)', desc: 'Uptime vs Planned Production Time.' },
           { label: 'Performance', value: oee.performance, target: 95, color: 'rgb(99 102 241)', desc: 'Actual vs Maximum Possible Speed.' },
           { label: 'Quality', value: oee.quality, target: 99, color: 'rgb(168 85 247)', desc: 'Good parts vs Total parts produced.' },
-        ].map((metric, idx) => (
+        ].map((metric) => (
           <motion.div
             key={metric.label}
             whileHover={{ y: -8, scale: 1.02 }}

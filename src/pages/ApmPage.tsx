@@ -35,7 +35,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Select } from '@/components/ui/Select';
 import { AssetStatusMatrix, BarTrend, LineTrend, RiskDistributionBar } from '@/components/charts';
 import type { SeriesDef } from '@/components/charts';
-import { AiPanel } from '@/components/ai';
+
 import {
   HealthBandBadge,
   HealthMeter,

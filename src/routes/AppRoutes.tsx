@@ -51,7 +51,7 @@ import { HistoricalReportsPage } from '@/pages/HistoricalReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { AlertsPage } from '@/pages/AlertsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { WelcomeScreen } from '@/pages/WelcomeScreen';
+
 
 // OEE Module Pages
 import { FleetAnalyticsPage } from '@/pages/oee/FleetAnalyticsPage';

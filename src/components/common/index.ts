@@ -1,4 +1,4 @@
-﻿export { Logo, LogoMark, SidebarLogo } from './Logo';
+export { Logo, LogoMark, SidebarLogo } from './Logo';
 export type { LogoProps, LogoMarkProps } from './Logo';
 export { TrendPill } from './TrendPill';
 export type { TrendPillProps } from './TrendPill';
@@ -30,4 +30,3 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { ConnectionBanner } from './ConnectionBanner';
 export { ThemeSwitch } from './ThemeSwitch';
 export * from './KpiCard';
-
